@@ -1,0 +1,38 @@
+MEMORY FILE - GOEC FLUTTER PROJECT
+
+PRIME DIRECTIVE: Fix Flutter build errors 
+
+PREVIOUS ISSUE: ✅ FIXED - Core library desugaring for flutter_local_notifications
+- ✅ Added isCoreLibraryDesugaringEnabled = true to compileOptions
+- ✅ Added dependencies block with coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+CURRENT ISSUE: ✅ FIXED - R8/ProGuard rules missing for Razorpay dependency
+
+CHANGES IMPLEMENTED:
+- ✅ Created proguard-rules.pro file with Razorpay-specific keep rules
+- ✅ Added -keep class com.razorpay.** { *; } to prevent R8 removal
+- ✅ Added -dontwarn proguard.annotation.** and -keep class proguard.annotation.** { *; }
+- ✅ Updated release buildType in build.gradle.kts with isMinifyEnabled = true
+- ✅ Added proguardFiles configuration to apply the rules
+
+PROJECT STRUCTURE:
+- Flutter project located in: goec_flutter/
+- Android config: goec_flutter/android/app/build.gradle.kts
+- ProGuard rules: goec_flutter/android/app/proguard-rules.pro
+- Uses Kotlin DSL for Gradle configuration
+- Current Java compatibility: VERSION_11
+
+SOLUTION APPLIED:
+ProGuard rules prevent R8 from removing Razorpay classes and ProGuard annotations during release build optimization
+
+MODE: ACT (changes implemented)
+
+NEXT STEPS FOR USER:
+1. Test with: flutter build apk --release
+2. If successful, try: flutter build appbundle --release for Play Store
+
+USER RULES:
+- Must read existing files before editing
+- Use Windows-compatible commands
+- Follow development team best practices
+- Maintain simplicity 
