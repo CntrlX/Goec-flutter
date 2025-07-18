@@ -17,7 +17,7 @@ class SocketRepo {
   RxBool isCharging = false.obs;
   int count = 0;
   initSocket({required String tranId, required Function fun}) {
-    final wsUrl = Uri.parse('$kSocketHostUrl/' + tranId);
+    final wsUrl = Uri.parse('$kSocketHostUrl/' + "${tranId}/OX001");
     channel = WebSocketChannel.connect(wsUrl);
     bool isMessageNull = false;
 

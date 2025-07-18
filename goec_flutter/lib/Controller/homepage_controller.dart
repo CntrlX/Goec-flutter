@@ -43,7 +43,8 @@ class HomePageController extends GetxController {
   RxInt reload = 0.obs;
   // RxBool isCharging = false.obs;
   //NEW HELP PAGE STARTS
-  Rx<CarouselController> carouselController = CarouselController().obs;
+  Rx<carousel.CarouselSliderController> carouselController =
+      carousel.CarouselSliderController().obs;
   RxDouble currentIndex = 0.0.obs;
   String phnNumber = "+919778687615";
   RxList carouselText = [

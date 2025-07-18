@@ -376,10 +376,8 @@ class MapFunctions {
         onTap: () async {
           MapFunctions().isFocused = false;
           kLog(carouselIndex);
-          controller.carouselController.value.animateTo(
-              carouselIndex.toDouble(),
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut);
+          controller.carouselController.value.animateToPage(carouselIndex,
+              duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
           kLog(latLng);
           await MapFunctions().animateToNewPosition(latLng);
         },
