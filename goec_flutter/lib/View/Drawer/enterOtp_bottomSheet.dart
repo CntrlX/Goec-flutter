@@ -13,7 +13,10 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class EnterOtpSheet extends StatelessWidget {
-  const EnterOtpSheet({super.key});
+  final String? phoneNumber;
+  final String? autoOtp;
+
+  const EnterOtpSheet({super.key, this.phoneNumber, this.autoOtp});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +25,13 @@ class EnterOtpSheet extends StatelessWidget {
     // RxBool isFocus = false.obs;
     // LoginPageController? loginPageController;
     TextEditingController otpController = TextEditingController();
-    String phone = '+91';
+    String phone = phoneNumber ?? '+91';
+
+    // TODO: DELETE IN PRODUCTION - Auto-fill OTP if provided
+    if (autoOtp != null) {
+      otpController.text = autoOtp!;
+    }
+
     // late Timer timer;
     // RxInt s = 30.obs;
 

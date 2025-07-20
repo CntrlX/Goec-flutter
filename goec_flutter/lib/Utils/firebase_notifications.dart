@@ -19,7 +19,8 @@ class FireBaseNotification {
 
   init() async {
     await requestPermission();
-    var initializationSettingsAndroid = AndroidInitializationSettings('logo');
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     var initializationSettingsIOS = DarwinInitializationSettings();
     var initSetttings = InitializationSettings(
         android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
@@ -114,7 +115,6 @@ class FireBaseNotification {
               NotificationDetails(
                 android: AndroidNotificationDetails(
                   channel.id, channel.name,
-                  icon: 'logo',
                   playSound: false,
                   fullScreenIntent: false,
                   ongoing: false,

@@ -22,7 +22,23 @@ class OtpNumberPageController extends GetxController {
   void onInit() {
     // / implement onInit
     super.onInit();
-    phone = Get.arguments == null ? '' : Get.arguments;
+    // TODO: DELETE IN PRODUCTION - Handle new arguments format with OTP for auto-fill
+    if (Get.arguments != null) {
+      if (Get.arguments is List) {
+        // New format: [phone, otp]
+        phone = Get.arguments[0];
+        String? autoOtp = Get.arguments[1];
+        if (autoOtp != null) {
+          otpController.text = autoOtp;
+        }
+      } else {
+        // Old format: just phone
+        phone = Get.arguments;
+      }
+    } else {
+      phone = '';
+    }
+    // phone = Get.arguments == null ? '' : Get.arguments;
     startTimer();
   }
 
@@ -43,9 +59,19 @@ class OtpNumberPageController extends GetxController {
   }
 
   resendOTP() async {
-    LoginPageController _loginPageController = Get.find();
-    bool res = await _loginPageController.login();
-    if (res) startTimer();
+    // TODO: DELETE IN PRODUCTION - Using workaround function to get OTP for auto-fill
+    showLoading(kLoading);
+    String? otp = await CommonFunctions().sendOtpAndGetOtp(phone);
+    hideLoading();
+    if (otp != null) {
+      otpController.text = otp;
+      startTimer();
+    } else {
+      showError('Failed to resend OTP. Try again.');
+    }
+    // LoginPageController _loginPageController = Get.find();
+    // bool res = await _loginPageController.login();
+    // if (res) startTimer();
   }
 
   verifyOTP() async {

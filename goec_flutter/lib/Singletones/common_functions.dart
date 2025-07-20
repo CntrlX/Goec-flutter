@@ -474,6 +474,20 @@ class CommonFunctions {
     }
   }
 
+  // TODO: DELETE IN PRODUCTION - Workaround function to get OTP for auto-fill
+  Future<String?> sendOtpAndGetOtp(String username) async {
+    logger.i(username);
+    var res = await CallAPI().getData(
+      kApi_user_url + 'sendOtp/' + username.trim(),
+    );
+    if (res.statusCode == 200 && res.body['status']) {
+      logger.d(res.body['otp']);
+      return res.body['otp']; // Return the OTP for auto-fill
+    } else {
+      return null;
+    }
+  }
+
 ///////////////////////////////DONE////////////////////////////////
   Future<ResponseModel> verifyOTP(String username, String otp) async {
     var res = await CallAPI().putData(

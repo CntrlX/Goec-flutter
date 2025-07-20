@@ -17,7 +17,7 @@ class SocketRepo {
   RxBool isCharging = false.obs;
   int count = 0;
   initSocket({required String tranId, required Function fun}) {
-    final wsUrl = Uri.parse('$kSocketHostUrl/' + "${tranId}/OX001");
+    final wsUrl = Uri.parse('$kSocketHostUrl' + "${tranId}");
     channel = WebSocketChannel.connect(wsUrl);
     bool isMessageNull = false;
 
@@ -35,6 +35,7 @@ class SocketRepo {
       fun(isMessageNull ? null : jsonDecode(message));
       isCharging.value = true;
     }).onDone(() {
+      logger.e(wsUrl);
       logger.e('connection closed with ocpp');
       if (Get.currentRoute == Routes.chargingPageRoute &&
           Get.isDialogOpen == true) Get.back();

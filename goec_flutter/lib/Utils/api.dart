@@ -36,6 +36,7 @@ class CallAPI {
       ).timeout(Duration(seconds: timeOutSec), onTimeout: () {
         return http.Response('Error', 408);
       });
+      kLog('request url: $url  res.body: ${res.body}');
       log('post request end');
       var body;
       if (res.statusCode == 200 || res.statusCode == 201)

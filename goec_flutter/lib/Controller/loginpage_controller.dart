@@ -51,16 +51,19 @@ class LoginPageController extends GetxController {
       EasyLoading.showInfo('Please enter phone number');
       return false;
     }
-    bool res = await CommonFunctions()
-        .sendOtp('+${country.value}${phoneController.text}');
+    // TODO: DELETE IN PRODUCTION - Using workaround function to get OTP for auto-fill
+    String? otp = await CommonFunctions()
+        .sendOtpAndGetOtp('+${country.value}${phoneController.text}');
+    // bool res = await CommonFunctions()
+    //     .sendOtp('+${country.value}${phoneController.text}');
     hideLoading();
-    if (res) {
+    if (otp != null) {
       Get.toNamed(Routes.enterotppageRoute,
-          arguments: '+${country.value}${phoneController.text}');
+          arguments: ['+${country.value}${phoneController.text}', otp]);
     } else {
       showError('Failed to login. Try again.');
     }
-    return res;
+    return otp != null;
   }
 
   onSkip() {

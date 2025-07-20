@@ -39,11 +39,14 @@ class GetOtpSheet extends StatelessWidget {
         );
       } else {
         showLoading(kLoading);
-        bool res = await CommonFunctions().sendOtp(textfield.value);
+        // TODO: DELETE IN PRODUCTION - Using workaround function to get OTP for auto-fill
+        String? otp = await CommonFunctions().sendOtpAndGetOtp(textfield.value);
+        // bool res = await CommonFunctions().sendOtp(textfield.value);
         hideLoading();
-        if (res) {
+        if (otp != null) {
           Get.back();
-          Get.bottomSheet(EnterOtpSheet());
+          Get.bottomSheet(
+              EnterOtpSheet(phoneNumber: textfield.value, autoOtp: otp));
         } else {
           showError('Failed to login. Try again.');
         }

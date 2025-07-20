@@ -1,4 +1,4 @@
-const String kSocketHostUrl = 'ws://13.203.2.34:5500';
+const String kSocketHostUrl = 'ws://13.203.2.34/mobile-ws/';
 const String kApi_vehicle_url = 'http://13.203.2.34:5050/api/v1/vehicle/';
 const String kApi_rfid_url = 'http://13.203.2.34:5050/api/v1/';
 const String kApi_station_url =
