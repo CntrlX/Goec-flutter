@@ -52,34 +52,40 @@ class CallAPI {
   }
 
 /////////GET DATA/////////////////
-  Future<ResponseModel> getData(String url) async {
-    var body;
-    log('GET + $url');
-    try {
-      http.Response res = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Content-type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer ${appData.token}',
-        },
-      ).timeout(Duration(seconds: timeOutSec), onTimeout: () {
-        return http.Response('Error', 408);
-      });
-      if (res.statusCode == 200) {
-        body = json.decode(res.body);
-      } else
-        logger.e(res.statusCode);
+Future<ResponseModel> getData(String url) async {
+  var body;
+  log('GET + $url');
 
-      return ResponseModel(statusCode: res.statusCode, body: body);
-    } on Exception catch (e) {
-      logger.e(e.toString());
-      hideLoading();
-      showError('Failed to get data');
+  try {
+    http.Response res = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ${appData.token}',
+      },
+    );
+
+    if (res.statusCode == 200) {
+      body = json.decode(res.body);
+    } else {
+      logger.e(res.statusCode);
     }
 
-    return ResponseModel(statusCode: 404, body: null);
+    logger.e(res.body);
+
+    return ResponseModel(
+      statusCode: res.statusCode,
+      body: body,
+    );
+  } on Exception catch (e) {
+    logger.e(e.toString());
+    hideLoading();
+    showError('Failed to get data');
   }
+
+  return ResponseModel(statusCode: 404, body: null);
+}
 
 /////////PUT DATA/////////////////
   Future<ResponseModel> putData(Map<String, dynamic> data, String url) async {
