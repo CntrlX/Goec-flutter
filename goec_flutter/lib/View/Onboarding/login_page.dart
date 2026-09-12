@@ -27,7 +27,7 @@ class LoginPage extends GetView<LoginPageController> {
               CustomCards(
                 image: "assets/images/onboarding_1.png",
                 prefixTitle: "Locate ",
-                highlightTitle: "chargers",
+                highlightTitle: "Chargers",
                 subText:
                     "Find nearby charging stations with real-time availability.",
               ),

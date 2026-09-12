@@ -23,6 +23,7 @@ class LoginPageController extends GetxController {
   RxString countryFlag = "🇳🇵".obs;
   RxString countryCode = "NP".obs;
   RxBool isPhoneValid = false.obs;
+  RxBool isFormValid = false.obs;
 
   void setCountry({required String dialCode, required String flag, required String code}) {
     country.value = dialCode.replaceAll('+', '');
@@ -40,6 +41,13 @@ class LoginPageController extends GetxController {
     } else {
       isPhoneValid.value = clean.length >= 7;
     }
+  }
+
+  void _validateForm() {
+    final name = nameEditingController.text.trim();
+    final email = mailEditingController.text.trim();
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    isFormValid.value = name.isNotEmpty && email.isNotEmpty && emailRegex.hasMatch(email);
   }
 
   void nameTextfieldColorChange() {
@@ -61,6 +69,8 @@ class LoginPageController extends GetxController {
     phoneController.addListener(() {
       _validatePhone(phoneController.text);
     });
+    nameEditingController.addListener(_validateForm);
+    mailEditingController.addListener(_validateForm);
     super.onInit();
   }
 

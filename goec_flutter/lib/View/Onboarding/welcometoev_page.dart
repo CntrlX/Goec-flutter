@@ -1,120 +1,277 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freelancer_app/Controller/loginpage_controller.dart';
-import 'package:freelancer_app/View/Widgets/appbar.dart';
-import 'package:freelancer_app/View/Widgets/appbutton.dart';
-import 'package:freelancer_app/View/Widgets/apptext.dart';
-import 'package:freelancer_app/View/Widgets/textfield.dart';
-import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
-import 'package:linear_progress_bar/linear_progress_bar.dart';
+
+import '../../Controller/loginpage_controller.dart';
+import '../../Utils/toastUtils.dart';
+import '../../constants.dart';
+import '../Widgets/customText.dart';
+import '../Widgets/unfocus_wrapper.dart';
 
 class WelcomeToEvPage extends GetView<LoginPageController> {
   const WelcomeToEvPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    size = MediaQuery.of(context).size;
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: kwhite,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(size.height * 0.09),
-          child: CustomAppBar(),
-        ),
-        body: SingleChildScrollView(
-          child: Column(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: UnfocusWrapper(
+        child: SafeArea(
+          child: Stack(
             children: [
-              LinearProgressBar(
-                maxSteps: 5,
-                progressType:
-                    LinearProgressBar.progressTypeLinear, // Use Linear progress
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xff00FFB3)),
-                currentStep: 3,
-                minHeight: 8.h,
-                progressColor: Color(0xff00FFB3),
-                backgroundColor: Colors.transparent,
-              ),
-              Padding(
-                padding: EdgeInsets.only(
-                  left: size.width * 0.055,
-                  right: size.width * 0.055,
-                  top: size.height * 0.020,
-                ),
+              // Scrollable Content
+              Positioned.fill(
                 child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        height: size.height * 0.07,
-                      ),
-                      CustomBigText(text: "Welcome to India’s"),
-                      SizedBox(
-                        height: size.height * 0.002,
-                      ),
-                      CustomBigText(text: "largest EV Charging Network"),
-                      SizedBox(
-                        height: size.height * 0.015,
-                      ),
-                      CustomSmallText(
-                          text: "Enter your Name & Email to get more"),
-                      SizedBox(
-                        height: size.height * 0.001,
-                      ),
-                      CustomSmallText(text: "personalised Experiance"),
-                      SizedBox(
-                        height: size.height * 0.045,
-                      ),
+                      height(40.h),
 
-                      //UserNameTextfield
+                      // Headline & Subtitle Group
                       Obx(
-                        () => AppTextField(
-                          color: controller.enablenameTextfield == true
-                              ? Color(0xff0047C3)
-                              : Color(0xffE0E0E0),
-                          Controller: controller.nameEditingController,
-                          onChanged: (String val) {},
-                          onTap: () {
-                            controller.nameTextfieldColorChange();
-                          },
-                          hintText: "Jane Doe",
-                          icon: Image.asset(
-                            "assets/images/face.png",
+                            () {
+                              final countryName =
+                                  controller.country.value == '977'
+                                      ? "Nepal's"
+                                      : "India's";
+                              return RichText(
+                                textAlign: TextAlign.left,
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontFamily: kFontFamily,
+                                    fontSize: 26.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: kNeutralPrimary,
+                                    height: 1.35,
+                                  ),
+                                  children: [
+                                    TextSpan(text: 'Welcome to $countryName \n'),
+                                    WidgetSpan(
+                                      alignment: PlaceholderAlignment.middle,
+                                      child: ShaderMask(
+                                        shaderCallback: (bounds) =>
+                                            kOnboardingGradient.createShader(
+                                          Rect.fromLTWH(
+                                              0, 0, bounds.width, bounds.height),
+                                        ),
+                                        child: Text(
+                                          'Largest ',
+                                          style: TextStyle(
+                                            fontFamily: kFontFamily,
+                                            fontSize: 26.sp,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const TextSpan(
+                                      text: 'EV charging \nnetwork',
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          keyboardtype: TextInputType.name,
-                        ),
-                      ),
-                      SizedBox(
-                        height: size.height * 0.025,
-                      ),
-                      Obx(
-                        () => AppTextField(
-                          color: controller.enablemailTextfield == true
-                              ? Color(0xff0047C3)
-                              : Color(0xffE0E0E0),
-                          onTap: () {
-                            controller.mailTextFieldColorChange();
-                          },
-                          hintText: "Email",
-                          icon: Image.asset("assets/images/sms.png"),
-                          keyboardtype: TextInputType.emailAddress,
-                          Controller: controller.mailEditingController,
-                          onChanged: (String val) {},
-                        ),
-                      ),
 
-                      SizedBox(
-                        height: size.height * 0.25,
+                          height(4.h),
+
+                          // Subtitle
+                          CustomText(
+                            text:
+                                'Add your name and email so we can personalise your charging experience.',
+                            textAlign: TextAlign.left,
+                            size: 14.sp,
+                            fontWeight: FontWeight.w400,
+                            color: kNeutralSecondary,
+                            height: 1.4,
+                          ),
+
+                          height(16.h),
+
+                          // Form Section
+                          // 1. Full Name
+                          CustomText(
+                            text: 'Full name',
+                            size: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: kNeutralPrimary,
+                          ),
+                          height(8.h),
+                          Container(
+                            height: 59.h,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: const Color(0xFFE6EAEF),
+                                width: 1,
+                              ),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 16.w),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.person_outline_rounded,
+                                  size: 18.sp,
+                                  color: const Color(0xFFA0AABD),
+                                ),
+                                width(12.w),
+                                Container(
+                                  width: 0.66,
+                                  height: 24.h,
+                                  color: const Color(0xFFE6EAEF),
+                                ),
+                                width(12.w),
+                                Expanded(
+                                  child: TextField(
+                                    controller:
+                                        controller.nameEditingController,
+                                    keyboardType: TextInputType.name,
+                                    textInputAction: TextInputAction.next,
+                                    textCapitalization:
+                                        TextCapitalization.words,
+                                    style: TextStyle(
+                                      fontFamily: kFontFamily,
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: kNeutralPrimary,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: 'Jane Doe',
+                                      hintStyle: TextStyle(
+                                        fontFamily: kFontFamily,
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.w400,
+                                        color: const Color(0xFFA0AABD),
+                                      ),
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          height(16.h),
+
+                          // 2. Email Address
+                          CustomText(
+                            text: 'Email address',
+                            size: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: kNeutralPrimary,
+                          ),
+                          height(8.h),
+                          Container(
+                            height: 59.h,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: const Color(0xFFE6EAEF),
+                                width: 1,
+                              ),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 16.w),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.mail_outline_rounded,
+                                  size: 18.sp,
+                                  color: const Color(0xFFA0AABD),
+                                ),
+                                width(12.w),
+                                Container(
+                                  width: 0.66,
+                                  height: 24.h,
+                                  color: const Color(0xFFE6EAEF),
+                                ),
+                                width(12.w),
+                                Expanded(
+                                  child: TextField(
+                                    controller:
+                                        controller.mailEditingController,
+                                    keyboardType:
+                                        TextInputType.emailAddress,
+                                    textInputAction: TextInputAction.done,
+                                    style: TextStyle(
+                                      fontFamily: kFontFamily,
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: kNeutralPrimary,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: 'you@example.com',
+                                      hintStyle: TextStyle(
+                                        fontFamily: kFontFamily,
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.w400,
+                                        color: const Color(0xFFA0AABD),
+                                      ),
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                    onSubmitted: (_) {
+                                      if (controller.isFormValid.value) {
+                                        controller.saveUserNameEmail();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          height(120.h),
+                        ],
                       ),
-                      AppButton(
-                        text: "Submit",
-                        onTap: () {
-                          controller.saveUserNameEmail();
-                          // Get.toNamed(Routes.addvehiclesRoute);
-                        },
-                      ),
-                    ],
+                    ),
                   ),
+
+                  // Bottom Submit Button with Dynamic State
+                  Positioned(
+                    left: 24.w,
+                    right: 24.w,
+                    bottom: 24.h,
+                    child: Obx(
+                      () {
+                        final isValid = controller.isFormValid.value;
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 56.h,
+                          child: ElevatedButton(
+                            onPressed: isValid
+                                ? () => controller.saveUserNameEmail()
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kBrandPrimaryBlue,
+                              disabledBackgroundColor: const Color(0xFFA0AABD),
+                              foregroundColor: Colors.white,
+                              disabledForegroundColor: Colors.white,
+                              elevation: isValid ? 4 : 0,
+                              shadowColor: isValid
+                                  ? kBrandPrimaryBlue.withValues(alpha: 0.35)
+                                  : Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100.r),
+                              ),
+                            ),
+                            child: CustomText(
+                              text: 'Submit',
+                              size: 16.sp,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4,
+                              color: Colors.white,
+                            ),
+                          ),
+                    );
+                  },
                 ),
               ),
             ],

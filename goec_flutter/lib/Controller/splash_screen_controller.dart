@@ -37,6 +37,8 @@ class SplashScreenController extends GetxController {
 
       if (res.username.isEmpty) {
         Get.offAllNamed(Routes.loginpageRoute);
+      } else if (res.name.isEmpty || res.email.isEmpty) {
+        Get.offAllNamed(Routes.addNameEmailPageRoute);
       } else {
         Get.offAllNamed(Routes.homePageRoute);
       }
