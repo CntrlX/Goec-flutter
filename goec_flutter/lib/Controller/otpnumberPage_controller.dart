@@ -8,58 +8,62 @@ import 'package:freelancer_app/Singletones/app_data.dart';
 import 'package:freelancer_app/Model/apiResponseModel.dart';
 import 'package:freelancer_app/Utils/SharedPreferenceUtils.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
-import 'package:freelancer_app/Controller/loginpage_controller.dart';
 
 class OtpNumberPageController extends GetxController {
   RxInt isIndex = (-1).obs;
   RxBool isFocus = false.obs;
-  // LoginPageController? loginPageController;
+  RxBool isOtpValid = false.obs;
   TextEditingController otpController = TextEditingController();
   String phone = '+91';
-  late Timer timer;
+  Timer? timer;
   RxInt s = 30.obs;
+
   @override
   void onInit() {
-    // / implement onInit
     super.onInit();
-    // TODO: DELETE IN PRODUCTION - Handle new arguments format with OTP for auto-fill
     if (Get.arguments != null) {
       if (Get.arguments is List) {
-        // New format: [phone, otp]
-        phone = Get.arguments[0];
-        String? autoOtp = Get.arguments[1];
+        phone = Get.arguments[0] ?? '';
+        String? autoOtp = Get.arguments.length > 1 ? Get.arguments[1] : null;
         if (autoOtp != null) {
           otpController.text = autoOtp;
+          isOtpValid.value = autoOtp.trim().length >= 5;
         }
       } else {
-        // Old format: just phone
-        phone = Get.arguments;
+        phone = Get.arguments.toString();
       }
     } else {
       phone = '';
     }
-    // phone = Get.arguments == null ? '' : Get.arguments;
+
+    otpController.addListener(() {
+      final text = otpController.text.trim();
+      isOtpValid.value = text.length >= 5;
+    });
+
     startTimer();
   }
 
-  onClose() {
-    timer.cancel();
+  @override
+  void onClose() {
+    timer?.cancel();
     super.onClose();
   }
 
   startTimer() {
+    timer?.cancel();
     s.value = 30;
-    timer = Timer.periodic(Duration(seconds: 1), (_timer) {
-      if (s <= 0) {
+    timer = Timer.periodic(const Duration(seconds: 1), (_timer) {
+      if (s.value <= 0) {
         s.value = 0;
         _timer.cancel();
-      } else
-        s--;
+      } else {
+        s.value--;
+      }
     });
   }
 
   resendOTP() async {
-    // TODO: DELETE IN PRODUCTION - Using workaround function to get OTP for auto-fill
     showLoading(kLoading);
     String? otp = await CommonFunctions().sendOtpAndGetOtp(phone);
     hideLoading();
@@ -69,17 +73,13 @@ class OtpNumberPageController extends GetxController {
     } else {
       showError('Failed to resend OTP. Try again.');
     }
-    // LoginPageController _loginPageController = Get.find();
-    // bool res = await _loginPageController.login();
-    // if (res) startTimer();
   }
 
   verifyOTP() async {
-    // kLog(otpController.text);
-    if (otpController.text.length != 5) return;
+    if (otpController.text.trim().isEmpty) return;
     showLoading(kLoading);
     ResponseModel res =
-        await CommonFunctions().verifyOTP(phone, otpController.text);
+        await CommonFunctions().verifyOTP(phone, otpController.text.trim());
     hideLoading();
     if (res.statusCode == 200) {
       appData.token = res.body['result']['token'];

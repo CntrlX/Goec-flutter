@@ -8,43 +8,41 @@ import '../Utils/routes.dart';
 
 class SplashScreenController extends GetxController {
   RxInt reload = 0.obs;
+
   @override
-  void onReady() {
-    // / implement onReady
-    super.onReady();
+  void onInit() {
+    super.onInit();
+    _checkAuthAndNavigate();
   }
 
-  void onInit() async {
-    // / implement onInit
-    super.onInit();
+  Future<void> _checkAuthAndNavigate() async {
+    try {
+      // 2-second splash delay for smooth visual transition
+      await Future.delayed(const Duration(seconds: 2));
 
-    appData.token = await getString('token') ?? appData.token;
-    appData.userModel.value.username = await getString('username') ?? '';
-    // kLog('username: ' + appData.userModel.value.username);
-    // appData.userModel.value.username = '9778203391';
-    // appData.token =
-    //     'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5Nzc4MjAzMzkxIiwic2NvcGVzIjpbeyJhdXRob3JpdHkiOiJST0xFX0FETUlOIn1dLCJpc3MiOiJodHRwOi8vZXpib3QuY29tIiwiaWF0IjoxNjkwODc5NDMyLCJleHAiOjE3MjI0MTU0MzJ9.ietGzHoA6IZklUiPuBF1oWpwxya46Hb76To9ZVWL1Ik';
-    kLog('username: ' + appData.userModel.value.username);
-    kLog(appData.token);
+      appData.token = await getString('token') ?? '';
+      appData.userModel.value.username = await getString('username') ?? '';
 
-    var res = await CommonFunctions().getUserProfile();
-    // kLog(res.username);
-    if (res.username.isEmpty) {
+      kLog('username: ${appData.userModel.value.username}');
+      kLog('token: ${appData.token}');
+
+      if (appData.token.isEmpty || appData.userModel.value.username.isEmpty) {
+        Get.offAllNamed(Routes.loginpageRoute);
+        return;
+      }
+
+      var res = await CommonFunctions()
+          .getUserProfile()
+          .timeout(const Duration(seconds: 4), onTimeout: () => kUserModel);
+
+      if (res.username.isEmpty) {
+        Get.offAllNamed(Routes.loginpageRoute);
+      } else {
+        Get.offAllNamed(Routes.homePageRoute);
+      }
+    } catch (e) {
+      kLog('SplashScreen navigation error: $e');
       Get.offAllNamed(Routes.loginpageRoute);
-    } else {
-      // BookingModel _bookingModel = await CommonFunctions().getActiveBooking();
-      //_bookingModel.toJson());
-      // if (_bookingModel.bookingId != -1) {
-      //   ChargingStatusModel _status = await CommonFunctions()
-      //       .getChargingStatus("${_bookingModel.bookingId}");
-      //  _status.toJson());
-      //   appData.qr =
-      //       '0-${_bookingModel.chargerName}-${_bookingModel.chargingpoint}-${_bookingModel.bookedvia}';
-      //   Get.offAllNamed(Routes.chargingPageRoute,
-      //       arguments: [appData.qr, _bookingModel]);
-      // } else {
-      Get.offAllNamed(Routes.homePageRoute);
-      // }
     }
   }
 }

@@ -19,7 +19,28 @@ class LoginPageController extends GetxController {
   RxBool enablemailTextfield = false.obs;
   RxInt selectedIndex = 0.obs;
   RxString textfield = "".obs;
-  RxString country = "91".obs;
+  RxString country = "977".obs;
+  RxString countryFlag = "🇳🇵".obs;
+  RxString countryCode = "NP".obs;
+  RxBool isPhoneValid = false.obs;
+
+  void setCountry({required String dialCode, required String flag, required String code}) {
+    country.value = dialCode.replaceAll('+', '');
+    countryFlag.value = flag;
+    countryCode.value = code;
+    _validatePhone(phoneController.text);
+  }
+
+  void _validatePhone(String val) {
+    final clean = val.trim();
+    textfield.value = clean;
+    // Nepal numbers are typically 10 digits; standard international 7-15 digits
+    if (country.value == "977" || country.value == "91") {
+      isPhoneValid.value = clean.length >= 10;
+    } else {
+      isPhoneValid.value = clean.length >= 7;
+    }
+  }
 
   void nameTextfieldColorChange() {
     enablenameTextfield.value = true;
@@ -37,12 +58,16 @@ class LoginPageController extends GetxController {
 
   @override
   void onInit() {
-    // / implement onInit
-    // textEditingController.addListener(() {
-    //   enablenameTextfield.value = nameEditingController.text.isNotEmpty;
-    // });
-
+    phoneController.addListener(() {
+      _validatePhone(phoneController.text);
+    });
     super.onInit();
+  }
+
+  @override
+  void onClose() {
+    // phoneController.dispose();
+    super.onClose();
   }
 
   Future<bool> login() async {

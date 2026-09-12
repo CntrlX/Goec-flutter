@@ -3,9 +3,8 @@ import 'package:get/get.dart';
 import 'Utils/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:freelancer_app/constants.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:freelancer_app/constants.dart';
 import 'package:freelancer_app/Utils/routes.dart';
 import 'package:freelancer_app/Singletones/injector.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -42,7 +41,7 @@ class MyApp extends StatelessWidget {
         splitScreenMode: true,
         builder: ((context, child) {
           return GetMaterialApp(
-            title: 'GOEC',
+            title: 'GOECM',
             debugShowCheckedModeBanner: false,
             builder: EasyLoading.init(
               builder: (context, child) => MediaQuery(
@@ -53,10 +52,7 @@ class MyApp extends StatelessWidget {
             ),
             // builder: EasyLoading.init(),
             theme: ThemeData(
-              textTheme: GoogleFonts.poppinsTextTheme(
-                Theme.of(context).textTheme.apply(),
-              ),
-              fontFamily: 'Poppins',
+              fontFamily: kFontFamily,
               primarySwatch: Colors.grey,
               scaffoldBackgroundColor: kscaffoldBackgroundColor,
             ),

@@ -17,6 +17,8 @@ import 'Singletones/app_data.dart';
 late Size size = Size(0, 0);
 double zoom = 15;
 
+const String kFontFamily = 'Nunito Sans';
+
 final Color kblack = Colors.black;
 final Color kwhite = Colors.white;
 final Color kamber = Colors.amber;
@@ -32,8 +34,24 @@ final Color kDefaultHomePageBackgroundColor = Color(0xffF0F1F6);
 final Color kBusyColor = Color(0xffF9E4D5);
 final Color kBusyBorderColor = Color(0xffE37A2D);
 
+// Brand & Design System Colors
+final Color kBrandPrimaryBlue = const Color(0xFF0049C2);
+final Color kBrandPrimaryMint = const Color(0xFF03E8BE);
+final Color kNeutralPrimary = const Color(0xFF121D31);
+final Color kNeutralSecondary = const Color(0xFF68768E);
+final Color kNeutralMuted = const Color(0xFFA0AABD);
+final Color kInactiveDotColor = const Color(0xFFDBEAFE);
+
+// Linear gradient (Figma: 133deg, rgba(0,73,194,1) 4% -> rgba(2,232,189,1) 100%)
+final LinearGradient kOnboardingGradient = const LinearGradient(
+  begin: Alignment(-0.68, -0.73),
+  end: Alignment(0.68, 0.73),
+  colors: [Color(0xFF0049C2), Color(0xFF02E8BD)],
+  stops: [0.04, 1.0],
+);
+
 //appStrings
-final String kAppName = 'Freelancer app';
+final String kAppName = 'GO EC Merchantile';
 final String kLoading = 'Loading...';
 //login-screen
 final String kLoginSkipButton = 'skip';
@@ -247,41 +265,41 @@ final OrderModel kOrderModel = OrderModel(
 //app-Textstyles
 
 final TextStyle kAppSkipButtonTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 14,
   fontWeight: FontWeight.w600,
   color: kwhite,
 );
 
 final TextStyle kAppJoinGOECTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 20.sp,
   fontWeight: FontWeight.w500,
   color: kwhite,
 );
 final TextStyle kAppSignupStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 20.sp,
   fontWeight: FontWeight.w600,
   color: kblack,
 );
 
 final TextStyle kAppRevolutionsTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 59.sp,
   fontWeight: FontWeight.w600,
   color: Color(0xff00FFB3),
 );
 
 final TextStyle kAppBottomTextSpanTextStyle1 = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 13.sp,
   fontWeight: FontWeight.w400,
   color: Colors.black,
 );
 
 final TextStyle kAppBottomTextSpanTextStyle2 = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 13.sp,
   fontWeight: FontWeight.w400,
   color: kOnboardingColors,
@@ -289,44 +307,102 @@ final TextStyle kAppBottomTextSpanTextStyle2 = TextStyle(
 );
 
 final TextStyle kAppBigTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 20.sp,
   fontWeight: FontWeight.w600,
   color: Color(0xff828282),
 );
 
 final TextStyle kAppSuperBigTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 30.sp,
   fontWeight: FontWeight.w600,
   color: Colors.white,
 );
 
 final TextStyle kAppSmallTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 12,
   fontWeight: FontWeight.w400,
   color: Color(0xff828282),
 );
 final TextStyle kAppSuperSmallTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 10,
   fontWeight: FontWeight.w400,
   color: Color(0xff828282),
 );
 
 final TextStyle kApphintTextStyle = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 14,
   fontWeight: FontWeight.w400,
   color: Color(0xffBDBDBD),
 );
 final TextStyle kApphintTextStyle2 = TextStyle(
-  fontFamily: "Poppins",
+  fontFamily: kFontFamily,
   fontSize: 16,
   fontWeight: FontWeight.w400,
   color: Color.fromARGB(251, 105, 105, 105),
 );
+
+// Onboarding Revamp Text Styles (Figma)
+// style_33a990a6: Nunito Sans Bold 32px, Line Height 40px (1.25)
+final TextStyle kOnboardingHeadingStyle = TextStyle(
+  fontFamily: kFontFamily,
+  fontSize: 32.sp,
+  fontWeight: FontWeight.w700,
+  height: 40 / 32,
+  color: kNeutralPrimary,
+);
+
+// ts4: Nunito Sans Bold Italic 32px, Line Height 40px (1.25)
+final TextStyle kOnboardingHighlightStyle = TextStyle(
+  fontFamily: kFontFamily,
+  fontSize: 32.sp,
+  fontWeight: FontWeight.w700,
+  fontStyle: FontStyle.italic,
+  height: 40 / 32,
+  color: Colors.white,
+);
+
+// style_82b3aa69: Nunito Sans Regular 16px, Line Height 24.38px (1.52)
+final TextStyle kOnboardingSubtitleStyle = TextStyle(
+  fontFamily: kFontFamily,
+  fontSize: 16.sp,
+  fontWeight: FontWeight.w400,
+  height: 24.38 / 16,
+  color: kNeutralSecondary,
+);
+
+// EL-f1f194d6: Nunito Sans Bold 16px, Line Height 24px (1.5), Letter Spacing 0.025em (0.4px)
+final TextStyle kOnboardingButtonTextStyle = TextStyle(
+  fontFamily: kFontFamily,
+  fontSize: 16.sp,
+  fontWeight: FontWeight.w700,
+  height: 24 / 16,
+  letterSpacing: 0.4,
+  color: Colors.white,
+);
+
+// style_082fc0f0: Nunito Sans Medium 12px, Line Height 14.38px (1.2)
+final TextStyle kOnboardingTermsMutedStyle = TextStyle(
+  fontFamily: kFontFamily,
+  fontSize: 12.sp,
+  fontWeight: FontWeight.w500,
+  height: 14.38 / 12,
+  color: kNeutralMuted,
+);
+
+// style_67ac4a96: Nunito Sans Medium 12px, Line Height 14.38px (1.2)
+final TextStyle kOnboardingTermsLinkStyle = TextStyle(
+  fontFamily: kFontFamily,
+  fontSize: 12.sp,
+  fontWeight: FontWeight.w500,
+  height: 14.38 / 12,
+  color: kBrandPrimaryBlue,
+);
+
 Logger logger = Logger();
 kLog(Object value) {
   // logger.d(value);
