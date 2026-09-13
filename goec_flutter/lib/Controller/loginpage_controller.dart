@@ -102,7 +102,10 @@ class LoginPageController extends GetxController {
   }
 
   onSkip() {
-    Get.offAllNamed(Routes.homePageRoute);
+    Get.offAllNamed(
+      Routes.homePageRoute,
+      arguments: 'requestLocation',
+    );
   }
 
   //FOR UPDATING USER NAME AND EMAIL AFTER OTP

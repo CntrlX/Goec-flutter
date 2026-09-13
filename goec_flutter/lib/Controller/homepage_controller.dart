@@ -27,6 +27,8 @@ import 'package:freelancer_app/View/Widgets/customText.dart';
 import 'package:freelancer_app/Model/stationMarkerModel.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
+import 'package:freelancer_app/Singletones/dialogs.dart';
+import 'package:freelancer_app/View/Widgets/amenity_icon.dart';
 import 'package:freelancer_app/Utils/local_notifications.dart';
 import 'package:freelancer_app/Utils/image_byte_converter.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
@@ -86,25 +88,30 @@ class HomePageController extends GetxController {
     super.onInit();
     await _initImages();
     await FireBaseNotification().init();
+
+    final requestLocation = Get.arguments == 'requestLocation';
+    final hasPermission =
+        await MapFunctions().isLocationPermissionGranted();
+
+    if (requestLocation && !hasPermission) {
+      // Let the homepage paint first, then show the Figma location sheet.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Dialogs().showLocationPermissionSheet(
+          onEnabled: () => _bootstrapLocation(),
+        );
+      });
+    } else {
+      await _bootstrapLocation();
+    }
+  }
+
+  Future<void> _bootstrapLocation() async {
     Position? pos = await MapFunctions().getCurrentPosition();
     if (pos != null) {
       getNearestChargestations(pos);
       MapFunctions().addMyPositionMarker(pos, MapFunctions().markers_homepage);
     }
-    //  else {
-    //   getNearestChargestations(Position(
-    //       headingAccuracy: 0,
-    //       altitudeAccuracy: 0,
-    //       longitude: MapFunctions().curPos.longitude,
-    //       latitude: MapFunctions().curPos.latitude,
-    //       timestamp: DateTime.now(),
-    //       accuracy: 0,
-    //       altitude: 0,
-    //       heading: 0,
-    //       speed: 0,
-    //       speedAccuracy: 0));
-    // }
-    Future.delayed(Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       MapFunctions().myPositionListener();
     });
   }
@@ -322,10 +329,10 @@ class HomePageController extends GetxController {
                                       .map(
                                         (e) => Padding(
                                           padding: EdgeInsets.only(right: 15.w),
-                                          child: SvgPicture.asset(
-                                            height: 17.sp,
-                                            'assets/svg/${e.toLowerCase()}.svg',
-                                            color: Color(0xFF8C8C8C),
+                                          child: AmenityIcon(
+                                            amenity: e.toString(),
+                                            size: 17.sp,
+                                            color: const Color(0xFF8C8C8C),
                                           ),
                                         ),
                                       )
@@ -727,15 +734,28 @@ class HomePageController extends GetxController {
   }
 
   onLocationTap() async {
-    var res = await MapFunctions().getCurrentPosition();
-    if (res != null) MapFunctions().curPos = res;
+    final maps = MapFunctions();
 
-    MapFunctions().animateToNewPosition(
-        LatLng(
-          MapFunctions().curPos.latitude,
-          MapFunctions().curPos.longitude,
-        ),
-        bearing: 0);
+    if (!await maps.isLocationPermissionGranted()) {
+      Dialogs().showLocationPermissionSheet(
+        onEnabled: () => onLocationTap(),
+      );
+      return;
+    }
+
+    final res = await maps.getCurrentPosition();
+    if (res == null) {
+      Dialogs().showLocationPermissionSheet(
+        onEnabled: () => onLocationTap(),
+      );
+      return;
+    }
+
+    maps.curPos = res;
+    maps.animateToNewPosition(
+      LatLng(res.latitude, res.longitude),
+      bearing: 0,
+    );
   }
 
   onQrScan() {

@@ -8,6 +8,7 @@ import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
 import '../Widgets/appbar.dart';
 import '../Widgets/customText.dart';
+import '../Widgets/amenity_icon.dart';
 
 class FilterScreen extends GetView<FilterScreenController> {
   const FilterScreen({super.key});
@@ -171,9 +172,15 @@ class FilterScreen extends GetView<FilterScreenController> {
                                           }),
                                           // width(size.width * .01),
                                           if (controller.selectedParent.value ==
-                                                  2 ||
-                                              controller.selectedParent.value ==
-                                                  4)
+                                              4)
+                                            AmenityIcon(
+                                              amenity: title,
+                                              size: 16,
+                                              color: Colors.grey.shade800,
+                                            )
+                                          else if (controller
+                                                  .selectedParent.value ==
+                                              2)
                                             SvgPicture.asset(
                                               'assets/svg/${title.toLowerCase()}.svg',
                                               colorFilter: ColorFilter.mode(

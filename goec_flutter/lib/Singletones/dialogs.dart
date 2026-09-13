@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'app_data.dart';
 import '../constants.dart';
 import 'package:get/get.dart';
@@ -16,9 +17,11 @@ import '../Controller/homepage_controller.dart';
 import 'package:freelancer_app/Model/orderModel.dart';
 import '../Controller/calista_cafePage_controller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:freelancer_app/View/Widgets/customText.dart';
 // import 'package:freelancer_app/Controller/qr_controller.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
+import 'package:freelancer_app/Singletones/map_functions.dart';
 // import 'package:freelancer_app/Controller/walletPage_controller.dart';
 import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
 import 'package:freelancer_app/View/Charge/charge_transaction_dialog.dart';
@@ -1076,6 +1079,186 @@ class Dialogs {
           ],
         ),
       ),
+    );
+  }
+
+  /// Location permission sheet (Figma 176:7088 / Group 176:7178).
+  Future<void> showLocationPermissionSheet({
+    VoidCallback? onEnabled,
+  }) async {
+    if (Get.isBottomSheetOpen == true) return;
+
+    final context = Get.context;
+    if (context == null) return;
+
+    // Figma (393): art 184 overlaps sheet; sheet top radius 36.
+    final artSize = 184.w;
+    final artOverhang = 109.h;
+    final sheetTopInset = 75.h;
+    final bottomInset = systemBottomInset(context);
+
+    await Get.bottomSheet(
+      BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        child: Stack(
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
+          children: [
+            // White sheet — height grows with content + nav inset
+            Padding(
+              padding: EdgeInsets.only(top: artOverhang),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(36.r),
+                    topRight: Radius.circular(36.r),
+                  ),
+                ),
+                padding: EdgeInsets.fromLTRB(
+                  16.w,
+                  sheetTopInset,
+                  16.w,
+                  16.h + bottomInset,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontFamily: kFontFamily,
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                          color: kNeutralPrimary,
+                        ),
+                        children: [
+                          const TextSpan(text: 'Enable '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: ShaderMask(
+                              blendMode: BlendMode.srcIn,
+                              shaderCallback: (bounds) =>
+                                  kOnboardingGradient.createShader(
+                                Rect.fromLTWH(
+                                  0,
+                                  0,
+                                  bounds.width,
+                                  bounds.height,
+                                ),
+                              ),
+                              child: Text(
+                                'Location Access',
+                                style: TextStyle(
+                                  fontFamily: kFontFamily,
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.w700,
+                                  fontStyle: FontStyle.italic,
+                                  height: 1.2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 16.h),
+                    CustomText(
+                      text:
+                          'Turn on location to find nearby charging stations, check availability, and get accurate directions.',
+                      size: 16.sp,
+                      fontWeight: FontWeight.w400,
+                      color: kNeutralSecondary,
+                      textAlign: TextAlign.center,
+                      height: 1.2,
+                    ),
+                    SizedBox(height: 24.h),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56.h,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final maps = MapFunctions();
+                          final alreadyGranted =
+                              await maps.isLocationPermissionGranted();
+                          if (alreadyGranted) {
+                            Get.back();
+                            onEnabled?.call();
+                            return;
+                          }
+
+                          final serviceOn =
+                              await Geolocator.isLocationServiceEnabled();
+                          var permission =
+                              await Geolocator.checkPermission();
+                          if (!serviceOn ||
+                              permission ==
+                                  LocationPermission.deniedForever) {
+                            await maps.openLocationSettingsIfNeeded();
+                            return;
+                          }
+
+                          final granted =
+                              await maps.checkLocationPermission();
+                          if (granted) {
+                            Get.back();
+                            onEnabled?.call();
+                          } else {
+                            permission =
+                                await Geolocator.checkPermission();
+                            if (permission ==
+                                LocationPermission.deniedForever) {
+                              await maps.openLocationSettingsIfNeeded();
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kBrandPrimaryBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 16.h,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100.r),
+                          ),
+                        ),
+                        child: Text(
+                          'Enable Location',
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            height: 24 / 16,
+                            letterSpacing: 0.4,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Image.asset(
+              'assets/images/location_permission_art.png',
+              width: artSize,
+              height: artSize,
+              fit: BoxFit.contain,
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.21),
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 }

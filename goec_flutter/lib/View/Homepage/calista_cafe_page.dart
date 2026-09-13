@@ -14,6 +14,7 @@ import 'package:freelancer_app/Model/evPortsModel.dart';
 import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freelancer_app/Controller/calista_cafePage_controller.dart';
+import 'package:freelancer_app/View/Widgets/amenity_icon.dart';
 
 class CalistaCafeScreen extends GetView<CalistaCafePageController> {
   const CalistaCafeScreen({super.key});
@@ -143,11 +144,13 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                                         (index) => Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            SvgPicture.asset(
-                                                'assets/svg/${controller.amenities[index].toLowerCase()}.svg',
-                                                colorFilter: ColorFilter.mode(
-                                                    Colors.grey.shade500,
-                                                    BlendMode.srcIn)),
+                                            AmenityIcon(
+                                              amenity: controller
+                                                  .amenities[index]
+                                                  .toString(),
+                                              size: 14,
+                                              color: Colors.grey.shade500,
+                                            ),
                                             width(size.width * .01),
                                             CustomText(
                                                 text:

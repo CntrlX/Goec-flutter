@@ -15,6 +15,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freelancer_app/View/Charge/charge_page.dart';
 import 'package:freelancer_app/View/Widgets/customText.dart';
+import 'package:freelancer_app/View/Widgets/amenity_icon.dart';
 import 'package:freelancer_app/View/Homepage/map_screen.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
 import 'package:freelancer_app/Utils/my_flutter_app_icons.dart';
@@ -316,8 +317,11 @@ showBottomSheetWhenClickedOnMarker(
                                   logger.i(amenities[index].toLowerCase());
                                   return Row(
                                     children: [
-                                      SvgPicture.asset(
-                                          'assets/svg/${amenities[index].toLowerCase()}.svg'),
+                                      AmenityIcon(
+                                        amenity: amenities[index].toString(),
+                                        size: 14,
+                                        color: const Color(0xff828282),
+                                      ),
                                       width(size.width * .01),
                                       Expanded(
                                         child: CustomText(

@@ -33,7 +33,10 @@ class AddVehiclesPage extends GetView<VehiclesScreenController> {
               Get.toNamed(Routes.vehicledetailspageRoute);
             },
             skiponTap: () {
-              Get.offAllNamed(Routes.homePageRoute);
+              Get.offAllNamed(
+                Routes.homePageRoute,
+                arguments: 'requestLocation',
+              );
             },
           ),
         ),

@@ -149,3 +149,15 @@ Widget width(double size) {
 Widget height(double size) {
   return SizedBox(height: size);
 }
+
+/// System nav / gesture-bar inset (3-button nav & home indicator).
+/// Use for bottom sheets & sticky CTAs under [SystemUiMode.edgeToEdge].
+/// Prefer this over padding the whole app — full-bleed screens (map) need 0.
+double systemBottomInset(BuildContext context) {
+  return MediaQuery.viewPaddingOf(context).bottom;
+}
+
+/// Spacer matching [systemBottomInset]. Drop at the end of sheet content.
+Widget systemBottomSpacer(BuildContext context) {
+  return SizedBox(height: systemBottomInset(context));
+}

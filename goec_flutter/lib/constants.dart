@@ -87,8 +87,9 @@ final String kaWalletBlue = 'assets/images/wallet1.png';
 final String kaDirection = 'assets/images/direction.png';
 final String kaLocation = 'assets/images/location.png';
 final Position kPosition = Position(
-    longitude: 78.9629,
-    latitude: 20.5937,
+    // Default fallback: Nepal (approx. geographic center)
+    longitude: 84.1240,
+    latitude: 28.3949,
     timestamp: DateTime.now(),
     altitudeAccuracy: 0,
     headingAccuracy: 0,

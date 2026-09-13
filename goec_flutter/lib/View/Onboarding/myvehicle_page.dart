@@ -95,7 +95,12 @@ class MyVehiclePage extends GetView<MyVehiclesScreenController> {
               ),
               StartedButton(
                 onTap: () {
-                  Get.offAllNamed(Routes.homePageRoute);
+                  Get.offAllNamed(
+                    Routes.homePageRoute,
+                    arguments: Get.arguments == 'isFirstTime'
+                        ? 'requestLocation'
+                        : null,
+                  );
                 },
                 color: Color(0xff0047C3),
                 text: Get.arguments == 'isFirstTime' ? 'Finished' : "Confirm",

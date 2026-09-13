@@ -732,6 +732,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
               ),
 
               height(12.h),
+              systemBottomSpacer(context),
             ],
           ),
         ),
@@ -863,6 +864,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
               ),
 
               height(12.h),
+              systemBottomSpacer(context),
             ],
           ),
         ),

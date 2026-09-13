@@ -32,7 +32,7 @@ class MapFunctions {
   GoogleMapController? dirMapController;
   StreamSubscription? mapStream;
   StreamSubscription<CompassEvent>? headingListener;
-  late Timer mapTimer;
+  Timer? mapTimer;
   double zoom = 15.5;
   Position curPos = kPosition;
   RxString curPosName = ''.obs;
@@ -67,11 +67,16 @@ class MapFunctions {
       .obs;
 
   void dispose() {
-    controller.dispose();
     mapStream?.cancel();
     dirMapController?.dispose();
     headingListener?.cancel();
-    mapTimer.cancel();
+    mapTimer?.cancel();
+    mapTimer = null;
+    try {
+      controller.dispose();
+    } catch (_) {
+      // Map controller may never have been created (e.g. location skipped).
+    }
   }
 
   void initCameraPosition(LatLng latLng) {
@@ -140,6 +145,28 @@ class MapFunctions {
   // ]
   //   ''');
   // }
+
+  /// Checks location service + permission without prompting the user.
+  Future<bool> isLocationPermissionGranted() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+    final permission = await Geolocator.checkPermission();
+    return permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always;
+  }
+
+  /// Opens OS settings when permission is permanently denied or location is off.
+  Future<void> openLocationSettingsIfNeeded() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return;
+    }
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) {
+      await Geolocator.openAppSettings();
+    }
+  }
 
   Future<bool> checkLocationPermission() async {
     bool serviceEnabled;
@@ -238,6 +265,7 @@ class MapFunctions {
   }
 
   startMapTimer() {
+    mapTimer?.cancel();
     mapTimer = Timer.periodic(Duration(milliseconds: 300), (timer) {
       if (Get.currentRoute == Routes.navigationPageRoute) {
         addCarMarker(curPos);
