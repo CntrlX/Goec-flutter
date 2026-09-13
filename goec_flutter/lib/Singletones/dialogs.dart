@@ -688,7 +688,9 @@ class Dialogs {
                             CustomSmallText(
                               text: model.type == 'wallet top-up'
                                   ? 'Wallet Topup'
-                                  : 'Admin topup',
+                                  : model.type == 'charging deduction'
+                                      ? 'Charging Deduction'
+                                      : 'Admin topup',
                               letterspacing: -0.408,
                               size: 16,
                             ),

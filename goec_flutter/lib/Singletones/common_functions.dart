@@ -11,6 +11,7 @@ import '../Model/notificationModel.dart';
 import '../Model/activeSessionModel.dart';
 import 'package:geolocator/geolocator.dart';
 import '../Model/chargeTransactionModel.dart';
+import '../Model/paginated_result.dart';
 import 'package:freelancer_app/Utils/api.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:freelancer_app/Utils/routes.dart';
@@ -613,27 +614,61 @@ class CommonFunctions {
   ////////////! CHARGING API's //////////////////////
 
 ///////////////////////////////DONE////////////////////////////////
+  Future<PaginatedResult<OrderModel>> getWalletTransactionsPage({
+    required int pageNo,
+    String startDate = '',
+    String endDate = '',
+    List<String> types = const [],
+    List<String> statuses = const [],
+  }) async {
+    final body = <String, dynamic>{
+      'user': appData.userModel.value.id,
+      if (startDate.isNotEmpty) 'fromDate': startDate,
+      if (endDate.isNotEmpty) 'toDate': endDate,
+      if (statuses.length == 1) 'status': statuses.first,
+    };
+
+    final res = await CallAPI().postData(
+      body,
+      '${kApi_wallet_url}dashboardUser/list?pageNo=$pageNo',
+    );
+
+    if (res.statusCode != 200 || res.body['status'] != true) {
+      return PaginatedResult<OrderModel>(
+        items: const [],
+        pageNo: pageNo,
+        totalCount: 0,
+        rawCount: 0,
+      );
+    }
+
+    final raw = res.body['result'] as List? ?? [];
+    final totalCount = (res.body['totalCount'] as num?)?.toInt() ?? 0;
+    final items = <OrderModel>[];
+    for (final element in raw) {
+      final model = OrderModel.fromJson(element);
+      if (types.isNotEmpty && !types.contains(model.type)) continue;
+      items.add(model);
+    }
+
+    return PaginatedResult<OrderModel>(
+      items: items,
+      pageNo: pageNo,
+      totalCount: totalCount,
+      rawCount: raw.length,
+    );
+  }
+
   Future<List<OrderModel>> getWalletTransactions(
       String startdate, String enddate, List mode, List status) async {
-    var res = await CallAPI().postData(
-      {
-        'user': appData.userModel.value.id,
-        if (startdate.isNotEmpty) 'fromDate': startdate,
-        if (enddate.isNotEmpty) 'toDate': enddate,
-        if (mode.isNotEmpty && mode.length == 1) 'paymentModes': mode[0],
-        if (status.isNotEmpty && status.length == 1) 'status': status[0],
-      },
-      kApi_wallet_url + 'filteredList',
+    final page = await getWalletTransactionsPage(
+      pageNo: 1,
+      startDate: startdate,
+      endDate: enddate,
+      types: mode.cast<String>(),
+      statuses: status.cast<String>(),
     );
-    if (res.statusCode == 200 && res.body['status']) {
-      List<OrderModel> list = [];
-      res.body['result'].forEach((element) {
-        list.add(OrderModel.fromJson(element));
-      });
-      return list;
-    } else {
-      return [];
-    }
+    return page.items;
   }
 
   //Todo

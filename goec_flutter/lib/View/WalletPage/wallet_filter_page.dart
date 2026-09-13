@@ -100,11 +100,11 @@ class WalletHistoryFilterPage extends GetView<WalletPageController> {
                                 child: ChipOptions(
                                   name: "Admin Topup",
                                   isSelected: controller.payment_mode
-                                      .contains(controller.adminTopUp)
+                                      .contains(WalletPageController.adminTopUp)
                                       .obs,
                                   fun: (value) {
                                     controller.addRemoveOptionToMode(
-                                        controller.adminTopUp);
+                                        WalletPageController.adminTopUp);
                                   },
                                 ),
                               ),
@@ -113,11 +113,11 @@ class WalletHistoryFilterPage extends GetView<WalletPageController> {
                                 child: ChipOptions(
                                   name: "Wallet Topup",
                                   isSelected: controller.payment_mode
-                                      .contains(controller.walletTopUp)
+                                      .contains(WalletPageController.walletTopUp)
                                       .obs,
                                   fun: (value) {
                                     controller.addRemoveOptionToMode(
-                                        controller.walletTopUp);
+                                        WalletPageController.walletTopUp);
                                   },
                                 ),
                               )

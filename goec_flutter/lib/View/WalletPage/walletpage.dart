@@ -247,77 +247,102 @@ class _WalletScreenState extends State<WalletScreen>
                     ],
                   ),
                 ),
-                bottom: PreferredSize(
-                  preferredSize: Size.fromHeight(size.height * 0.1),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25)),
-                    width: double.infinity,
-                    child: Column(
-                      // mainAxisAlignment: MainAxisAlignment.center,
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: size.height * 0.01,
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  padding: EdgeInsets.only(top: size.height * 0.01),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: size.height * 0.008,
+                        width: size.width * 0.34,
+                        decoration: BoxDecoration(
+                          color: Color(0xffE0E0E0),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        Container(
-                          height: size.height * 0.008,
-                          width: size.width * 0.34,
-                          decoration: BoxDecoration(
-                              color: Color(0xffE0E0E0),
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        SizedBox(
-                          height: size.height * 0.015,
-                        ),
-                        CustomBigText(
-                          text: "Payments",
-                          size: 14,
-                          color: Color(0xff828282),
-                        ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: size.height * 0.015),
+                      CustomBigText(
+                        text: "Payments",
+                        size: 14,
+                        color: Color(0xff828282),
+                      ),
+                      SizedBox(height: 8.h),
+                    ],
                   ),
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Obx(
-                  () => Container(
-                    color: Colors.white,
+              Obx(() {
+                final items = controller.modelList;
+                final loadingMore = controller.isLoadingMore.value;
+                final hasMore = controller.hasMore.value;
+
+                if (items.isEmpty && !controller.isInitialLoading.value) {
+                  return SliverToBoxAdapter(
                     child: Container(
-                      height: controller.modelList.length * (138.h) +
-                          35.h -
-                          0 * 18.h,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: ListView.builder(
-                                itemCount: controller.modelList.length,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemBuilder: (_, index) {
-                                  return Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: size.width * .03,
-                                        vertical: 8.h),
-                                    child: InkWell(
-                                      onTap: () {
-                                        Dialogs().wallet_transaction_popup(
-                                            model: controller.modelList[index],
-                                            index: index);
-                                      },
-                                      child: _creditCard(
-                                          model: controller.modelList[index]),
-                                    ),
-                                  );
-                                }),
-                          )
-                        ],
+                      color: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 48.h),
+                      alignment: Alignment.center,
+                      child: CustomSmallText(
+                        text: 'No payments yet',
+                        size: 14.sp,
+                        color: Color(0xff828282),
                       ),
                     ),
+                  );
+                }
+
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index >= items.length) {
+                        return Container(
+                          color: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 20.h),
+                          alignment: Alignment.center,
+                          child: loadingMore
+                              ? SizedBox(
+                                  width: 24.w,
+                                  height: 24.w,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: kOnboardingColors,
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        );
+                      }
+
+                      final model = items[index];
+                      return Container(
+                        color: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: size.width * .03,
+                          vertical: 8.h,
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            Dialogs().wallet_transaction_popup(
+                              model: model,
+                              index: index,
+                            );
+                          },
+                          child: _creditCard(model: model),
+                        ),
+                      );
+                    },
+                    childCount: items.length + ((hasMore || loadingMore) ? 1 : 0),
                   ),
-                ),
-              )
+                );
+              }),
+              SliverToBoxAdapter(
+                child: Container(color: Colors.white, height: 24.h),
+              ),
             ],
           ),
         ),
@@ -325,9 +350,6 @@ class _WalletScreenState extends State<WalletScreen>
       floatingActionButton: FloatingActionButton(
           heroTag: 'first',
           onPressed: () {
-            // Get.to(WalletHistoryFilterPage(
-            //   isWallet: true,
-            // ));
             Get.to(() => WalletHistoryFilterPage(isWallet: true));
           },
           backgroundColor: kOnboardingColors,
@@ -399,22 +421,29 @@ class _WalletScreenState extends State<WalletScreen>
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
-                    child: SvgPicture.asset(model.type == 'wallet top-up'
-                        ? 'assets/svg/wallet_topup.svg'
-                        : 'assets/svg/admin_topup.svg')),
+                    child: SvgPicture.asset(
+                        model.type == 'charging deduction'
+                            ? 'assets/svg/admin_topup.svg'
+                            : model.type == 'wallet top-up'
+                                ? 'assets/svg/wallet_topup.svg'
+                                : 'assets/svg/admin_topup.svg')),
                 width(size.width * .02),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomSmallText(
-                      text: 'Credit',
+                      text: model.type == 'charging deduction'
+                          ? 'Debit'
+                          : 'Credit',
                       size: 10.sp,
                     ),
                     CustomBigText(
-                      text: model.type == controller.walletTopUp
+                      text: model.type == WalletPageController.walletTopUp
                           ? 'Wallet Topup'
-                          : 'Admin Topup',
+                          : model.type == WalletPageController.chargingDeduction
+                              ? 'Charging'
+                              : 'Admin Topup',
                       letterspacing: -0.408,
                       color: Color(0xff828282),
                       size: 18.sp,
@@ -447,9 +476,13 @@ class _WalletScreenState extends State<WalletScreen>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     CustomBigText(
-                      text: "${model.amount.toStringAsFixed(2)}",
+                      text: model.type == 'charging deduction'
+                          ? "-${model.amount.toStringAsFixed(2)}"
+                          : "${model.amount.toStringAsFixed(2)}",
                       size: 20.sp,
-                      color: color,
+                      color: model.type == 'charging deduction'
+                          ? const Color(0xffDC2525)
+                          : color,
                     ),
                     width(5.w),
                     CustomSmallText(

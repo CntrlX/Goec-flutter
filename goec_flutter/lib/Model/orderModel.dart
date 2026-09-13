@@ -18,11 +18,14 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    final amountRaw = json['amount'];
     return OrderModel(
-      transactionId: json['transactionId'] ?? '-1',
+      transactionId: json['transactionId']?.toString() ??
+          json['_id']?.toString() ??
+          '-1',
       type: json['type'] ?? '',
       pgOrderId: json['pgOrderId'] ?? '',
-      amount: json['amount'].toDouble() ?? 0,
+      amount: amountRaw is num ? amountRaw.toDouble() : 0,
       status: json['status'] ?? '',
       // pgOrderGenTime: json['pgOrderGenTime'] ?? '',
       createdAt: json['createdAt'] ?? '',
