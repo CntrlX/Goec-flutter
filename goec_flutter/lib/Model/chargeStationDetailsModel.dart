@@ -42,7 +42,7 @@ class ChargeStationDetailsModel {
       latitude: json['latitude'] == null ? 0 : json['latitude'].toDouble() ?? 0,
       longitude:
           json['longitude'] == null ? 0 : json['longitude'].toDouble() ?? 0,
-      amenities: json['amenities'] == '' ? [] : json['amenities'] ?? [],
+      amenities: _parseAmenities(json['amenities']),
       startTime: json['startTime'] ?? '',
       stopTime: json['stopTime'] ?? '',
       isFavorite: json['isFavorite'] ?? false,
@@ -51,5 +51,23 @@ class ChargeStationDetailsModel {
               .toList() ??
           [],
     );
+  }
+
+  static List _parseAmenities(dynamic value) {
+    if (value == null || value == '') return [];
+    if (value is List) {
+      return value
+          .map((e) => e?.toString().trim() ?? '')
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+    if (value is String) {
+      return value
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+    return [];
   }
 }

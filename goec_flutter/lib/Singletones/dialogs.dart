@@ -1166,7 +1166,7 @@ class Dialogs {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 16.h),
+                    height(16.h),
                     CustomText(
                       text:
                           'Turn on location to find nearby charging stations, check availability, and get accurate directions.',
@@ -1176,7 +1176,7 @@ class Dialogs {
                       textAlign: TextAlign.center,
                       height: 1.2,
                     ),
-                    SizedBox(height: 24.h),
+                    height(24.h),
                     SizedBox(
                       width: double.infinity,
                       height: 56.h,
@@ -1228,16 +1228,13 @@ class Dialogs {
                             borderRadius: BorderRadius.circular(100.r),
                           ),
                         ),
-                        child: Text(
-                          'Enable Location',
-                          style: TextStyle(
-                            fontFamily: kFontFamily,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w700,
-                            height: 24 / 16,
-                            letterSpacing: 0.4,
-                            color: Colors.white,
-                          ),
+                        child: CustomText(
+                          text: 'Enable Location',
+                          size: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          height: 24 / 16,
+                          letterSpacing: 0.4,
+                          color: Colors.white,
                         ),
                       ),
                     ),

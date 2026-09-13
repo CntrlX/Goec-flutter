@@ -1,434 +1,135 @@
-import 'package:get/get.dart';
-import '../../Utils/routes.dart';
-import '../Widgets/customText.dart';
-import '../../Utils/toastUtils.dart';
-import 'package:flutter_svg/svg.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../Widgets/cached_network_image.dart';
-import 'package:freelancer_app/constants.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:freelancer_app/Utils/utils.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import 'package:freelancer_app/Controller/calista_cafePage_controller.dart';
 import 'package:freelancer_app/Model/chargerModel.dart';
 import 'package:freelancer_app/Model/evPortsModel.dart';
-import 'package:freelancer_app/View/Widgets/apptext.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freelancer_app/Controller/calista_cafePage_controller.dart';
-import 'package:freelancer_app/View/Widgets/amenity_icon.dart';
+import 'package:freelancer_app/Singletones/app_data.dart';
+import 'package:freelancer_app/Utils/routes.dart';
+import 'package:freelancer_app/Utils/toastUtils.dart';
+import 'package:freelancer_app/Utils/utils.dart';
+import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
+import 'package:freelancer_app/View/Widgets/customText.dart';
+import 'package:freelancer_app/View/Widgets/glass_circle_icon_button.dart';
+import 'package:freelancer_app/constants.dart';
 
+/// Station detail — Figma states 27 (idle), 28 (connector selected), 29 (confirm sheet).
 class CalistaCafeScreen extends GetView<CalistaCafePageController> {
   const CalistaCafeScreen({super.key});
+
+  static const _muted = Color(0xFFA0AABD);
+  static const _bodyGrey = Color(0xFF5C6E84);
+  static const _chipBg = Color(0xFFF4F7FA);
+  static const _chipFg = Color(0xFF485B73);
+  static const _cardBorder = Color(0xFFE6EAEF);
+  static const _cardBorderAlt = Color(0xFFE2E8F0);
+  static const _selectedBg = Color(0xFFE2FDF8);
+  static const _selectedBorder = Color(0xFF03E8BE);
+  static const _iconBadge = Color(0xFFF1F5F9);
+  static const _iconBadgeSelected = Color(0xFFB1F8EA);
+  static const _iconSelected = Color(0xFF089279);
+  static const _dirBlue = Color(0xFF01B1E1);
+  static const _shareBg = Color(0xFFEAF3FD);
+  static const _confirmCardBg = Color(0xFFEAF2FD);
+  static const _confirmCardBorder = Color(0xFFC0D6FD);
+  static const _ratingBg = Color(0xFFFEF3D6);
+  static const _ratingFg = Color(0xFF7A5303);
+  static const _star = Color(0xFFD99706);
 
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return Scaffold(
-      backgroundColor: kwhite,
-      appBar: AppBar(
-        backgroundColor: Color(0xff0047C3),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios),
-            onPressed: () {
-              Get.back();
-            }),
+    final bottomInset = systemBottomInset(context);
+    final topPad = MediaQuery.paddingOf(context).top;
+    // Figma: banner 224, sheet @190 (34 overlap). Pill @150 h=30 → 10px gap above sheet.
+    final bannerH = 224.h + topPad * 0.2;
+    final sheetOverlap = 34.h;
+    final sheetTop = bannerH - sheetOverlap;
+    const pillGap = 10.0; // Figma: sheetTop(190) - pillBottom(180)
+    final pillH = 30.h;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          RefreshIndicator(
-            displacement: 100,
-            backgroundColor: Colors.white,
-            color: kOnboardingColors,
-            strokeWidth: 3.5,
-            triggerMode: RefreshIndicatorTriggerMode.onEdge,
-            onRefresh: () async {
-              await controller.getChargeStationDetails(
-                  controller.model.value.id.toString());
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20))),
-                    child: Column(children: [
-                      height(size.height * .01),
-                      height(size.height * .015),
-                      Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: size.width * .06),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(15),
-                                  child: Obx(
-                                    () => Container(
-                                      color: Colors.grey,
-                                      height: 90.w,
-                                      // width: 90.w,
-                                      child: cachedNetworkImage(
-                                          controller.model.value.image),
-                                    ),
-                                  )),
-                            ),
-                            width(size.width * .035),
-                            Expanded(
-                              flex: 7,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: size.height * .023,
-                                    width: size.width * .14,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Color(0xffFFE1C7)),
-                                    child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.star,
-                                            color: Color(0xffF2994A),
-                                            size: 15,
-                                          ),
-                                          Obx(
-                                            () => CustomText(
-                                                text: controller
-                                                    .model.value.rating
-                                                    .toStringAsFixed(2),
-                                                size: 12,
-                                                color: Color(0xffF2994A)),
-                                          ),
-                                        ]),
-                                  ),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Expanded(
-                                        child: Obx(
-                                          () => CustomText(
-                                              text: controller.model.value.name,
-                                              overflow: TextOverflow.ellipsis,
-                                              color: Color(0xff4F4F4F),
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                      width(size.width * .017),
-                                    ],
-                                  ),
-                                  Obx(
-                                    () => CustomText(
-                                        text:
-                                            '${controller.distance.value} km away',
-                                        color: Color(0xff828282),
-                                        fontWeight: FontWeight.normal,
-                                        size: 12),
-                                  ),
-                                  if (controller.amenities.isNotEmpty &&
-                                      controller.amenities[0].isNotEmpty) ...[
-                                    height(8.h),
-                                    Wrap(
-                                      children: List.generate(
-                                        controller.amenities.length,
-                                        (index) => Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            AmenityIcon(
-                                              amenity: controller
-                                                  .amenities[index]
-                                                  .toString(),
-                                              size: 14,
-                                              color: Colors.grey.shade500,
-                                            ),
-                                            width(size.width * .01),
-                                            CustomText(
-                                                text:
-                                                    controller.amenities[index],
-                                                color: Color(0xff828282),
-                                                fontWeight: FontWeight.normal,
-                                                size: 12),
-                                            width(size.width * .03),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    height(8.h),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                controller.changeFavoriteStatus();
-                              },
-                              child: Container(
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.symmetric(
-                                    horizontal: size.width * .01),
-                                padding: EdgeInsets.all(size.width * .02),
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border:
-                                        Border.all(color: Color(0xffBDBDBD))),
-                                child: Obx(
-                                  () => SvgPicture.asset(
-                                    controller.model.value.isFavorite
-                                        ? 'assets/svg/favorite1.svg'
-                                        : 'assets/svg/favorite.svg',
-                                    width: 15.w,
-                                    fit: BoxFit.fill,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            // ── Scrollable page ──────────────────────────────────────────
+            Positioned.fill(
+              child: RefreshIndicator(
+                displacement: 80,
+                backgroundColor: Colors.white,
+                color: kBrandPrimaryBlue,
+                onRefresh: () async {
+                  await controller.getChargeStationDetails(
+                    controller.model.value.id.toString(),
+                  );
+                },
+                child: SingleChildScrollView(
+                  controller: controller.scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: bannerH,
+                        child: _bannerHeader(context),
                       ),
-                      height(size.height * .03),
-                      Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: size.width * .06),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SvgPicture.asset('assets/svg/location_on_blue.svg'),
-                            width(5.w),
-                            Expanded(
-                              flex: 3,
-                              child: Obx(
-                                () => CustomText(
-                                    text: controller.model.value.address,
-                                    size: 12,
-                                    color: Color(0xff4F4F4F)),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      // controller.getDirections(false);
-                                      controller.launchOnGoogleMap();
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(10.h),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Color(0xff2F80ED)),
-                                      child: SvgPicture.asset(
-                                          'assets/svg/direction.svg'),
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      // controller.getDirections(false);
-                                      controller.shareStationLocation();
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(10.h),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.transparent,
-                                          border:
-                                              Border.all(color: Colors.grey)),
-                                      child: SvgPicture.asset(
-                                          'assets/svg/share.svg'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      // Open/closed pill — attached just above white sheet (10px gap)
+                      Positioned(
+                        top: sheetTop - pillGap.h - pillH,
+                        left: 24.w,
+                        child: Obx(() => _openStatusPill()),
                       ),
-                    ]),
-                  ),
-                  height(size.height * 0.04),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: size.width * .06),
-                    child: Row(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              height: 10.h,
-                              width: 10.h,
-                              decoration: BoxDecoration(
-                                  color: controller.isOpen.value
-                                      ? Color(0xff219653)
-                                      : Color.fromARGB(255, 195, 56, 56),
-                                  shape: BoxShape.circle),
-                            ),
-                            width(size.width * .02),
-                            CustomText(
-                                text: controller.isOpen.value
-                                    ? 'Open Now'
-                                    : 'Closed Now',
-                                color: controller.isOpen.value
-                                    ? Color(0xff219653)
-                                    : Color.fromARGB(255, 195, 56, 56),
-                                size: 13,
-                                fontWeight: FontWeight.w600)
-                          ],
-                        ),
-                        Spacer(),
-                        CustomText(
-                            text:
-                                '${convertToPmFormat(controller.model.value.startTime)} to ${convertToPmFormat(
-                              controller.model.value.stopTime,
-                            )}',
-                            color: Color(0xffa9a9a9),
-                            size: 14)
-                      ],
-                    ),
-                  ),
-                  height(size.height * .03),
-                  CustomText(
-                      text: 'Select a charger to start charging',
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w600,
-                      size: 13),
-                  height(size.height * .03),
-                  Obx(
-                    () => ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: controller.model.value.chargers.length,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          ChargerModel charger =
-                              controller.model.value.chargers[index];
-                          bool isAvailable = controller
-                                  .model.value.chargers[index].ocppStatus ==
-                              'Available';
-                          return Container(
-                              // height: 500.h,
-                              margin: EdgeInsets.symmetric(
-                                  horizontal: size.width * .04,
-                                  vertical: size.height * .01),
-                              child: _chargerCardExpanded(
-                                title: charger.chargerName,
-                                subTitle: charger.outputType +
-                                    ' ' +
-                                    charger.capacity +
-                                    ' KwH',
-                                evPorts: charger.evports,
-                                index: index,
-                                isAvailable: isAvailable,
-                              ));
-                        }),
-                  ),
-                  // Padding(
-                  //   padding: EdgeInsets.symmetric(vertical: size.height * .04),
-                  //   child: navigationCard(),
-                  // ),
-                  height(size.height * .025),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: size.width * .04),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            controller.selectedRating.value = 0;
-                            controller.reviewController.text = '';
-                            // Get.dialog(Dialogs().writeReviewDialog(controller));
-                            // Get.toNamed(Routes.thankfeedbackPageRoute);
-                            kLog(controller.model.value.id);
-                            Get.toNamed(
-                              Routes.paymentfeedbackPageRoute,
-                              arguments: controller.model.value.id,
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 30.w, vertical: 10.h),
-                            decoration: BoxDecoration(
-                                color: Color(0xff2F80ED),
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Text('Write Review',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
-                                )),
+                      Padding(
+                        padding: EdgeInsets.only(top: sheetTop),
+                        // Shadow outside the clipped white fill so it sits on the image, not on the sheet.
+                        child: Container(
+                          constraints: BoxConstraints(
+                            minHeight: MediaQuery.sizeOf(context).height - sheetTop,
                           ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            Get.toNamed(Routes.reviewPageRoute, arguments: [
-                              controller.model.value.rating.toStringAsFixed(2),
-                              controller.model.value.id
-                            ]);
-                          },
-                          child: Row(
-                            children: [
-                              CustomText(
-                                  fontWeight: FontWeight.bold,
-                                  text: 'View Review',
-                                  color: Color(0xff0047C3),
-                                  size: 16),
-                              width(10.w),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: 20,
-                                color: Color(0xff0047C3),
-                              )
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(24.r),
+                              topRight: Radius.circular(28.r),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.06),
+                                blurRadius: 12,
+                                offset: const Offset(0, -2),
+                              ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  height(50.h)
-                ],
-              ),
-            ),
-          ),
-          Obx(
-            () => Visibility(
-              visible: controller.selectedCharger.value != -1 &&
-                  controller.selectedType.value != -1,
-              child: Positioned(
-                bottom: 0,
-                child: Container(
-                  width: size.width,
-                  color: kwhite,
-                  padding: EdgeInsets.only(
-                      bottom: 32.w, top: 21.w, left: 29.w, right: 29),
-                  alignment: Alignment.center,
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: InkWell(
-                          onTap: () {
-                            controller.startCharging();
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 12.w),
-                            decoration: BoxDecoration(
-                                color: Color(0xff0047C3),
-                                borderRadius: BorderRadius.circular(35)),
-                            child: Center(
-                              child: CustomBigText(
-                                text: "Start Charging",
-                                size: 14.sp,
-                                color: Color(0xffF2F2F2),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(24.r),
+                              topRight: Radius.circular(28.r),
+                            ),
+                            child: ColoredBox(
+                              color: Colors.white,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _mainSheet(context),
+                                  Obx(() {
+                                    final h = controller.hasConnectorSelected
+                                        ? 140.h + bottomInset
+                                        : 70.h + bottomInset;
+                                    return height(h);
+                                  }),
+                                ],
                               ),
                             ),
                           ),
@@ -439,717 +140,1019 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget connectors({
-    required bool isSelected,
-    required EvPortModel evport,
-    required int index,
-    required int index1,
-    required bool isAvailable,
-  }) {
-    //////////LOGIC CODES////////
-    // List res = calculateAvailabiliy([evport], isConnected);
-    // int available = res[1];
-    // String trailing = res[0];
-    ///////END LOGIC CODES///////
-    String status;
-    if (!isAvailable)
-      status = kUnavailable;
-    else if (evport.ocppStatus == kAvailable || evport.ocppStatus.isEmpty)
-      status = kAvailable;
-    else if (evport.ocppStatus == kPreparing)
-      status = kPreparing;
-    else if (evport.ocppStatus == kFinishing)
-      status = kFinishing;
-    else if (evport.ocppStatus == kCharging)
-      status = kBusy;
-    else if (evport.ocppStatus == kFaulted)
-      status = kFaulted;
-    else
-      status = kUnavailable;
-    if (!isAvailable) status = kUnavailable;
-
-    return Container(
-      height: 65.h,
-      margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: isSelected &&
-                  (status == kAvailable ||
-                      status == kPreparing ||
-                      status == kFinishing)
-              ? Color(0xff6FCF97).withOpacity(.28)
-              : status == kBusy
-                  ? Color(0xffE37A2D).withOpacity(.2)
-                  : status == kFaulted
-                      ? Color.fromARGB(255, 249, 59, 45).withOpacity(.2)
-                      : Colors.white,
-          boxShadow: [BoxShadow(blurRadius: 7, color: Colors.grey.shade300)],
-          border: !isSelected
-              ? null
-              : Border.all(
-                  width: 1.3,
-                  color: isSelected
-                      ? Color(0xff6FCF97)
-                      : status == kBusy
-                          ? Color(0xffE37A2D)
-                          : status == kFaulted
-                              ? Color.fromARGB(255, 249, 59, 45)
-                              : status == kUnavailable
-                                  ? Color(0xff959595)
-                                  : Color(0xff0047C3).withOpacity(.6),
-                )),
-      child: InkWell(
-        onTap: () {
-          if (status == kAvailable ||
-              status == kPreparing ||
-              status == kFinishing) controller.changeCharger(index, index1);
-        },
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.w),
-          child: Row(
-            children: [
-              // Container(
-              //   height: 10.h,
-              //   width: 10.h,
-              //   decoration: BoxDecoration(
-              //       shape: BoxShape.circle,
-              //       color: status == kBusy
-              //           ? Color(0xffE37A2D)
-              //           : status == kFaulted
-              //               ? Color.fromARGB(255, 249, 59, 45)
-              //               : status == kUnavailable
-              //                   ? Color(0xff959595)
-              //                   : Color(0xff219653)),
-              // ),
-              width(7.w),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    //FIXME
-                    // "assets/svg/${evport.connectorType.toLowerCase().trim()}.svg",
-                    "assets/svg/css.svg",
-                    width: 25.w,
-                    // color: isSelected
-                    //     ? Color(0xff4f4f4f)
-                    //     : status == kBusy
-                    //         ? Color(0xffE333333)
-                    //         : status == kUnavailable || status == kFaulted
-                    //             ? Color(0xff959595)
-                    //             : Color(0xff0047C3),
-                  ),
-                ],
-              ),
-              width(12.5.w),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomBigText(
-                    text:
-                        '''Connector ${String.fromCharCode('A'.codeUnitAt(0) + index1)}''',
-                    size: 14.sp,
-                    color: Color(0xff333333),
-                    // color: isSelected
-                    //     ? Color(0xff333333)
-                    //     : status == kUnavailable || status == kFaulted
-                    //         ? Color(0xff959595)
-                    //         : Color(0xff0047C3),
-                  ),
-                  CustomSmallText(
-                    text: evport.connectorType.isEmpty
-                        ? 'Null'
-                        : evport.connectorType,
-                    size: 12.sp,
-                    color: Color(0xff333333),
-                    // color: isSelected
-                    //     ? Color(0xff333333)
-                    //     : status == kUnavailable || status == kFaulted
-                    //         ? Color(0xff959595)
-                    //         : Color(0xff0047C3),
-                  ),
-                ],
-              ),
-              Spacer(),
-              Container(
-                height: 10.w,
-                width: 10.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isAvailable
-                      ? (status == kAvailable ||
-                              status == kPreparing ||
-                              status == kFinishing)
-                          ? Color(0xff219653)
-                          : status == kBusy
-                              ? Color(0xffE37A2D)
-                              : status == kFaulted
-                                  ? Color.fromARGB(255, 249, 59, 45)
-                                  : Color(0xff828282)
-                      : Color(0xff828282),
-                ),
-              ),
-              width(5.w),
-              CustomBigText(
-                text: status == kBusy
-                    ? evport.currentSoc.isNotEmpty
-                        ? kBusy + ' (${evport.currentSoc}%)'
-                        : kBusy
-                    : status,
-                size: 12,
-                color: isAvailable
-                    ? (status == kAvailable ||
-                            status == kPreparing ||
-                            status == kFinishing)
-                        ? Color(0xff219653)
-                        : status == kBusy
-                            ? Color(0xffE37A2D)
-                            : status == kFaulted
-                                ? Color.fromARGB(255, 249, 59, 45)
-                                : Color(0xff828282)
-                    : Color(0xff828282),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _chargerCardExpanded({
-    required String title,
-    required String subTitle,
-    required List<EvPortModel> evPorts,
-    required int index,
-    required bool isAvailable,
-  }) {
-    return Container(
-      // color: Colors.amber,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: size.width * 0.00),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: size.height * 0.01),
-          alignment: Alignment.center,
-          height: 70.h +
-              77.h * (controller.model.value.chargers[index].evports.length),
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: size.width * 0.04,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: size.height * 0.0075),
-                      child: Row(
-                        children: [
-                          CustomBigText(
-                              text: title,
-                              size: 16,
-                              color:
-                                  // index == controller.selectedCharger.value ?
-                                  Color(0xff0047C3)
-                              // : Color(0xff4f4f4f),
-                              ),
-                          width(5.w),
-                          Container(
-                            padding: EdgeInsets.all(2.w),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(5)),
-                            child: CustomText(
-                                text: subTitle,
-                                size: 11.5,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.w500),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      '$kCurrency ${double.parse(controller.model.value.chargers[index].tariff).toStringAsFixed(2)} /KwH',
-                      style: kAppSmallTextStyle,
-                    ),
-                  ],
-                ),
-              ),
-              height(size.height * 0.01),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: size.width * 0.00),
-                  child: ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: evPorts.length,
-                      scrollDirection: Axis.vertical,
-                      // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      //   childAspectRatio: 3.2,
-                      //   crossAxisCount: 2,
-                      //   mainAxisSpacing: size.width * .01,
-                      //   crossAxisSpacing: size.height * .01,
-                      // ),
-                      itemBuilder: (context, index_grid) {
-                        return Obx(() {
-                          return connectors(
-                            isSelected:
-                                index == controller.selectedCharger.value &&
-                                    controller.selectedType.value == index_grid,
-                            index: index,
-                            index1: index_grid,
-                            evport: evPorts[index_grid],
-                            isAvailable: isAvailable,
-                          );
-                        });
-                      }),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Widget _chargerCard({
-  //   required String title,
-  //   required String subTitle,
-  //   required List<EvPortModel> evPorts,
-  //   required int index,
-  //   required bool isConnected,
-  // }) {
-  //   //////////LOGIC CODES////////
-  //   List res = calculateAvailabiliy(evPorts, isConnected);
-  //   int available = res[1];
-  //   String trailing = res[0];
-  //   ///////END LOGIC CODES///////
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(horizontal: size.width * 0.00),
-  //     child: Container(
-  //       padding: EdgeInsets.symmetric(
-  //           horizontal: size.width * 0.04, vertical: size.height * 0.01),
-  //       height: size.height * 0.08,
-  //       decoration: BoxDecoration(
-  //           color: kwhite,
-  //           borderRadius: BorderRadius.circular(15),
-  //           border: Border.all(
-  //             width: 1.5,
-  //             color: Color(0xffBFD6FF).withOpacity(.6),
-  //           )),
-  //       child: Row(
-  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //         children: [
-  //           Padding(
-  //             padding: EdgeInsets.only(top: size.height * 0.00),
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               mainAxisAlignment: MainAxisAlignment.center,
-  //               children: [
-  //                 Obx(
-  //                   () => CustomBigText(
-  //                     text: title,
-  //                     size: 13,
-  //                     color: controller.selectedCharger.value == index
-  //                         ? Color(0xff0047C3)
-  //                         : Color(0xff4f4f4f),
-  //                   ),
-  //                 ),
-  //                 height(size.height * 0.004),
-  //                 CustomSmallText(
-  //                   text: subTitle,
-  //                   size: 12,
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           Container(
-  //             child: Row(
-  //               children: [
-  //                 Container(
-  //                   alignment: Alignment.center,
-  //                   height: size.height * 0.03,
-  //                   width: size.width * 0.25,
-  //                   decoration: BoxDecoration(
-  //                     borderRadius: BorderRadius.circular(10),
-  //                     color: available > 0
-  //                         ? Color(0xff219653).withOpacity(0.24)
-  //                         : trailing == kBusy
-  //                             ? kBusyColor
-  //                             : trailing == kFaulted
-  //                                 ? Color.fromARGB(255, 249, 59, 45)
-  //                                     .withOpacity(.2)
-  //                                 : Color(0xff959595).withOpacity(.2),
-  //                   ),
-  //                   child: CustomBigText(
-  //                     text: trailing,
-  //                     size: 12,
-  //                     color: available > 0
-  //                         ? Color(0xff219653)
-  //                         : trailing == kBusy
-  //                             ? Color(0xffE37A2D)
-  //                             : trailing == kFaulted
-  //                                 ? Color.fromARGB(255, 249, 59, 45)
-  //                                 : Color(0xff333333),
-  //                   ),
-  //                 ),
-  //                 width(size.width * 0.06),
-  //                 SvgPicture.asset("assets/svg/arrow_downward_ios.svg")
-  //               ],
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _dialougebox() {
-  //   return AlertDialog(
-  //     backgroundColor: kwhite,
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-  //     contentPadding: EdgeInsets.all(0),
-  //     content: Container(
-  //         padding: EdgeInsets.all(20.w),
-  //         height: 460.h,
-  //         width: 348.w,
-  //         decoration: BoxDecoration(
-  //             // borderRadius: BorderRadius.circular(20),
-  //             boxShadow: [
-  //               BoxShadow(
-  //                 offset: Offset(0, 4),
-  //                 blurRadius: 32,
-  //                 color: Color(0xff000000).withOpacity(0.06),
-  //               )
-  //             ]),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.center,
-  //           children: [
-  //             CustomSmallText(
-  //               text: "How is your Experience?",
-  //               size: 16.sp,
-  //               letterspacing: -0.41,
-  //             ),
-  //             height(20.h),
-  //             Padding(
-  //               padding: EdgeInsets.only(left: 10.w),
-  //               child: Obx(
-  //                 () => Row(
-  //                   children: List.generate(
-  //                       5,
-  //                       (index) => Padding(
-  //                             padding: EdgeInsets.symmetric(horizontal: 10.w),
-  //                             child: GestureDetector(
-  //                               onTap: () {
-  //                                 controller.selectedRating.value = index + 1;
-  //                               },
-  //                               child: SvgPicture.asset(
-  //                                 controller.selectedRating.value == 0 ||
-  //                                         controller.selectedRating.value - 1 <
-  //                                             index
-  //                                     ? "assets/svg/star_rate.svg"
-  //                                     : "assets/svg/star_rate3.svg",
-  //                               ),
-  //                             ),
-  //                           )),
-  //                 ),
-  //               ),
-  //             ),
-  //             height(25.h),
-  //             TextFormField(
-  //               minLines: 7,
-  //               maxLines: 7,
-  //               controller: controller.reviewController,
-  //               keyboardType: TextInputType.multiline,
-  //               decoration: InputDecoration(
-  //                   hintText: "Leave Your Feedback here",
-  //                   border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(20),
-  //                       borderSide: BorderSide(
-  //                         color: Color(0xff908484),
-  //                       )),
-  //                   hintStyle: GoogleFonts.poppins(
-  //                       fontSize: 15.sp,
-  //                       fontWeight: FontWeight.w400,
-  //                       letterSpacing: -0.41,
-  //                       color: Color(0xffBDBDBD)),
-  //                   contentPadding: EdgeInsets.only(left: 20.w, top: 25.h)),
-  //             ),
-  //             height(20.h),
-  //             _button(
-  //                 button: "Leave feedback",
-  //                 onTap: () async {
-  //                   bool status = await controller.postReviewForChargeStation();
-  //                   if (status) Get.dialog(_responseDialougebox());
-  //                 }),
-  //             height(20.h),
-  //             CustomBigText(
-  //               ontap: () {
-  //                 Get.back();
-  //               },
-  //               text: "Cancel",
-  //               size: 15.sp,
-  //               color: Color(0xff0047C3),
-  //             )
-  //           ],
-  //         )),
-  //   );
-  // }
-
-  // Widget _responseDialougebox() {
-  //   return AlertDialog(
-  //     backgroundColor: kwhite,
-  //     contentPadding: EdgeInsets.all(0),
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.w)),
-  //     content: Container(
-  //       padding: EdgeInsets.all(20.w),
-  //       // height: 300.h,
-  //       width: 348.w,
-  //       decoration: BoxDecoration(),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.center,
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           Container(
-  //             height: 80.h,
-  //             width: 80.w,
-  //             decoration: BoxDecoration(
-  //               shape: BoxShape.circle,
-  //               color: Color(0xffEBF8F1),
-  //             ),
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.center,
-  //               mainAxisAlignment: MainAxisAlignment.center,
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 Container(
-  //                   height: 40.h,
-  //                   width: 40.w,
-  //                   decoration: BoxDecoration(
-  //                       shape: BoxShape.circle,
-  //                       border: Border.all(
-  //                         width: 2.w,
-  //                         color: Color(0xff05A660),
-  //                       )),
-  //                   child: Center(
-  //                     child: Image.asset(
-  //                       "assets/images/vector1.png",
-  //                       height: 17,
-  //                       width: 17,
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           height(15.h),
-  //           CustomBigText(
-  //             text: "Thank you for your response",
-  //             size: 20.sp,
-  //             color: Color(0xff4F4F4F),
-  //           ),
-  //           height(10.h),
-  //           CustomSmallText(
-  //             text: "Your response has been added",
-  //             size: 13.sp,
-  //           ),
-  //           height(10.h),
-  //           InkWell(
-  //             onTap: () {
-  //               Get.toNamed(Routes.homePageRoute);
-  //             },
-  //             child: Container(
-  //               height: 56.h,
-  //               width: 156.w,
-  //               decoration: BoxDecoration(
-  //                 borderRadius: BorderRadius.circular(40.r),
-  //                 color: Color(0xff0047C3),
-  //               ),
-  //               child: Center(
-  //                 child: CustomBigText(
-  //                   text: "Back to Maps",
-  //                   size: 15.sp,
-  //                   color: Color(0xffF2F2F2),
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _button({required String button, required void Function() onTap}) {
-  //   return InkWell(
-  //     onTap: onTap,
-  //     child: Container(
-  //       height: 55.h,
-  //       width: 237.w,
-  //       decoration: BoxDecoration(
-  //         borderRadius: BorderRadius.circular(40.r),
-  //         color: Color(0xff0047C3),
-  //       ),
-  //       child: Center(
-  //         child: CustomBigText(
-  //           text: button,
-  //           size: 14.sp,
-  //           color: Color(0xffF2F2F2),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  Widget navigationCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: size.width * 0.04),
-      child: Container(
-        // height: size.height * 0.04,
-        // width: size.width * .92,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    SvgPicture.asset("assets/svg/location_on.svg"),
-                    width(size.width * 0.02),
-                    Text(
-                      "Location",
-                      style: GoogleFonts.inter(
-                          textStyle: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xff000000).withOpacity(.44),
-                        fontStyle: FontStyle.normal,
-                      )),
-                    ),
-                  ],
-                ),
-                Obx(
-                  () => Text(
-                    controller.model.value.address,
-                    style: GoogleFonts.inter(
-                        textStyle: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xff4F4F4F),
-                      fontStyle: FontStyle.normal,
-                    )),
-                  ),
-                ),
-              ],
-            ),
-            InkWell(
-              onTap: () {
-                controller.getDirections(true);
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.w),
-                decoration: BoxDecoration(
-                  color: Color(0xff2F80ED),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    CustomBigText(
-                      text: "Navigate",
-                      size: 12.sp,
-                      color: kwhite,
-                    ),
-                    width(size.width * 0.02),
-                    SvgPicture.asset("assets/svg/assistant_direction.svg")
-                  ],
-                ),
-              ),
-            ),
+            // ── Fixed bottom footer (reviews always; CTA when selected) ─
+            Obx(() => _bottomFooter(context, bottomInset)),
           ],
         ),
       ),
     );
   }
 
-  // Widget reviewProgressBar(String title, double value) {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.start,
-  //     children: [
-  //       LinearPercentIndicator(
-  //         width: size.width * .3,
-  //         animation: true,
-  //         lineHeight: 6.0,
-  //         animationDuration: 1000,
-  //         percent: value,
-  //         barRadius: Radius.circular(15),
-  //         progressColor: Color(0xff0047C3),
-  //         padding: EdgeInsets.zero,
-  //       ),
-  //       Spacer(),
-  //       CustomText(text: title, color: Colors.grey, size: 12)
-  //     ],
-  //   );
-  // }
+  // ─── Banner (network image — never from Figma export) ───────────────────
 
-  Widget customerReviewCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: size.width * .04, vertical: size.height * .01),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Expanded(
-            child: Container(
-          // color: Colors.amber,
-          alignment: Alignment.topRight,
-          child: Container(
-            height: size.height * .045,
-            width: size.height * .045,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey.shade300,
+  Widget _bannerHeader(BuildContext context) {
+    final topPad = MediaQuery.paddingOf(context).top;
+    return SizedBox(
+      width: double.infinity,
+      height: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Obx(
+            () => cachedNetworkImage(
+              controller.model.value.image,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
             ),
           ),
-        )),
-        width(size.width * .015),
-        Expanded(
-            flex: 8,
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    CustomBigText(
-                      text: 'Jane Doe',
-                      size: 17,
-                      color: Color(0xff4f4f4f),
-                    ),
-                    width(size.width * .02),
-                    Row(
-                      children: List.generate(
-                        4,
-                        (index) => Icon(
-                          Icons.star,
-                          color: Color(0xffF2994A),
-                          size: 17,
-                        ),
-                      ),
-                    )
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 80.h,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0),
+                    Colors.black.withValues(alpha: 0.25),
                   ],
                 ),
-                height(size.height * .01),
-                CustomText(
-                    color: Color(0xff4f4f4f),
-                    size: 15,
-                    text:
-                        'Lorem ipsom doler set amet, consequent is the worlds best company. Thanks in this case. ')
+              ),
+            ),
+          ),
+          Positioned(
+            top: topPad + 8.h,
+            left: 17.w,
+            right: 17.w,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const GlassBackButton(),
+                Obx(
+                  () {
+                    final isFavorite = controller.model.value.isFavorite;
+                    return GlassCircleIconButton(
+                      onTap: controller.changeFavoriteStatus,
+                      child: Icon(
+                        isFavorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: isFavorite
+                            ? const Color(0xFFAF2727)
+                            : Colors.white,
+                        size: 18.sp,
+                      ),
+                    );
+                  },
+                ),
               ],
-            ))
-      ]),
+            ),
+          ),
+          // Status pill moved to page Stack (attached above white sheet)
+        ],
+      ),
     );
   }
+
+  Widget _openStatusPill() {
+    final open = controller.isOpen.value;
+    final closeText = convertToPmFormat(controller.model.value.stopTime);
+    final openText = convertToPmFormat(controller.model.value.startTime);
+    final label = open
+        ? 'Open now · closes $closeText'
+        : 'Closed now · opens $openText';
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(9999),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8.w,
+            height: 8.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: open
+                  ? kOnboardingGradient
+                  : const LinearGradient(
+                      colors: [Color(0xFFC33838), Color(0xFFE57373)],
+                    ),
+            ),
+          ),
+          width(8.w),
+          CustomText(
+            text: label,
+            size: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: kNeutralPrimary,
+            height: 16 / 14,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── White content sheet ────────────────────────────────────────────────
+
+  Widget _mainSheet(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 24.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _titleAndRating(),
+          height(10.h),
+          _distanceRow(),
+          height(10.h),
+          _amenityChips(),
+          height(16.h),
+          _addressAndActions(),
+          height(24.h),
+          _connectorSectionHeader(),
+          height(12.h),
+          Obx(() => _connectorList()),
+        ],
+      ),
+    );
+  }
+
+  /// Backend uses `rating || 1` when there are no reviews — treat 0 and 1 as empty.
+  bool get _hasRealRating {
+    final r = controller.model.value.rating;
+    return r > 1.0;
+  }
+
+  Widget _titleAndRating() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Obx(
+            () => CustomText(
+              text: controller.model.value.name,
+              size: 24.sp,
+              fontWeight: FontWeight.w800,
+              color: kNeutralPrimary,
+              height: 26.84 / 24,
+              maxLines: 2,
+            ),
+          ),
+        ),
+        width(12.w),
+        Obx(() {
+          if (!_hasRealRating) {
+            return Padding(
+              padding: EdgeInsets.only(top: 6.h),
+              child: CustomText(
+                text: 'No ratings yet',
+                size: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: _muted,
+              ),
+            );
+          }
+          return Container(
+            margin: EdgeInsets.only(top: 4.h),
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: _ratingBg,
+              borderRadius: BorderRadius.circular(6.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 2,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.star_rounded, size: 14.sp, color: _star),
+                width(4.w),
+                CustomText(
+                  text: controller.model.value.rating.toStringAsFixed(1),
+                  size: 12.sp,
+                  fontWeight: FontWeight.w800,
+                  color: _ratingFg,
+                  height: 16 / 12,
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _distanceRow() {
+    return Obx(() {
+      final short = _shortAddress(controller.model.value.address);
+      final text =
+          '${controller.distance.value.toStringAsFixed(2)} km away · $short';
+      return Row(
+        children: [
+          SvgPicture.asset(
+            'assets/svg/location_on_red.svg',
+            width: 14.w,
+            height: 14.w,
+          ),
+          width(6.w),
+          Expanded(
+            child: CustomText(
+              text: text,
+              size: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: _muted,
+              height: 19.5 / 14,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  String _shortAddress(String address) {
+    final parts = address
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '';
+    if (parts.length == 1) return parts.first;
+    return '${parts[0]}, ${parts[1]}';
+  }
+
+  /// Figma amenity chips use emoji glyphs (not separate SVG assets).
+  static const Map<String, String> _amenityEmoji = {
+    'restaurant': '🍴',
+    'cafe': '☕',
+    'coffee': '☕',
+    'hotel': '🏨',
+    'mall': '🏬',
+    'shopping': '🛍️',
+    'shop': '🛍️',
+    'parking': '🅿️',
+    'park': '🅿️',
+    'wifi': '📶',
+    'wi-fi': '📶',
+    'toilet': '🚻',
+    'restroom': '🚻',
+    'washroom': '🚻',
+    'bathroom': '🚻',
+    'church': '⛪',
+    'church nearby': '⛪',
+    'atm': '🏧',
+    'lounge': '🛋️',
+  };
+
+  String _emojiForAmenity(String label) {
+    final key = label.trim().toLowerCase();
+    return _amenityEmoji[key] ??
+        _amenityEmoji[key.replaceAll('_', ' ')] ??
+        '📍';
+  }
+
+  Widget _amenityChips() {
+    return Obx(() {
+      final amenities = controller.amenities
+          .where((e) => e.toString().trim().isNotEmpty)
+          .toList();
+      if (amenities.isEmpty) return const SizedBox.shrink();
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (var i = 0; i < amenities.length; i++) ...[
+              if (i > 0) width(8.w),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: _chipBg,
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _emojiForAmenity(amenities[i].toString()),
+                      style: TextStyle(fontSize: 12.sp, height: 1),
+                    ),
+                    width(6.w),
+                    CustomText(
+                      text: amenities[i].toString(),
+                      size: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: _chipFg,
+                      height: 16 / 12,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _addressAndActions() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Obx(
+            () => CustomText(
+              text: controller.model.value.address,
+              size: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: _bodyGrey,
+              height: 21.13 / 14,
+            ),
+          ),
+        ),
+        width(16.w),
+        _roundAction(
+          color: _dirBlue,
+          onTap: controller.launchOnGoogleMap,
+          child: SvgPicture.asset(
+            'assets/svg/direction.svg',
+            width: 20.w,
+            height: 20.w,
+            colorFilter:
+                const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          ),
+        ),
+        width(12.w),
+        _roundAction(
+          color: _shareBg,
+          onTap: controller.shareStationLocation,
+          child: SvgPicture.asset(
+            'assets/svg/share.svg',
+            width: 20.w,
+            height: 20.w,
+            colorFilter:
+                const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _roundAction({
+    required Color color,
+    required VoidCallback onTap,
+    required Widget child,
+  }) {
+    return Material(
+      color: color,
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 40.w,
+          height: 40.w,
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
+
+  Widget _connectorSectionHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          text: 'Choose a connector',
+          size: 18.sp,
+          fontWeight: FontWeight.w700,
+          color: kNeutralPrimary,
+        ),
+        height(4.h),
+        CustomText(
+          text: 'Tap one to see live availability & pricing',
+          size: 13.sp,
+          fontWeight: FontWeight.w500,
+          color: _muted,
+        ),
+      ],
+    );
+  }
+
+  Widget _connectorList() {
+    final chargers = controller.model.value.chargers;
+    if (chargers.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 24.h),
+        child: CustomText(
+          text: 'No connectors available at this station',
+          size: 14.sp,
+          color: _muted,
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    final items = <_ConnectorItem>[];
+    for (var ci = 0; ci < chargers.length; ci++) {
+      final charger = chargers[ci];
+      final chargerAvailable = charger.ocppStatus == kAvailable ||
+          charger.ocppStatus.isEmpty;
+      for (var pi = 0; pi < charger.evports.length; pi++) {
+        items.add(_ConnectorItem(
+          chargerIndex: ci,
+          portIndex: pi,
+          charger: charger,
+          port: charger.evports[pi],
+          chargerAvailable: chargerAvailable,
+          displayIndex: items.length + 1,
+        ));
+      }
+    }
+
+    return Column(
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) height(12.h),
+          _connectorCard(items[i]),
+        ],
+      ],
+    );
+  }
+
+  String _statusFor(_ConnectorItem item) {
+    final evport = item.port;
+    if (!item.chargerAvailable) return kUnavailable;
+    if (evport.ocppStatus == kAvailable || evport.ocppStatus.isEmpty) {
+      return kAvailable;
+    }
+    if (evport.ocppStatus == kPreparing) return kPreparing;
+    if (evport.ocppStatus == kFinishing) return kFinishing;
+    if (evport.ocppStatus == kCharging) return kBusy;
+    if (evport.ocppStatus == kFaulted) return kFaulted;
+    return kUnavailable;
+  }
+
+  bool _canSelect(String status) =>
+      status == kAvailable || status == kPreparing || status == kFinishing;
+
+  Color _statusColor(String status) {
+    if (status == kAvailable ||
+        status == kPreparing ||
+        status == kFinishing) {
+      return kBrandPrimaryBlue;
+    }
+    if (status == kBusy) return const Color(0xFFE37A2D);
+    if (status == kFaulted) return const Color(0xFFF93B2D);
+    return _muted;
+  }
+
+  String _statusLabel(String status, EvPortModel port) {
+    // Same as pre-revamp: show real OCPP status; only Busy appends SoC.
+    if (status == kBusy) {
+      return port.currentSoc.isNotEmpty
+          ? '$kBusy (${port.currentSoc}%)'
+          : kBusy;
+    }
+    return status;
+  }
+
+  Widget _connectorCard(_ConnectorItem item) {
+    final status = _statusFor(item);
+    final selectable = _canSelect(status);
+    final selected = controller.selectedCharger.value == item.chargerIndex &&
+        controller.selectedType.value == item.portIndex;
+    final tariff =
+        double.tryParse(item.charger.tariff) ?? 0;
+    final title = item.charger.chargerName.trim().isNotEmpty
+        ? item.charger.chargerName.trim()
+        : '${item.port.connectorType.trim().isEmpty ? 'Connector' : item.port.connectorType.trim()} · ${item.charger.capacity} kW';
+    final subtitle = item.port.connectorType.trim().isNotEmpty &&
+            item.charger.chargerName.trim().isNotEmpty
+        ? 'Connector ${item.displayIndex}'
+        : 'Connector ${item.displayIndex}';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8.r),
+        onTap: selectable
+            ? () => controller.selectConnector(
+                  item.chargerIndex,
+                  item.portIndex,
+                )
+            : null,
+        child: Ink(
+          // Figma selected: fill #E2FDF8, stroke #03E8BE
+          decoration: BoxDecoration(
+            color: selected ? _selectedBg : Colors.white,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(
+              color: selected
+                  ? _selectedBorder
+                  : (selectable ? _cardBorder : _cardBorderAlt),
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(14.w),
+            child: Row(
+              children: [
+                _radio(selected: selected, enabled: selectable),
+                width(12.w),
+                Container(
+                  width: 40.w,
+                  height: 40.w,
+                  decoration: BoxDecoration(
+                    color: selected ? _iconBadgeSelected : _iconBadge,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  alignment: Alignment.center,
+                  child: SvgPicture.asset(
+                    'assets/svg/css.svg',
+                    width: 20.w,
+                    height: 20.w,
+                    colorFilter: ColorFilter.mode(
+                      selected ? _iconSelected : kNeutralSecondary,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+                width(12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        text: title,
+                        size: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: kNeutralPrimary,
+                        height: 20 / 16,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      CustomText(
+                        text: subtitle,
+                        size: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: _muted,
+                        height: 18 / 14,
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6.w,
+                          height: 6.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _statusColor(status),
+                          ),
+                        ),
+                        width(4.w),
+                        CustomText(
+                          text: _statusLabel(status, item.port),
+                          size: 13.sp,
+                          fontWeight: FontWeight.w700,
+                          color: _statusColor(status),
+                          height: 18 / 13,
+                        ),
+                      ],
+                    ),
+                    height(3.h),
+                    CustomText(
+                      text: '$kCurrency${tariff.toStringAsFixed(2)}/kWh',
+                      size: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      color: _muted,
+                      height: 18 / 14,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _radio({required bool selected, required bool enabled}) {
+    return Container(
+      width: 20.w,
+      height: 20.w,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          width: 2,
+          color: selected
+              ? kBrandPrimaryBlue
+              : (enabled ? const Color(0xFFCBD5E1) : _muted),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: selected
+          ? Container(
+              width: 10.w,
+              height: 10.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: kBrandPrimaryBlue,
+              ),
+            )
+          : null,
+    );
+  }
+
+  // ─── Bottom footer (state 27 vs 28) ─────────────────────────────────────
+
+  Widget _bottomFooter(BuildContext context, double bottomInset) {
+    final selected = controller.hasConnectorSelected;
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        decoration: BoxDecoration(
+          border: const Border(
+            top: BorderSide(color: Color(0xFFEBEFEA), width: 1),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            child: Container(
+              color: Colors.white.withValues(alpha: 0.95),
+              padding: EdgeInsets.fromLTRB(
+                20.w,
+                selected ? 20.h : 16.h,
+                20.w,
+                (selected ? 24.h : 16.h) + bottomInset,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (selected) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56.h,
+                      child: ElevatedButton(
+                        onPressed: () => _showConfirmSheet(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kBrandPrimaryBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100.r),
+                          ),
+                        ),
+                        child: CustomText(
+                          text: controller.selectedChargerCtaLabel,
+                          size: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    height(8.h),
+                  ],
+                  _reviewsRow(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _reviewsRow() {
+    return Center(
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          CustomText(
+            text: 'Station reviews · ',
+            size: 13.sp,
+            fontWeight: FontWeight.w500,
+            color: _muted,
+          ),
+          GestureDetector(
+            onTap: () {
+              Get.toNamed(Routes.reviewPageRoute, arguments: [
+                controller.model.value.rating.toStringAsFixed(2),
+                controller.model.value.id,
+              ]);
+            },
+            child: CustomText(
+              text: 'See reviews >',
+              size: 13.sp,
+              fontWeight: FontWeight.w700,
+              color: kBrandPrimaryBlue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Confirm sheet (state 29) ───────────────────────────────────────────
+
+  void _showConfirmSheet(BuildContext context) {
+    final bottomInset = systemBottomInset(context);
+    Get.bottomSheet(
+      BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(36.r),
+              topRight: Radius.circular(36.r),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(32.w, 24.h, 32.w, 16.h),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        text: 'Confirm your session',
+                        size: 18.sp,
+                        fontWeight: FontWeight.w700,
+                        color: kNeutralPrimary,
+                        height: 32 / 18,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: Get.back,
+                      child: Icon(Icons.close, size: 20.sp, color: _muted),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 25.w),
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: _confirmCardBg,
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(color: _confirmCardBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  text: 'Connector',
+                                  size: 12.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: _muted,
+                                  height: 16 / 12,
+                                ),
+                                height(4.h),
+                                CustomText(
+                                  text: controller.selectedConnectorLabel,
+                                  size: 16.sp,
+                                  fontWeight: FontWeight.w800,
+                                  color: kNeutralPrimary,
+                                  height: 24 / 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              CustomText(
+                                text: 'Rate',
+                                size: 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: _muted,
+                                height: 16 / 12,
+                              ),
+                              height(4.h),
+                              CustomText(
+                                text: controller.selectedTariffLabel,
+                                size: 16.sp,
+                                fontWeight: FontWeight.w800,
+                                color: kNeutralPrimary,
+                                height: 24 / 16,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    height(20.h),
+                    _confirmRow(
+                      label: 'Vehicle',
+                      value: _vehicleLabel(),
+                      showChevron: true,
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.myvehicleRoute);
+                      },
+                    ),
+                    height(16.h),
+                    Obx(
+                      () => _confirmRow(
+                        label: 'Payment method',
+                        value:
+                            'Wallet · $kCurrency${appData.userModel.value.balanceAmount.toStringAsFixed(0)}',
+                        showChevron: true,
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(Routes.walletPageRoute);
+                        },
+                      ),
+                    ),
+                    height(16.h),
+                    _confirmRow(
+                      label: 'Estimated full charge',
+                      value: '—',
+                      showChevron: false,
+                    ),
+                    height(28.h),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  border: const Border(
+                    top: BorderSide(color: Color(0xFFEBEFEA)),
+                  ),
+                ),
+                child: SizedBox(
+                  height: 56.h,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Get.back();
+                      controller.startCharging();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kBrandPrimaryBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100.r),
+                      ),
+                    ),
+                    child: CustomText(
+                      text: 'Start Charging',
+                      size: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.21),
+    );
+  }
+
+  String _vehicleLabel() {
+    final v = appData.userModel.value.defaultVehicle;
+    final brand = v.brand.trim();
+    final model = v.modelName.trim();
+    if (brand.isEmpty && model.isEmpty) return 'Add vehicle';
+    if (brand.isEmpty) return model;
+    if (model.isEmpty) return brand;
+    return '$brand $model';
+  }
+
+  Widget _confirmRow({
+    required String label,
+    required String value,
+    required bool showChevron,
+    VoidCallback? onTap,
+  }) {
+    final row = Row(
+      children: [
+        CustomText(
+          text: label,
+          size: 16.sp,
+          fontWeight: FontWeight.w600,
+          color: _muted,
+          height: 22.5 / 16,
+        ),
+        const Spacer(),
+        Flexible(
+          child: CustomText(
+            text: value,
+            size: 16.sp,
+            fontWeight: FontWeight.w800,
+            color: kNeutralPrimary,
+            height: 22.5 / 16,
+            textAlign: TextAlign.right,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (showChevron) ...[
+          width(4.w),
+          CustomText(
+            text: '>',
+            size: 14.sp,
+            fontWeight: FontWeight.w700,
+            color: kNeutralPrimary,
+          ),
+        ],
+      ],
+    );
+    if (onTap == null) return row;
+    return GestureDetector(onTap: onTap, behavior: HitTestBehavior.opaque, child: row);
+  }
+}
+
+class _ConnectorItem {
+  final int chargerIndex;
+  final int portIndex;
+  final ChargerModel charger;
+  final EvPortModel port;
+  final bool chargerAvailable;
+  final int displayIndex;
+
+  _ConnectorItem({
+    required this.chargerIndex,
+    required this.portIndex,
+    required this.charger,
+    required this.port,
+    required this.chargerAvailable,
+    required this.displayIndex,
+  });
 }

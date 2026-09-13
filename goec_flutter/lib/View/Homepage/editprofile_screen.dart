@@ -8,6 +8,7 @@ import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
 import '../Widgets/cached_network_image.dart';
 import '../Widgets/customText.dart';
+import '../Widgets/glass_circle_icon_button.dart';
 
 class EditProfileScreen extends GetView<EditProfileScreenController> {
   const EditProfileScreen({super.key});
@@ -30,31 +31,7 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
                   padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                   child: Row(
                     children: [
-                      Material(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          onTap: () => Get.back(),
-                          customBorder: const CircleBorder(),
-                          child: Container(
-                            width: 40.w,
-                            height: 40.w,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                width: 1.2,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.chevron_left_rounded,
-                              color: Colors.white,
-                              size: 28.sp,
-                            ),
-                          ),
-                        ),
-                      ),
+                      const GlassBackButton(),
                       width(12.w),
                       CustomText(
                         text: 'Edit Profile',

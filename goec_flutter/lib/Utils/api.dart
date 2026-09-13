@@ -65,7 +65,6 @@ Future<ResponseModel> getData(String url) async {
         'Authorization': 'Bearer ${appData.token}',
       },
     );
-
     if (res.statusCode == 200) {
       body = json.decode(res.body);
     } else {

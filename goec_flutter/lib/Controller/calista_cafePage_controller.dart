@@ -27,10 +27,11 @@ class CalistaCafePageController extends GetxController {
   Rx<DirectionsResult> directionsResult = DirectionsResult().obs;
   Rx<AutocompletePrediction> source = AutocompletePrediction().obs,
       destination = AutocompletePrediction().obs;
+
+  final ScrollController scrollController = ScrollController();
+
   @override
   void onInit() {
-    // / implement onInit
-
     super.onInit();
     if (Get.arguments != null) {
       if (Get.arguments is String)
@@ -38,6 +39,12 @@ class CalistaCafePageController extends GetxController {
       else
         assignPreviouslyGotModel();
     }
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
   }
 
   assignPreviouslyGotModel() {
@@ -72,15 +79,47 @@ class CalistaCafePageController extends GetxController {
     // hideLoading();
   }
 
-  changeCharger(int index, int index_grid) {
-    if (selectedCharger.value != -1)
+  /// Radio-style connector selection (tap again to clear).
+  void selectConnector(int chargerIndex, int portIndex) {
+    if (selectedCharger.value == chargerIndex &&
+        selectedType.value == portIndex) {
       selectedCharger.value = -1;
-    else
-      selectedCharger.value = index;
-    if (selectedType.value != -1)
       selectedType.value = -1;
-    else
-      selectedType.value = index_grid;
+      return;
+    }
+    selectedCharger.value = chargerIndex;
+    selectedType.value = portIndex;
+  }
+
+  @Deprecated('Use selectConnector')
+  changeCharger(int index, int index_grid) {
+    selectConnector(index, index_grid);
+  }
+
+  bool get hasConnectorSelected =>
+      selectedCharger.value != -1 && selectedType.value != -1;
+
+  String get selectedConnectorLabel {
+    if (!hasConnectorSelected) return '';
+    final charger = model.value.chargers[selectedCharger.value];
+    final port = charger.evports[selectedType.value];
+    final type = port.connectorType.trim().isEmpty
+        ? 'Connector'
+        : port.connectorType.trim();
+    return '$type · Connector ${selectedType.value + 1}';
+  }
+
+  String get selectedTariffLabel {
+    if (!hasConnectorSelected) return '';
+    final tariff = double.tryParse(
+            model.value.chargers[selectedCharger.value].tariff) ??
+        0;
+    return '$kCurrency${tariff.toStringAsFixed(2)}/kWh';
+  }
+
+  String get selectedChargerCtaLabel {
+    if (!hasConnectorSelected) return 'Start Charging';
+    return 'Start Charging · Connector ${selectedType.value + 1}';
   }
 
   postReviewForChargeStation() async {
