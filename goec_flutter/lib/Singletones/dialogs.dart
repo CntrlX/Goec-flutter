@@ -1101,7 +1101,7 @@ class Dialogs {
 
     await Get.bottomSheet(
       BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: Stack(
           alignment: Alignment.topCenter,
           clipBehavior: Clip.none,

@@ -30,6 +30,7 @@ class WalletPageController extends GetxController {
   final RxBool isInitialLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMore = true.obs;
+  final RxBool hasActiveFilter = false.obs;
 
   int _page = 0;
   int _totalCount = 0;
@@ -180,11 +181,19 @@ class WalletPageController extends GetxController {
     }
   }
 
+  void _updateFilterStatus() {
+    hasActiveFilter.value = startDate.text.isNotEmpty ||
+        endDate.text.isNotEmpty ||
+        payment_mode.isNotEmpty ||
+        payment_status.isNotEmpty;
+  }
+
   Future<void> clearFilter() async {
     startDate.clear();
     endDate.clear();
     payment_mode.clear();
     payment_status.clear();
+    _updateFilterStatus();
     await refreshTransactions(showOverlay: true);
   }
 
@@ -201,6 +210,7 @@ class WalletPageController extends GetxController {
 
     _filterLock = true;
     try {
+      _updateFilterStatus();
       await refreshTransactions(showOverlay: true);
       Get.back();
     } finally {
