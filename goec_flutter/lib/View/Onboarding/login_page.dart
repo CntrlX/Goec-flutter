@@ -4,6 +4,7 @@ import 'package:freelancer_app/Controller/loginpage_controller.dart';
 import 'package:freelancer_app/Utils/routes.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
 import 'package:freelancer_app/constants.dart';
+import 'package:freelancer_app/View/Widgets/appbar.dart';
 import 'package:get/get.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'onboarding_cards.dart';
@@ -16,7 +17,8 @@ class LoginPage extends GetView<LoginPageController> {
     if (size.height == 0) {
       size = MediaQuery.of(context).size;
     }
-    return Scaffold(
+    return WhiteStatusBar(
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
@@ -150,6 +152,7 @@ class LoginPage extends GetView<LoginPageController> {
           ),
         ],
       ),
+    ),
     );
   }
 }

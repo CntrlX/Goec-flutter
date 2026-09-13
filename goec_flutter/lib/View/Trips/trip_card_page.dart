@@ -5,6 +5,7 @@ import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 
 class CardTrip extends StatelessWidget {
   const CardTrip({super.key});
@@ -12,9 +13,11 @@ class CardTrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return SafeArea(
+    return WhiteStatusBar(
       child: Scaffold(
-        body: SingleChildScrollView(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -30,6 +33,7 @@ class CardTrip extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../Singletones/app_data.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:freelancer_app/constants.dart';
@@ -53,6 +54,7 @@ class _WalletScreenState extends State<WalletScreen>
                 floating: true,
                 pinned: true,
                 backgroundColor: kwhite,
+                systemOverlayStyle: SystemUiOverlayStyle.light,
                 expandedHeight:
                     size.height * 0.562 + 0 * controller.reload.value,
                 flexibleSpace: FlexibleSpaceBar(

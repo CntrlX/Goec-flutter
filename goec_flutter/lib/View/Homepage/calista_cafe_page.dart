@@ -4,6 +4,7 @@ import '../Widgets/customText.dart';
 import '../../Utils/toastUtils.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../Widgets/cached_network_image.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,6 +27,7 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
         backgroundColor: Color(0xff0047C3),
         foregroundColor: Colors.white,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
         leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () {

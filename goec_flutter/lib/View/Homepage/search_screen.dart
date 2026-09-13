@@ -9,6 +9,7 @@ import '../../Singletones/map_functions.dart';
 import '../../Utils/routes.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/customText.dart';
 
 class SearchScreen extends GetView<SearchScreenController> {
@@ -17,7 +18,8 @@ class SearchScreen extends GetView<SearchScreenController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return Scaffold(
+    return WhiteStatusBar(
+      child: Scaffold(
         body: Container(
       color: Color(0xffF5F9FF),
       child: SafeArea(
@@ -212,6 +214,8 @@ class SearchScreen extends GetView<SearchScreenController> {
           )
         ]),
       ),
-    ));
+    ),
+    ),
+    );
   }
 }

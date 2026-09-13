@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freelancer_app/Controller/review_page_controller.dart';
 import 'package:freelancer_app/Model/reviewMode.dart';
@@ -22,6 +23,7 @@ class ReviewPage extends GetView<ReviewPageController> {
           backgroundColor: Color(0xff0047C3),
           foregroundColor: Colors.white,
           elevation: 0,
+          systemOverlayStyle: SystemUiOverlayStyle.light,
           title: CustomBigText(
             text: 'Customer Review',
             color: Color(0xffffffff),

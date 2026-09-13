@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../Utils/routes.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../Singletones/app_data.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:freelancer_app/Utils/utils.dart';
@@ -33,6 +34,7 @@ class _ChargeScreenState extends State<ChargeScreen>
     return Scaffold(
       backgroundColor: Color(0xffF5F9FF),
       body: SafeArea(
+        top: false,
         child: RefreshIndicator(
           displacement: 100,
           backgroundColor: Colors.white,
@@ -53,6 +55,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                       floating: true,
                       pinned: true,
                       backgroundColor: Color(0xffF5F9FF),
+                      systemOverlayStyle: SystemUiOverlayStyle.dark,
                       expandedHeight: size.height * 0.525,
                       flexibleSpace: FlexibleSpaceBar(
                         background: Column(
@@ -61,7 +64,8 @@ class _ChargeScreenState extends State<ChargeScreen>
                               padding: EdgeInsets.only(
                                 left: size.width * 0.055,
                                 right: size.width * 0.055,
-                                top: size.height * 0.020,
+                                top: size.height * 0.020 +
+                                    MediaQuery.paddingOf(context).top,
                                 bottom: size.height * 0.02,
                               ),
                               child: Container(

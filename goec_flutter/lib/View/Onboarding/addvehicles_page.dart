@@ -19,11 +19,10 @@ class AddVehiclesPage extends GetView<VehiclesScreenController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: kscaffoldBackgroundColor,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(size.height * 0.09),
+          preferredSize: customAppBarPreferredSize(context),
           child: CustomAppBar(
             text: "Skip",
             icon: Icon(
@@ -54,7 +53,6 @@ class AddVehiclesPage extends GetView<VehiclesScreenController> {
           },
           body: _vehiclesModel(),
         ),
-      ),
     );
   }
 

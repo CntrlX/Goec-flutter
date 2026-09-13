@@ -6,6 +6,7 @@ import 'package:freelancer_app/View/Widgets/customText.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/apptext.dart';
 import '../Widgets/borderButton.dart';
 
@@ -15,8 +16,9 @@ class BookASlotScreen extends GetView<BookASlotScreenController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return Scaffold(
-      backgroundColor: kDefaultHomePageBackgroundColor,
+    return WhiteStatusBar(
+      child: Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Container(
           alignment: Alignment.center,
@@ -308,6 +310,7 @@ class BookASlotScreen extends GetView<BookASlotScreenController> {
           ),
         ),
       ),
+    ),
     );
   }
 }

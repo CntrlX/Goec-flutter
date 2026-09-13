@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../Singletones/map_functions.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/apptext.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -17,7 +18,9 @@ class ExploreTripScreen extends GetView<ExploreTripScreenController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return Scaffold(
+    return WhiteStatusBar(
+      child: Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         // fit: StackFit.expand,
         alignment: Alignment.center,
@@ -51,6 +54,7 @@ class ExploreTripScreen extends GetView<ExploreTripScreenController> {
           _trip01Card()
         ],
       ),
+    ),
     );
   }
 

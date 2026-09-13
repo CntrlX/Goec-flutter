@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
+import 'package:freelancer_app/View/Widgets/appbar.dart';
 import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
@@ -14,10 +15,13 @@ class ShareExperienceScreen extends GetView<FeedBackPageController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return WhiteStatusBar(
       child: Scaffold(
-        backgroundColor: Color(0xffF5F9FF),
-        body: Column(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: ColoredBox(
+            color: Color(0xffF5F9FF),
+            child: Column(
           children: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20),
@@ -138,6 +142,8 @@ class ShareExperienceScreen extends GetView<FeedBackPageController> {
           ],
         ),
       ),
+    ),
+    ),
     );
   }
 

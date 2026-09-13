@@ -8,6 +8,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../Controller/otpnumberPage_controller.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/customText.dart';
 import '../Widgets/unfocus_wrapper.dart';
 
@@ -16,7 +17,8 @@ class EnterOtpPage extends GetView<OtpNumberPageController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WhiteStatusBar(
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: UnfocusWrapper(
         child: Stack(
@@ -260,6 +262,7 @@ class EnterOtpPage extends GetView<OtpNumberPageController> {
           ],
         ),
       ),
+    ),
     );
   }
 }

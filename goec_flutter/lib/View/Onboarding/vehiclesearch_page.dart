@@ -26,10 +26,9 @@ class VehicleSearchScreen extends GetView<VehiclesScreenController> {
         controller.isSelectedVehicleindex.value = -1;
         return;
       },
-      child: SafeArea(
-        child: Scaffold(
+      child: Scaffold(
           appBar: PreferredSize(
-            preferredSize: Size.fromHeight(size.height * 0.09),
+            preferredSize: customAppBarPreferredSize(context),
             child: CustomAppBar(
               text: "Skip",
               icon: Icon(
@@ -88,7 +87,6 @@ class VehicleSearchScreen extends GetView<VehiclesScreenController> {
             ],
           ),
         ),
-      ),
     );
   }
 

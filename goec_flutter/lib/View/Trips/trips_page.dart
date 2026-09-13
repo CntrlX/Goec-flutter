@@ -1,5 +1,6 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
@@ -28,12 +29,12 @@ class _TripsScreenState extends State<TripsScreen>
   Widget build(BuildContext context) {
     super.build(context);
     size = MediaQuery.of(context).size;
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: Color(0xffF5F9FF),
         body: CustomScrollView(shrinkWrap: true, slivers: [
           SliverAppBar(
               backgroundColor: Color(0xffF5F9FF),
+              systemOverlayStyle: SystemUiOverlayStyle.dark,
               automaticallyImplyLeading: false,
               expandedHeight: size.height * 0.65,
               // collapsedHeight: size.height * 0.01,
@@ -390,7 +391,6 @@ class _TripsScreenState extends State<TripsScreen>
             ),
           ),
         ]),
-      ),
     );
   }
 

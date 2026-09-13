@@ -13,6 +13,14 @@ import 'package:freelancer_app/Utils/local_notifications.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.white,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
   await Firebase.initializeApp(
       options: FirebaseOptions(
     apiKey: 'AIzaSyAV3Z723XVgs7ZQEXWHjH67EVZJnkpgVhI',
@@ -55,6 +63,15 @@ class MyApp extends StatelessWidget {
               fontFamily: kFontFamily,
               primarySwatch: Colors.grey,
               scaffoldBackgroundColor: kscaffoldBackgroundColor,
+              appBarTheme: const AppBarTheme(
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.light,
+                  statusBarBrightness: Brightness.dark,
+                ),
+              ),
             ),
             initialRoute: Routes.splashpageRoute,
             getPages: AppPages.pages,

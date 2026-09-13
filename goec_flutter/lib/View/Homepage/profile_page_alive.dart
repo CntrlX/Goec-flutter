@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -34,7 +35,11 @@ class _ProfilePageAliveState extends State<ProfilePageAlive>
           Container(
             width: double.infinity,
             color: kBrandPrimaryBlue,
-            child: SafeArea(
+            child: AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle.light.copyWith(
+                statusBarColor: Colors.transparent,
+              ),
+              child: SafeArea(
               bottom: false,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
@@ -50,6 +55,7 @@ class _ProfilePageAliveState extends State<ProfilePageAlive>
                   ],
                 ),
               ),
+            ),
             ),
           ),
 

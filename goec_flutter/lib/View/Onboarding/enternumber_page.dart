@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../Controller/loginpage_controller.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/country_code_picker_dialog.dart';
 import '../Widgets/customText.dart';
 import '../Widgets/unfocus_wrapper.dart';
@@ -16,7 +17,8 @@ class EnterNumberPage extends GetView<LoginPageController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WhiteStatusBar(
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: UnfocusWrapper(
         child: Stack(
@@ -272,6 +274,7 @@ class EnterNumberPage extends GetView<LoginPageController> {
           ],
         ),
       ),
+    ),
     );
   }
 }

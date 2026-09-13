@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../constants.dart';
 import '../../Utils/routes.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/appbutton.dart';
 import 'package:flutter/material.dart';
 import '../../Singletones/app_data.dart';
@@ -40,11 +41,14 @@ class _MapScreenState extends State<MapScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return SafeArea(
-      child: Container(
-          alignment: Alignment.center,
-          child: Stack(
-            children: [
+    return WhiteStatusBar(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Container(
+              alignment: Alignment.center,
+              child: Stack(
+                children: [
               Container(
                 child: Obx(
                   () => Container(
@@ -404,7 +408,10 @@ class _MapScreenState extends State<MapScreen>
               //           ),
               //         ))),
             ],
-          )),
+          ),
+        ),
+      ),
+    ),
     );
   }
 }

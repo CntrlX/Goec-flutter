@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../Controller/feedback_page_controller.dart';
 import '../../../constants.dart';
+import '../../Widgets/appbar.dart';
 import '../../Widgets/apptext.dart';
 
 class PaymentFeedbackScreen extends GetView<FeedBackPageController> {
@@ -14,10 +15,13 @@ class PaymentFeedbackScreen extends GetView<FeedBackPageController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return WhiteStatusBar(
       child: Scaffold(
-        backgroundColor: Color(0xffF5F9FF),
-        body: SingleChildScrollView(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: ColoredBox(
+            color: Color(0xffF5F9FF),
+            child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -212,6 +216,8 @@ class PaymentFeedbackScreen extends GetView<FeedBackPageController> {
           ),
         ),
       ),
+    ),
+    ),
     );
   }
 

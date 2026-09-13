@@ -72,7 +72,12 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
             // 2. Scrollable Form Body
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+                padding: EdgeInsets.only(
+                  left: 24.w,
+                  right: 24.w,
+                  top: 38.h,
+                  bottom: 24.h,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

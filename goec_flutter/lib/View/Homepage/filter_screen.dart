@@ -6,6 +6,7 @@ import '../../Controller/filter_screen_controller.dart';
 import '../../Singletones/app_data.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/customText.dart';
 
 class FilterScreen extends GetView<FilterScreenController> {
@@ -14,8 +15,8 @@ class FilterScreen extends GetView<FilterScreenController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return Scaffold(
-        // backgroundColor: Color(0xffF0F1F6),
+    return WhiteStatusBar(
+      child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
             child:
@@ -221,6 +222,9 @@ class FilterScreen extends GetView<FilterScreenController> {
               ]),
             ),
           )
-        ])));
+        ]),
+      ),
+    ),
+    );
   }
 }

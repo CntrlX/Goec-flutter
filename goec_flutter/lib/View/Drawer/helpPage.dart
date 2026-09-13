@@ -7,6 +7,7 @@ import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
 import '../../Utils/toastUtils.dart';
+import '../Widgets/appbar.dart';
 
 class HelpScreen extends GetView<HelpPageController> {
   const HelpScreen({super.key});
@@ -14,10 +15,13 @@ class HelpScreen extends GetView<HelpPageController> {
   @override
   Widget build(BuildContext context) {
     if (size.height == 0) size = MediaQuery.of(context).size;
-    return SafeArea(
-        child: Scaffold(
-      backgroundColor: Color(0xffF5F9FF),
-      body: Column(
+    return WhiteStatusBar(
+      child: Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: ColoredBox(
+          color: Color(0xffF5F9FF),
+          child: Column(
         children: [
           Padding(
             padding: EdgeInsets.symmetric(
@@ -215,7 +219,10 @@ class HelpScreen extends GetView<HelpPageController> {
           // ),
         ],
       ),
-    ));
+    ),
+    ),
+    ),
+    );
   }
 
   Widget _contractCard(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freelancer_app/Controller/rfid_page_controller.dart';
+import 'package:freelancer_app/View/Widgets/appbar.dart';
 import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:get/get.dart';
 
@@ -13,14 +14,13 @@ class OrderRFIDScreen extends GetView<RfidPageController> {
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Color(0xffF3F5F9),
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(size.height * 0.09),
-          child: AppBarwidget(),
-        ),
-        body: Column(
+    return Scaffold(
+      backgroundColor: Color(0xffF3F5F9),
+      appBar: PreferredSize(
+        preferredSize: customAppBarPreferredSize(context),
+        child: AppBarwidget(),
+      ),
+      body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
@@ -176,7 +176,6 @@ class OrderRFIDScreen extends GetView<RfidPageController> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -185,22 +184,25 @@ class OrderRFIDScreen extends GetView<RfidPageController> {
       padding: EdgeInsets.only(
         left: size.width * 0.055,
         right: size.width * 0.055,
+        top: MediaQuery.paddingOf(Get.context!).top,
       ),
-      height: size.height * 0.09,
       color: Color(0xffF3F5F9),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Image.asset(
-                "assets/images/bluelogo.png",
-                height: size.height * 0.065,
-                width: size.width * 0.17,
-              ),
-            ],
-          ),
-        ],
+      child: SizedBox(
+        height: size.height * 0.09,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Image.asset(
+                  "assets/images/bluelogo.png",
+                  height: size.height * 0.065,
+                  width: size.width * 0.17,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

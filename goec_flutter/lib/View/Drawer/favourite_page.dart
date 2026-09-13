@@ -8,6 +8,7 @@ import 'package:freelancer_app/Singletones/map_functions.dart';
 import 'package:get/get.dart';
 
 import '../../Utils/toastUtils.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/apptext.dart';
 import '../Widgets/customText.dart';
 
@@ -17,10 +18,13 @@ class FavouriteScreen extends GetView<FavouritePageController> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return SafeArea(
-        child: Scaffold(
-      backgroundColor: Color(0xffF0F1F6),
-      body: Column(
+    return WhiteStatusBar(
+      child: Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: ColoredBox(
+          color: Color(0xffF0F1F6),
+          child: Column(
         children: [
           height(10.h),
           Padding(
@@ -185,6 +189,9 @@ class FavouriteScreen extends GetView<FavouritePageController> {
           )
         ],
       ),
-    ));
+    ),
+    ),
+    ),
+    );
   }
 }

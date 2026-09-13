@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter/material.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:freelancer_app/Singletones/app_data.dart';
+import 'package:freelancer_app/View/Widgets/appbar.dart';
 import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freelancer_app/Controller/walletPage_controller.dart';
@@ -16,10 +17,11 @@ class PopUpPage extends GetView<WalletPageController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return SafeArea(
+    return WhiteStatusBar(
       child: Scaffold(
-        backgroundColor: Color(0xffF5F9FF),
-        body: Padding(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
           padding: EdgeInsets.symmetric(
               horizontal: size.width * .062, vertical: size.height * .02),
           child: Column(
@@ -269,6 +271,7 @@ class PopUpPage extends GetView<WalletPageController> {
           ),
         ),
       ),
+    ),
     );
   }
 

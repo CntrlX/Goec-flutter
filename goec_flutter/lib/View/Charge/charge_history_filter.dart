@@ -1,8 +1,9 @@
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../Widgets/appbutton.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:freelancer_app/constants.dart';
 import '../../Controller/loginpage_controller.dart';
 import 'package:freelancer_app/View/Widgets/apptext.dart';
@@ -26,8 +27,7 @@ class ChargeHistoryFilter extends GetView<ChargeScreenController> {
     //       lastDate: DateTime(2025));
     // }
 
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: kscaffoldBackgroundColor,
         appBar: AppBar(
           title: CustomBigText(
@@ -37,6 +37,7 @@ class ChargeHistoryFilter extends GetView<ChargeScreenController> {
           centerTitle: true,
           backgroundColor: kwhite,
           elevation: 00,
+          systemOverlayStyle: SystemUiOverlayStyle.dark,
           leading: IconButton(
             onPressed: () => Get.back(),
             icon: Icon(Icons.arrow_back_ios),
@@ -163,7 +164,6 @@ class ChargeHistoryFilter extends GetView<ChargeScreenController> {
             ],
           ),
         ),
-      ),
     );
   }
 }

@@ -21,7 +21,7 @@ class MyVehiclePage extends GetView<MyVehiclesScreenController> {
     size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(size.height * 0.09),
+        preferredSize: customAppBarPreferredSize(context),
         child: CustomAppBar(
           backButton: Get.arguments != 'isFirstTime'
               ? InkWell(

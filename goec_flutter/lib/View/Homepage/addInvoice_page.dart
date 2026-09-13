@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../Controller/addInvoice_page_controller.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/apptext.dart';
 import '../Widgets/customText.dart';
 import '../Widgets/phonenumtext_field.dart';
@@ -17,10 +18,11 @@ class AddInvoiceDetails extends GetView<AddInvoiceDetailsController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return WhiteStatusBar(
       child: Scaffold(
-        backgroundColor: kscaffoldBackgroundColor2,
-        body: SingleChildScrollView(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Obx(() => Container(
@@ -215,6 +217,7 @@ class AddInvoiceDetails extends GetView<AddInvoiceDetailsController> {
           ]),
         ),
       ),
+    ),
     );
   }
 }

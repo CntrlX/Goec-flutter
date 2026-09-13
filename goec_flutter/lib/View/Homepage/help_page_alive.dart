@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../Controller/homepage_controller.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/apptext.dart';
 
 class HelpPageAlive extends StatefulWidget {
@@ -26,10 +27,13 @@ class _HelpPageAliveState extends State<HelpPageAlive>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return SafeArea(
-        child: Scaffold(
-      backgroundColor: Color(0xffF5F9FF),
-      body: Column(
+    return WhiteStatusBar(
+      child: Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: ColoredBox(
+          color: Color(0xffF5F9FF),
+          child: Column(
         children: [
           Padding(
             padding: EdgeInsets.symmetric(
@@ -227,8 +231,11 @@ class _HelpPageAliveState extends State<HelpPageAlive>
           //   ),
           // ),
         ],
+          ),
+        ),
       ),
-    ));
+    ),
+    );
   }
 
   Widget _contractCard(

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../Controller/loginpage_controller.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/customText.dart';
 import '../Widgets/unfocus_wrapper.dart';
 
@@ -13,7 +14,8 @@ class WelcomeToEvPage extends GetView<LoginPageController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WhiteStatusBar(
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: UnfocusWrapper(
         child: SafeArea(
@@ -278,6 +280,7 @@ class WelcomeToEvPage extends GetView<LoginPageController> {
           ),
         ),
       ),
+    ),
     );
   }
 }

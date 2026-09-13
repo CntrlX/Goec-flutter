@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freelancer_app/Controller/walletPage_controller.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
@@ -30,8 +31,7 @@ class WalletHistoryFilterPage extends GetView<WalletPageController> {
     //       lastDate: DateTime(2025));
     // }
 
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: kscaffoldBackgroundColor,
         appBar: AppBar(
           title: CustomBigText(
@@ -41,6 +41,7 @@ class WalletHistoryFilterPage extends GetView<WalletPageController> {
           centerTitle: true,
           backgroundColor: kwhite,
           elevation: 00,
+          systemOverlayStyle: SystemUiOverlayStyle.dark,
           leading: IconButton(
             onPressed: () => Get.back(),
             icon: Icon(Icons.arrow_back_ios),
@@ -238,7 +239,6 @@ class WalletHistoryFilterPage extends GetView<WalletPageController> {
             ],
           ),
         ),
-      ),
     );
   }
 }

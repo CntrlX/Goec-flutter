@@ -5,6 +5,7 @@ import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
 
 import '../../Utils/toastUtils.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/apptext.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -12,9 +13,11 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return WhiteStatusBar(
       child: Scaffold(
-        body: Column(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
           children: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
@@ -102,6 +105,7 @@ class AboutScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 

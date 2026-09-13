@@ -9,6 +9,7 @@ import '../../Controller/homepage_controller.dart';
 import '../../Controller/notification_screen_controller.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/apptext.dart';
 import '../Widgets/customText.dart';
 
@@ -30,8 +31,9 @@ class _NotiPageAliveState extends State<NotiPageAlive>
   Widget build(BuildContext context) {
     super.build(context);
     size = MediaQuery.of(context).size;
-    return Scaffold(
-        backgroundColor: Color(0xffF0F1F6),
+    return WhiteStatusBar(
+      child: Scaffold(
+        backgroundColor: Colors.white,
         body: RefreshIndicator(
           displacement: 100,
           backgroundColor: Colors.white,
@@ -43,7 +45,9 @@ class _NotiPageAliveState extends State<NotiPageAlive>
             await Get.put(NotificationScreenController());
           },
           child: SafeArea(
-              child: Column(
+              child: ColoredBox(
+                color: Color(0xffF0F1F6),
+                child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
@@ -208,7 +212,11 @@ class _NotiPageAliveState extends State<NotiPageAlive>
                 ),
               ),
             ],
-          )),
-        ));
+                ),
+              ),
+            ),
+          ),
+        ),
+    );
   }
 }

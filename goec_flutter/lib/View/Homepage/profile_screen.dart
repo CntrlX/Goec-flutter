@@ -157,10 +157,15 @@ class ProfileScreen extends GetView<ProfileScreenController> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                  padding: EdgeInsets.only(
+                    left: 20.w,
+                    right: 20.w,
+                    top: 38.h,
+                    bottom: 20.h,
+                  ),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 32.h,
+                      minHeight: constraints.maxHeight - 58.h,
                     ),
                     child: IntrinsicHeight(
                       child: Column(

@@ -21,10 +21,9 @@ class PersonalVechileDetailsPage extends GetView<VehiclesScreenController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return SafeArea(
-        child: Scaffold(
+    return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(size.height * 0.09),
+        preferredSize: customAppBarPreferredSize(context),
         child: CustomAppBar(
           icononTap: () {
             Get.toNamed(Routes.vehicledetailspageRoute);
@@ -124,7 +123,7 @@ class PersonalVechileDetailsPage extends GetView<VehiclesScreenController> {
           ],
         ),
       ),
-    ));
+    );
   }
 
   Widget _userVehicle() {

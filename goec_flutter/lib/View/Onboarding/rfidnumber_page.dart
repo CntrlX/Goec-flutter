@@ -9,6 +9,7 @@ import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
 
 import '../../Utils/toastUtils.dart';
+import '../Widgets/appbar.dart';
 
 class RFIDnumberScreen extends GetView<RfidPageController> {
   const RFIDnumberScreen({Key? key}) : super(key: key);
@@ -16,10 +17,13 @@ class RFIDnumberScreen extends GetView<RfidPageController> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return SafeArea(
+    return WhiteStatusBar(
       child: Scaffold(
-        backgroundColor: Color(0xffF5F9FF),
-        body: Column(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: ColoredBox(
+          color: Color(0xffF5F9FF),
+          child: Column(
           children: [
             Padding(
               padding: EdgeInsets.symmetric(
@@ -272,6 +276,8 @@ class RFIDnumberScreen extends GetView<RfidPageController> {
             ),
             height(size.height * .05)
           ],
+            ),
+          ),
         ),
       ),
     );
