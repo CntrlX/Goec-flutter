@@ -106,10 +106,14 @@ Future<ResponseModel> getData(String url) async {
       var body;
       kLog(res.statusCode.toString());
       kLog(res.body.toString());
-      if (res.statusCode == 200)
+      try {
         body = json.decode(res.body);
-      else
+      } catch (_) {
+        body = res.body;
+      }
+      if (res.statusCode != 200) {
         logger.e(res.statusCode);
+      }
       return ResponseModel(statusCode: res.statusCode, body: body);
     } on Exception catch (e) {
       logger.e(e.toString());

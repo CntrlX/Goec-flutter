@@ -66,6 +66,6 @@ class NavBarIcon {
     'Notifications',
     'Stations',
     'History',
-    'More',
+    'Profile',
   ];
 }

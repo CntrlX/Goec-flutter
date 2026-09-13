@@ -8,7 +8,6 @@ import 'notification_page_alive.dart';
 import 'package:flutter/material.dart';
 import '../../Singletones/app_data.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:freelancer_app/Utils/utils.dart';
 import '../../Singletones/common_functions.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
@@ -20,7 +19,7 @@ import 'package:freelancer_app/View/Widgets/customText.dart';
 import 'package:freelancer_app/View/Homepage/map_screen.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
 import 'package:freelancer_app/Utils/my_flutter_app_icons.dart';
-import 'package:freelancer_app/View/WalletPage/walletpage.dart';
+import 'profile_page_alive.dart';
 import 'package:freelancer_app/Controller/homepage_controller.dart';
 import 'package:freelancer_app/Model/chargeStationDetailsModel.dart';
 import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
@@ -47,7 +46,7 @@ class HomePageScreen extends GetView<HomePageController> {
                 NotiPageAlive(),
                 MapScreen(),
                 ChargeScreen(),
-                WalletScreen(),
+                ProfilePageAlive(),
 
                 // TripsScreen(),
               ],
@@ -101,36 +100,52 @@ class HomePageScreen extends GetView<HomePageController> {
               () => AnimatedBottomNavigationBar.builder(
                 notchMargin: -50,
                 itemCount: 5,
-                tabBuilder: (index, isActive) => Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      NavBarIcon.icons[index],
-                      color: index == 2
-                          ? kwhite
-                          : isActive
-                              ? Color(0xff0047C3)
-                              : Color(0xffBDBDBD),
-                    ),
-                    SizedBox(height: size.height * .003),
-                    Text(
-                      (index == 2 && SocketRepo().isCharging.value)
-                          ? 'Charging'
-                          : NavBarIcon.labels[index],
-                      style: GoogleFonts.poppins(
-                        fontSize: 8.sp,
-                        fontWeight:
-                            isActive ? FontWeight.w600 : FontWeight.w400,
-                        color: isActive
-                            ? (index == 2 && SocketRepo().isCharging.value)
-                                ? Colors.green
-                                : Color(0xff0047C3)
-                            : Color(0xffBDBDBD),
-                      ),
-                      textScaler: TextScaler.noScaling,
-                    )
-                  ],
-                ),
+                tabBuilder: (index, isActive) {
+                  const navIcons = [
+                    'assets/svg/nav_support.svg',
+                    'assets/svg/nav_notifications.svg',
+                    '',
+                    'assets/svg/nav_history.svg',
+                    'assets/svg/nav_profile.svg',
+                  ];
+                  const activeColor = Color(0xFF0049C2);
+                  const inactiveColor = Color(0xFFA0AABD);
+                  final itemColor = isActive ? activeColor : inactiveColor;
+
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (index == 2)
+                        SizedBox(height: 24.h)
+                      else
+                        SvgPicture.asset(
+                          navIcons[index],
+                          width: 24.sp,
+                          height: 24.sp,
+                          colorFilter: ColorFilter.mode(
+                            itemColor,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        (index == 2 && SocketRepo().isCharging.value)
+                            ? 'Charging'
+                            : NavBarIcon.labels[index],
+                        style: TextStyle(
+                          fontFamily: kFontFamily,
+                          fontSize: 10.5.sp,
+                          fontWeight:
+                              isActive ? FontWeight.w600 : FontWeight.w400,
+                          color: (index == 2 && SocketRepo().isCharging.value)
+                              ? Colors.green
+                              : itemColor,
+                        ),
+                        textScaler: TextScaler.noScaling,
+                      )
+                    ],
+                  );
+                },
                 activeIndex: controller.activeIndex.value,
                 height: size.height * .085,
                 // activeColor: Color(0xff0047C3),
@@ -141,14 +156,10 @@ class HomePageScreen extends GetView<HomePageController> {
                   if (index == 2 && controller.activeIndex.value != 2) {
                     controller.onHomescreen();
                   }
-                  if (index == 4) {
-                    controller.drawerKey.currentState?.openEndDrawer();
-                    return;
-                  }
                   controller.activeIndex.value = index;
                   controller.pageController.animateToPage(index,
                       curve: Curves.ease,
-                      duration: Duration(milliseconds: 600));
+                      duration: Duration(milliseconds: 300));
                 },
               ),
             ),
@@ -188,7 +199,7 @@ showBottomSheetWhenClickedOnMarker(
     isScrollControlled: true,
     builder: (context) => PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         // calcontroller.dispose();
         return;
       },

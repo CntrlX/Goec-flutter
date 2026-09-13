@@ -261,10 +261,23 @@ class CommonFunctions {
       "username": name,
       "email": email,
     }, kApi_user_url + 'update/byMobileNo/' + appData.userModel.value.username);
-    if (res.statusCode == 200 && res.body['status']) {
+    if (res.statusCode == 200 && res.body != null && res.body['status'] == true) {
       return true;
     } else {
-      showError('Failed to save name and email.');
+      String errorMessage = 'Failed to save name and email.';
+      if (res.body != null && res.body is Map) {
+        String? errorStr = res.body['error']?.toString() ?? res.body['message']?.toString();
+        if (errorStr != null && errorStr.isNotEmpty) {
+          if (errorStr.contains('duplicate key') ||
+              errorStr.contains('E11000') ||
+              errorStr.contains('email_1')) {
+            errorMessage = 'This email is already registered with another account.';
+          } else {
+            errorMessage = errorStr;
+          }
+        }
+      }
+      showError(errorMessage);
       return false;
     }
   }
@@ -276,11 +289,24 @@ class CommonFunctions {
       "email": email,
       "mobile": phone,
     }, kApi_user_url + 'update/byMobileNo/' + appData.userModel.value.username);
-    if (res.statusCode == 200 && res.body['status']) {
+    if (res.statusCode == 200 && res.body != null && res.body['status'] == true) {
       appData.userModel.value = UserModel.fromJson(res.body['result']);
       return true;
     } else {
-      showError('Failed to save name and email.');
+      String errorMessage = 'Failed to save profile.';
+      if (res.body != null && res.body is Map) {
+        String? errorStr = res.body['error']?.toString() ?? res.body['message']?.toString();
+        if (errorStr != null && errorStr.isNotEmpty) {
+          if (errorStr.contains('duplicate key') ||
+              errorStr.contains('E11000') ||
+              errorStr.contains('email_1')) {
+            errorMessage = 'This email is already registered with another account.';
+          } else {
+            errorMessage = errorStr;
+          }
+        }
+      }
+      showError(errorMessage);
       return false;
     }
   }
