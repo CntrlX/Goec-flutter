@@ -30,21 +30,30 @@ class ChargeTransactionModel {
   });
 
   factory ChargeTransactionModel.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic val) {
+      if (val == null) return 0.0;
+      if (val is num) return val.toDouble();
+      return double.tryParse(val.toString()) ?? 0.0;
+    }
+
     return ChargeTransactionModel(
       image: json['image'] ?? '',
       chargingStopTime: json['chargingStopTime'] ?? '',
-      amount: json['amount'] != null ? double.parse(json['amount']) : 0,
-      bookingId: json['bookingId'] ?? -1,
+      amount: parseDouble(json['amount']),
+      bookingId: json['bookingId'] is int
+          ? json['bookingId']
+          : int.tryParse(json['bookingId']?.toString() ?? '') ?? -1,
       stationAddress: json['stationAddress'] ?? '',
       chargingStartTime: json['chargingStartTime'] ?? '',
       stationName: json['stationName'] ?? '',
       chargerName: json['chargerName'] ?? '',
-      tariff: json['tariff'] != null ? json['tariff'].toDouble() : 0,
-      tax: json['tax'] ?? '',
-      taxAmount: json['taxAmount'] != null ? json['taxAmount'].toDouble() : 0,
-      unitConsumed:
-          json['unitConsumed'] != null ? json['unitConsumed'].toDouble() : 0,
-      transactionId: json['transactionId'] ?? 0,
+      tariff: parseDouble(json['tariff']),
+      tax: json['tax']?.toString() ?? '',
+      taxAmount: parseDouble(json['taxAmount']),
+      unitConsumed: parseDouble(json['unitConsumed']),
+      transactionId: json['transactionId'] is int
+          ? json['transactionId']
+          : int.tryParse(json['transactionId']?.toString() ?? '') ?? 0,
     );
   }
 

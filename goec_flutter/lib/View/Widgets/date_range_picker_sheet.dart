@@ -1,22 +1,22 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-import '../../Controller/walletPage_controller.dart';
 import '../../constants.dart';
-import '../Widgets/date_range_picker_sheet.dart';
 
-/// Shows the Wallet Filter Modal Bottom Sheet with animated slide-up
-/// and blurred / dimmed backdrop matching the calista_cafe_page modal design.
-void showWalletFilterSheet(BuildContext context) {
-  final controller = Get.find<WalletPageController>();
-
-  showGeneralDialog<void>(
+/// Shows the Date Range Picker Bottom Sheet modal matching Figma node 184:7928.
+Future<void> showDateRangePickerSheet(
+  BuildContext context, {
+  required String initialStartDate,
+  required String initialEndDate,
+  required void Function(String startDate, String endDate) onApply,
+  VoidCallback? onClear,
+}) async {
+  await showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
-    barrierLabel: 'Dismiss filter sheet',
+    barrierLabel: 'Dismiss date range picker',
     barrierColor: Colors.transparent,
     transitionDuration: const Duration(milliseconds: 280),
     pageBuilder: (ctx, animation, secondaryAnimation) {
@@ -47,7 +47,7 @@ void showWalletFilterSheet(BuildContext context) {
             ),
           ),
 
-          // Sliding modal sheet
+          // Slide-up sheet
           Align(
             alignment: Alignment.bottomCenter,
             child: SlideTransition(
@@ -57,7 +57,12 @@ void showWalletFilterSheet(BuildContext context) {
               ).animate(curved),
               child: Material(
                 color: Colors.transparent,
-                child: WalletFilterModalContent(controller: controller),
+                child: DateRangePickerModalContent(
+                  initialStartDate: initialStartDate,
+                  initialEndDate: initialEndDate,
+                  onApply: onApply,
+                  onClear: onClear,
+                ),
               ),
             ),
           ),
@@ -67,28 +72,35 @@ void showWalletFilterSheet(BuildContext context) {
   );
 }
 
-class WalletFilterModalContent extends StatefulWidget {
-  final WalletPageController controller;
+class DateRangePickerModalContent extends StatefulWidget {
+  final String initialStartDate;
+  final String initialEndDate;
+  final void Function(String startDate, String endDate) onApply;
+  final VoidCallback? onClear;
 
-  const WalletFilterModalContent({
+  const DateRangePickerModalContent({
     super.key,
-    required this.controller,
+    required this.initialStartDate,
+    required this.initialEndDate,
+    required this.onApply,
+    this.onClear,
   });
 
   @override
-  State<WalletFilterModalContent> createState() =>
-      _WalletFilterModalContentState();
+  State<DateRangePickerModalContent> createState() =>
+      _DateRangePickerModalContentState();
 }
 
-class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
+class _DateRangePickerModalContentState
+    extends State<DateRangePickerModalContent> {
   late TextEditingController _startDateCtrl;
   late TextEditingController _endDateCtrl;
 
   @override
   void initState() {
     super.initState();
-    _startDateCtrl = TextEditingController(text: widget.controller.startDate.text);
-    _endDateCtrl = TextEditingController(text: widget.controller.endDate.text);
+    _startDateCtrl = TextEditingController(text: widget.initialStartDate);
+    _endDateCtrl = TextEditingController(text: widget.initialEndDate);
   }
 
   @override
@@ -195,20 +207,19 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    final controller = widget.controller;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(28.r),
+          top: Radius.circular(32.r),
         ),
       ),
       padding: EdgeInsets.fromLTRB(
-        20.w,
-        20.h,
-        20.w,
+        24.w,
+        22.h,
+        24.w,
         20.h + bottomInset,
       ),
       child: Column(
@@ -218,13 +229,14 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
           // Header Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Filter",
+                'Select Date Range',
                 style: TextStyle(
                   fontFamily: kFontFamily,
                   fontSize: 18.sp,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: const Color(0xFF121D31),
                 ),
               ),
@@ -236,17 +248,17 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
                   child: Icon(
                     Icons.close_rounded,
                     size: 22.sp,
-                    color: const Color(0xFF8C97A7),
+                    color: const Color(0xFFA0AABD),
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 18.h),
+          SizedBox(height: 20.h),
 
           // From Date Section
           Text(
-            "From",
+            'From',
             style: TextStyle(
               fontFamily: kFontFamily,
               fontSize: 14.sp,
@@ -263,7 +275,7 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
 
           // To Date Section
           Text(
-            "To",
+            'To',
             style: TextStyle(
               fontFamily: kFontFamily,
               fontSize: 14.sp,
@@ -276,107 +288,28 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
             text: _endDateCtrl.text,
             onTap: () => _pickToDate(context),
           ),
-          SizedBox(height: 20.h),
-
-          // Payment Mode Section
-          Text(
-            "Payment Mode",
-            style: TextStyle(
-              fontFamily: kFontFamily,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF121D31),
-            ),
-          ),
-          SizedBox(height: 12.h),
-          Obx(() {
-            final adminSelected = controller.payment_mode
-                .contains(WalletPageController.adminTopUp);
-            final walletSelected = controller.payment_mode
-                .contains(WalletPageController.walletTopUp);
-
-            return Row(
-              children: [
-                Expanded(
-                  child: _buildChip(
-                    label: "Admin Topup",
-                    isSelected: adminSelected,
-                    onTap: () => controller.addRemoveOptionToMode(
-                      WalletPageController.adminTopUp,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _buildChip(
-                    label: "Wallet Topup",
-                    isSelected: walletSelected,
-                    onTap: () => controller.addRemoveOptionToMode(
-                      WalletPageController.walletTopUp,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }),
-          SizedBox(height: 20.h),
-
-          // Payment Status Section
-          Text(
-            "Payment Status",
-            style: TextStyle(
-              fontFamily: kFontFamily,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF121D31),
-            ),
-          ),
-          SizedBox(height: 12.h),
-          Obx(() {
-            final successSelected =
-                controller.payment_status.contains('success');
-            final failedSelected =
-                controller.payment_status.contains('failure');
-
-            return Row(
-              children: [
-                Expanded(
-                  child: _buildChip(
-                    label: "Success",
-                    isSelected: successSelected,
-                    onTap: () =>
-                        controller.addRemoveOptionToStatus('success'),
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _buildChip(
-                    label: "Failed",
-                    isSelected: failedSelected,
-                    onTap: () =>
-                        controller.addRemoveOptionToStatus('failure'),
-                  ),
-                ),
-              ],
-            );
-          }),
           SizedBox(height: 28.h),
 
-          // Bottom Action Buttons (Cancel & Apply)
+          // Bottom Action Buttons
           Row(
             children: [
+              // Cancel Button
               Expanded(
                 child: SizedBox(
-                  height: 50.h,
+                  height: 48.h,
                   child: OutlinedButton(
                     onPressed: () {
-                      controller.clearFilter();
+                      if (widget.onClear != null &&
+                          (_startDateCtrl.text.isNotEmpty ||
+                              _endDateCtrl.text.isNotEmpty)) {
+                        widget.onClear!();
+                      }
                       Navigator.of(context).maybePop();
                     },
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
                         color: kBrandPrimaryBlue,
-                        width: 1.5,
+                        width: 1.2,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(100.r),
@@ -384,10 +317,10 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
                       elevation: 0,
                     ),
                     child: Text(
-                      "Cancel",
+                      'Cancel',
                       style: TextStyle(
                         fontFamily: kFontFamily,
-                        fontSize: 14.sp,
+                        fontSize: 14.5.sp,
                         fontWeight: FontWeight.w600,
                         color: kBrandPrimaryBlue,
                       ),
@@ -396,14 +329,18 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
                 ),
               ),
               SizedBox(width: 14.w),
+
+              // Apply Button
               Expanded(
                 child: SizedBox(
-                  height: 50.h,
+                  height: 48.h,
                   child: ElevatedButton(
                     onPressed: () {
-                      controller.startDate.text = _startDateCtrl.text;
-                      controller.endDate.text = _endDateCtrl.text;
-                      controller.applyFilter();
+                      widget.onApply(
+                        _startDateCtrl.text,
+                        _endDateCtrl.text,
+                      );
+                      Navigator.of(context).maybePop();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kBrandPrimaryBlue,
@@ -413,10 +350,10 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
                       ),
                     ),
                     child: Text(
-                      "Apply",
+                      'Apply',
                       style: TextStyle(
                         fontFamily: kFontFamily,
-                        fontSize: 14.sp,
+                        fontSize: 14.5.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -430,33 +367,79 @@ class _WalletFilterModalContentState extends State<WalletFilterModalContent> {
       ),
     );
   }
+}
 
-  Widget _buildChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
+/// Reusable Date Picker input field container matching Figma design specs.
+class DateRangePickerFieldBox extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+  final String placeholder;
+
+  const DateRangePickerFieldBox({
+    super.key,
+    required this.text,
+    required this.onTap,
+    this.placeholder = 'dd/mm/yy',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = text.isNotEmpty;
+
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        height: 44.h,
+        height: 52.h,
+        padding: EdgeInsets.symmetric(horizontal: 14.w),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEEF4FF) : Colors.white,
-          borderRadius: BorderRadius.circular(100.r),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.r),
           border: Border.all(
-            color: isSelected ? kBrandPrimaryBlue : const Color(0xFFE2E8F0),
+            color: const Color(0xFFE6EAEF),
             width: 1.2,
           ),
         ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: kFontFamily,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? kBrandPrimaryBlue : const Color(0xFF68768E),
-          ),
+        child: Row(
+          children: [
+            // Calendar icon
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 18.sp,
+              color: const Color(0xFF68768E),
+            ),
+            SizedBox(width: 12.w),
+
+            // Subtle hairline vertical divider
+            Container(
+              width: 1,
+              height: 20.h,
+              color: const Color(0xFFE6EAEF),
+            ),
+            SizedBox(width: 12.w),
+
+            // Selected Date / Placeholder Text
+            Expanded(
+              child: Text(
+                hasValue ? text : placeholder,
+                style: TextStyle(
+                  fontFamily: kFontFamily,
+                  fontSize: 14.5.sp,
+                  fontWeight: FontWeight.w500,
+                  color: hasValue
+                      ? const Color(0xFF121D31)
+                      : const Color(0xFFA0AABD),
+                ),
+              ),
+            ),
+
+            // Chevron down
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 20.sp,
+              color: const Color(0xFFA0AABD),
+            ),
+          ],
         ),
       ),
     );
