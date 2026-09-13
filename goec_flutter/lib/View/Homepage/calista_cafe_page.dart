@@ -700,7 +700,7 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                   ),
                   alignment: Alignment.center,
                   child: SvgPicture.asset(
-                    'assets/svg/css.svg',
+                    'assets/svg/connector_plug.svg',
                     width: 20.w,
                     height: 20.w,
                     colorFilter: ColorFilter.mode(
@@ -906,88 +906,66 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
 
   void _showConfirmSheet(BuildContext context) {
     final bottomInset = systemBottomInset(context);
-    Get.bottomSheet(
-      Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(36.r),
-            topRight: Radius.circular(36.r),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    final sheet = Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(36.r),
+          topRight: Radius.circular(36.r),
         ),
-        padding: EdgeInsets.only(bottom: bottomInset),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(32.w, 24.h, 32.w, 16.h),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CustomText(
-                      text: 'Confirm your session',
-                      size: 18.sp,
-                      fontWeight: FontWeight.w700,
-                      color: kNeutralPrimary,
-                      height: 32 / 18,
-                    ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(32.w, 24.h, 32.w, 16.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomText(
+                    text: 'Confirm your session',
+                    size: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: kNeutralPrimary,
+                    height: 32 / 18,
                   ),
-                  GestureDetector(
-                    onTap: Get.back,
-                    child: Icon(Icons.close, size: 20.sp, color: _muted),
-                  ),
-                ],
-              ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).maybePop(),
+                  child: Icon(Icons.close, size: 20.sp, color: _muted),
+                ),
+              ],
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 25.w),
-              child: Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: _confirmCardBg,
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(color: _confirmCardBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                text: 'Connector',
-                                size: 12.sp,
-                                fontWeight: FontWeight.w600,
-                                color: _muted,
-                                height: 16 / 12,
-                              ),
-                              height(4.h),
-                              CustomText(
-                                text: controller.selectedConnectorLabel,
-                                size: 16.sp,
-                                fontWeight: FontWeight.w800,
-                                color: kNeutralPrimary,
-                                height: 24 / 16,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 25.w),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: _confirmCardBg,
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(color: _confirmCardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              text: 'Rate',
+                              text: 'Connector',
                               size: 12.sp,
                               fontWeight: FontWeight.w600,
                               color: _muted,
@@ -995,7 +973,7 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                             ),
                             height(4.h),
                             CustomText(
-                              text: controller.selectedTariffLabel,
+                              text: controller.selectedConnectorLabel,
                               size: 16.sp,
                               fontWeight: FontWeight.w800,
                               color: kNeutralPrimary,
@@ -1003,84 +981,153 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CustomText(
+                            text: 'Rate',
+                            size: 12.sp,
+                            fontWeight: FontWeight.w600,
+                            color: _muted,
+                            height: 16 / 12,
+                          ),
+                          height(4.h),
+                          CustomText(
+                            text: controller.selectedTariffLabel,
+                            size: 16.sp,
+                            fontWeight: FontWeight.w800,
+                            color: kNeutralPrimary,
+                            height: 24 / 16,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  height(20.h),
-                  _confirmRow(
-                    label: 'Vehicle',
-                    value: _vehicleLabel(),
+                ),
+                height(20.h),
+                _confirmRow(
+                  label: 'Vehicle',
+                  value: _vehicleLabel(),
+                  showChevron: true,
+                  onTap: () {
+                    Navigator.of(context).maybePop();
+                    Get.toNamed(Routes.myvehicleRoute);
+                  },
+                ),
+                height(16.h),
+                Obx(
+                  () => _confirmRow(
+                    label: 'Payment method',
+                    value:
+                        'Wallet · $kCurrency${appData.userModel.value.balanceAmount.toStringAsFixed(0)}',
                     showChevron: true,
                     onTap: () {
-                      Get.back();
-                      Get.toNamed(Routes.myvehicleRoute);
+                      Navigator.of(context).maybePop();
+                      Get.toNamed(Routes.walletPageRoute);
                     },
                   ),
-                  height(16.h),
-                  Obx(
-                    () => _confirmRow(
-                      label: 'Payment method',
-                      value:
-                          'Wallet · $kCurrency${appData.userModel.value.balanceAmount.toStringAsFixed(0)}',
-                      showChevron: true,
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed(Routes.walletPageRoute);
-                      },
-                    ),
-                  ),
-                  height(16.h),
-                  _confirmRow(
-                    label: 'Estimated full charge',
-                    // Placeholder — vehicle battery capacity is not on VehicleModel yet.
-                    value: '—',
-                    showChevron: false,
-                  ),
-                  height(28.h),
-                ],
+                ),
+                height(16.h),
+                _confirmRow(
+                  label: 'Estimated full charge',
+                  // Placeholder — vehicle battery capacity is not on VehicleModel yet.
+                  value: '—',
+                  showChevron: false,
+                ),
+                height(28.h),
+              ],
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.95),
+              border: const Border(
+                top: BorderSide(color: Color(0xFFEBEFEA)),
               ),
             ),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                border: const Border(
-                  top: BorderSide(color: Color(0xFFEBEFEA)),
+            child: SizedBox(
+              height: 56.h,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).maybePop();
+                  controller.startCharging();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kBrandPrimaryBlue,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100.r),
+                  ),
+                ),
+                child: CustomText(
+                  text: 'Start Charging',
+                  size: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.4,
+                  color: Colors.white,
                 ),
               ),
-              child: SizedBox(
-                height: 56.h,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Get.back();
-                    controller.startCharging();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kBrandPrimaryBlue,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100.r),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Custom route so dim+blur fade in place while only the sheet slides up.
+    // (Putting the overlay inside Get.bottomSheet made the black layer slide.)
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss confirm sheet',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (ctx, animation, secondaryAnimation) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (ctx, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return Stack(
+          children: [
+            // Figma 152:3703 — stays full-screen; fades with the route.
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: curved,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(ctx).maybePop(),
+                  behavior: HitTestBehavior.opaque,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.21),
                     ),
                   ),
-                  child: CustomText(
-                    text: 'Start Charging',
-                    size: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
-                    color: Colors.white,
-                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: Material(
+                  color: Colors.transparent,
+                  child: sheet,
                 ),
               ),
             ),
           ],
-        ),
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      // Soft dim only — no BackdropFilter (was over-blurring the page).
-      barrierColor: Colors.black.withValues(alpha: 0.28),
+        );
+      },
     );
   }
 

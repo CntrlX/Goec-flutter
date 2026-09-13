@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-/// Translucent circular header action (Figma / Profile app bar).
-/// White 15% fill, light border, optional backdrop blur.
+
 class GlassCircleIconButton extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
@@ -20,7 +19,7 @@ class GlassCircleIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = size ?? 40.w;
+    final s = size ?? 44.w;
     return ClipOval(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
@@ -63,13 +62,14 @@ class GlassBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = size ?? 44.w;
     return GlassCircleIconButton(
       onTap: onTap ?? Get.back,
-      size: size,
+      size: s,
       child: Icon(
         Icons.chevron_left_rounded,
         color: Colors.white,
-        size: 28.sp,
+        size: (s * 0.64).clamp(28.0, 34.0),
       ),
     );
   }

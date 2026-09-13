@@ -25,6 +25,7 @@ class CallAPI {
   Future<ResponseModel> postData(Map<String, dynamic> data, String url) async {
     try {
       kLog('POST $url');
+      kLog('request body: ${jsonEncode(data)}');
       http.Response res = await http.post(
         Uri.parse(url),
         body: jsonEncode(data),
@@ -54,7 +55,7 @@ class CallAPI {
 /////////GET DATA/////////////////
 Future<ResponseModel> getData(String url) async {
   var body;
-  log('GET + $url');
+  kLog('GET $url');
 
   try {
     http.Response res = await http.get(
@@ -71,7 +72,7 @@ Future<ResponseModel> getData(String url) async {
       logger.e(res.statusCode);
     }
 
-    logger.e(res.body);
+    kLog('request url: $url  res.body: ${res.body}');
 
     return ResponseModel(
       statusCode: res.statusCode,
@@ -89,7 +90,8 @@ Future<ResponseModel> getData(String url) async {
 /////////PUT DATA/////////////////
   Future<ResponseModel> putData(Map<String, dynamic> data, String url) async {
     try {
-      log('PUT $url');
+      kLog('PUT $url');
+      kLog('request body: ${jsonEncode(data)}');
       http.Response res = await http.put(
         Uri.parse(url),
         body: jsonEncode(data),
@@ -101,10 +103,8 @@ Future<ResponseModel> getData(String url) async {
       ).timeout(Duration(seconds: timeOutSec), onTimeout: () {
         return http.Response('Error', 408);
       });
-      log('PUT request end');
+      kLog('request url: $url  res.body: ${res.body}');
       var body;
-      kLog(res.statusCode.toString());
-      kLog(res.body.toString());
       try {
         body = json.decode(res.body);
       } catch (_) {
@@ -127,7 +127,8 @@ Future<ResponseModel> getData(String url) async {
   Future<ResponseModel> deleteData(
       Map<String, dynamic> data, String url) async {
     try {
-      log('DELETE $url');
+      kLog('DELETE $url');
+      kLog('request body: ${jsonEncode(data)}');
       http.Response res = await http.delete(
         Uri.parse(url),
         body: jsonEncode(data),
@@ -139,7 +140,7 @@ Future<ResponseModel> getData(String url) async {
       ).timeout(Duration(seconds: timeOutSec), onTimeout: () {
         return http.Response('Error', 408);
       });
-      log('delete request end');
+      kLog('request url: $url  res.body: ${res.body}');
       var body;
       if (res.statusCode == 200) {
         body = json.decode(res.body);
