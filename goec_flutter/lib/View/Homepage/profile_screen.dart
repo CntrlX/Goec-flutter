@@ -589,266 +589,291 @@ class ProfileScreen extends GetView<ProfileScreenController> {
 
   // Delete Profile Confirmation Bottom Sheet (Figma Node 188:9402) with Backdrop Blur
   void _showDeleteConfirmationBottomSheet(BuildContext context) {
-    Get.bottomSheet(
-      BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(36.r),
-              topRight: Radius.circular(36.r),
+    _showBlurredConfirmSheet(
+      context: context,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(36.r),
+            topRight: Radius.circular(36.r),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 2),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
-                blurRadius: 20,
-                offset: const Offset(0, 2),
+          ],
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 28.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64.w,
+              height: 64.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFEE2E2).withValues(alpha: 0.6),
               ),
-            ],
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 28.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Trash Icon Circle
-              Container(
-                width: 64.w,
-                height: 64.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFEE2E2).withValues(alpha: 0.6),
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.delete_outline_rounded,
-                  color: const Color(0xFFFF0013),
-                  size: 32.sp,
-                ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.delete_outline_rounded,
+                color: const Color(0xFFFF0013),
+                size: 32.sp,
               ),
-
-              height(16.h),
-
-              // Title
-              CustomText(
-                text: 'Delete Profile?',
-                size: 24.sp,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF111827),
-              ),
-
-              height(8.h),
-
-              // Description
-              CustomText(
-                text:
-                    'Are you sure you want to delete your profile?\nThis action cannot be undone.',
-                size: 15.sp,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF4B5563),
-                textAlign: TextAlign.center,
-                height: 1.4,
-              ),
-
-              height(28.h),
-
-              // Buttons Row
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48.h,
-                      child: OutlinedButton(
-                        onPressed: () => Get.back(),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: kBrandPrimaryBlue,
-                            width: 1,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9999.r),
-                          ),
-                          backgroundColor: Colors.white,
-                        ),
-                        child: CustomText(
-                          text: 'Cancel',
-                          size: 14.sp,
-                          fontWeight: FontWeight.w700,
+            ),
+            height(16.h),
+            CustomText(
+              text: 'Delete Profile?',
+              size: 24.sp,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF111827),
+            ),
+            height(8.h),
+            CustomText(
+              text:
+                  'Are you sure you want to delete your profile?\nThis action cannot be undone.',
+              size: 15.sp,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xFF4B5563),
+              textAlign: TextAlign.center,
+              height: 1.4,
+            ),
+            height(28.h),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 48.h,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
                           color: kBrandPrimaryBlue,
+                          width: 1,
                         ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(9999.r),
+                        ),
+                        backgroundColor: Colors.white,
+                      ),
+                      child: CustomText(
+                        text: 'Cancel',
+                        size: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: kBrandPrimaryBlue,
                       ),
                     ),
                   ),
-                  width(14.w),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48.h,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Get.back();
-                          controller.deleteProfile();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF0013),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9999.r),
-                          ),
+                ),
+                width(14.w),
+                Expanded(
+                  child: SizedBox(
+                    height: 48.h,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                        controller.deleteProfile();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF0013),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(9999.r),
                         ),
-                        child: CustomText(
-                          text: 'Delete',
-                          size: 14.sp,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                      ),
+                      child: CustomText(
+                        text: 'Delete',
+                        size: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
                   ),
-                ],
-              ),
-
-              height(12.h),
-              systemBottomSpacer(context),
-            ],
-          ),
+                ),
+              ],
+            ),
+            height(12.h),
+            systemBottomSpacer(context),
+          ],
         ),
       ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.21),
     );
   }
 
   // Logout Confirmation Bottom Sheet (Figma Node 188:9251) with Backdrop Blur
   void _showLogoutConfirmationBottomSheet(BuildContext context) {
-    Get.bottomSheet(
-      BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(36.r),
-              topRight: Radius.circular(36.r),
+    _showBlurredConfirmSheet(
+      context: context,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(36.r),
+            topRight: Radius.circular(36.r),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 2),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
-                blurRadius: 20,
-                offset: const Offset(0, 2),
+          ],
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 28.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64.w,
+              height: 64.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFEE2E2).withValues(alpha: 0.6),
               ),
-            ],
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 28.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Logout Icon Circle
-              Container(
-                width: 64.w,
-                height: 64.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFEE2E2).withValues(alpha: 0.6),
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.logout_rounded,
-                  color: const Color(0xFFFF0013),
-                  size: 32.sp,
-                ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.logout_rounded,
+                color: const Color(0xFFFF0013),
+                size: 32.sp,
               ),
-
-              height(16.h),
-
-              // Title
-              CustomText(
-                text: 'Logout?',
-                size: 24.sp,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF111827),
-              ),
-
-              height(8.h),
-
-              // Description
-              CustomText(
-                text: 'Are you sure you want to logout from your account?',
-                size: 15.sp,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF4B5563),
-                textAlign: TextAlign.center,
-                height: 1.4,
-              ),
-
-              height(28.h),
-
-              // Buttons Row
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48.h,
-                      child: OutlinedButton(
-                        onPressed: () => Get.back(),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: kBrandPrimaryBlue,
-                            width: 1,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9999.r),
-                          ),
-                          backgroundColor: Colors.white,
-                        ),
-                        child: CustomText(
-                          text: 'Cancel',
-                          size: 14.sp,
-                          fontWeight: FontWeight.w700,
+            ),
+            height(16.h),
+            CustomText(
+              text: 'Logout?',
+              size: 24.sp,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF111827),
+            ),
+            height(8.h),
+            CustomText(
+              text: 'Are you sure you want to logout from your account?',
+              size: 15.sp,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xFF4B5563),
+              textAlign: TextAlign.center,
+              height: 1.4,
+            ),
+            height(28.h),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 48.h,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
                           color: kBrandPrimaryBlue,
+                          width: 1,
                         ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(9999.r),
+                        ),
+                        backgroundColor: Colors.white,
+                      ),
+                      child: CustomText(
+                        text: 'Cancel',
+                        size: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: kBrandPrimaryBlue,
                       ),
                     ),
                   ),
-                  width(14.w),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48.h,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Get.back();
-                          controller.logout();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF0013),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9999.r),
-                          ),
+                ),
+                width(14.w),
+                Expanded(
+                  child: SizedBox(
+                    height: 48.h,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                        controller.logout();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF0013),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(9999.r),
                         ),
-                        child: CustomText(
-                          text: 'Logout',
-                          size: 14.sp,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                      ),
+                      child: CustomText(
+                        text: 'Logout',
+                        size: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
                   ),
-                ],
-              ),
-
-              height(12.h),
-              systemBottomSpacer(context),
-            ],
-          ),
+                ),
+              ],
+            ),
+            height(12.h),
+            systemBottomSpacer(context),
+          ],
         ),
       ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.21),
+    );
+  }
+
+  /// Same overlay as station confirm sheet: blur 2 + 21% dim fades in place;
+  /// only the sheet slides up.
+  void _showBlurredConfirmSheet({
+    required BuildContext context,
+    required Widget child,
+  }) {
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (ctx, animation, secondaryAnimation) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (ctx, animation, secondaryAnimation, _) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: curved,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(ctx).maybePop(),
+                  behavior: HitTestBehavior.opaque,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.21),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: Material(
+                  color: Colors.transparent,
+                  child: child,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

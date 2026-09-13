@@ -1104,7 +1104,7 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                   onTap: () => Navigator.of(ctx).maybePop(),
                   behavior: HitTestBehavior.opaque,
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                     child: Container(
                       color: Colors.black.withValues(alpha: 0.21),
                     ),

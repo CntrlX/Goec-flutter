@@ -1,329 +1,260 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:freelancer_app/Controller/feedback_page_controller.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
+import 'package:freelancer_app/View/Widgets/customText.dart';
+import 'package:freelancer_app/View/Widgets/glass_circle_icon_button.dart';
+import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../Controller/feedback_page_controller.dart';
-import '../../../constants.dart';
-import '../../Widgets/appbar.dart';
-import '../../Widgets/apptext.dart';
-
+/// Write a Review — Figma frames 162:4959 (invalid) / 162:5165 (valid).
+/// Submit footer appears only when a rating is selected and review text is typed.
 class PaymentFeedbackScreen extends GetView<FeedBackPageController> {
   const PaymentFeedbackScreen({super.key});
 
+  static const _pageBg = Color(0xFFF6F8FA);
+  static const _cardBorder = Color(0xFFE6EAEF);
+  static const _muted = Color(0xFF68768E);
+  static const _hint = Color(0xFFA0AABD);
+  static const _starEmpty = Color(0xFFE2E8F0);
+  static const _starFilled = Color(0xFFFBBF24);
+  static const _footerBorder = Color(0xFFEBEFEA);
+
   @override
   Widget build(BuildContext context) {
-    return WhiteStatusBar(
+    final bottomInset = systemBottomInset(context);
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: ColoredBox(
-            color: Color(0xffF5F9FF),
-            child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),
-                child: Row(
+        backgroundColor: _pageBg,
+        body: Column(
+          children: [
+            _appBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(22.w, 25.h, 22.w, 24.h),
+                child: Column(
                   children: [
-                    InkWell(
-                        onTap: () {
-                          Get.back();
-                        },
-                        child: Container(
-                            padding: EdgeInsets.all(5.w),
-                            child: SvgPicture.asset(
-                                'assets/svg/arrow_back_ios.svg'))),
-                    Expanded(
-                      child: Container(
-                        alignment: Alignment.center,
-                        child: CustomBigText(
-                            text: 'Feedbacks',
-                            size: 16.sp,
-                            color: Color(0xff828282),
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    width(24.w)
+                    _ratingCard(),
+                    height(24.h),
+                    _reviewSection(),
                   ],
                 ),
               ),
-              height(20.h),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15.w),
-                child: Container(
-                  height: 170.h,
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                      color: kwhite,
-                      borderRadius: BorderRadius.circular(20.r),
-                      boxShadow: [
-                        BoxShadow(
-                          offset: Offset(0, 4),
-                          blurRadius: 32,
-                          color: Color(0xff000000).withOpacity(.06),
-                        )
-                      ]),
-                  child: Column(
-                    children: [
-                      height(35.h),
-                      CustomSmallText(
-                        text: "How is your Experience",
-                        size: 14.sp,
-                        letterspacing: -0.408,
-                      ),
-                      height(40.h),
-                      Obx(
-                        () => Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                              5,
-                              (index) => Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 10.w),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        controller.selectedRating.value =
-                                            index + 1;
-                                      },
-                                      child: Image.asset(
-                                        controller.selectedRating.value == 0 ||
-                                                controller.selectedRating
-                                                            .value -
-                                                        1 <
-                                                    index
-                                            ? "assets/images/emojis/gray${index + 1}.png"
-                                            : "assets/images/emojis/yellow${index + 1}.png",
-                                        width: 35.w,
-                                      ),
-                                    ),
-                                  )),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              height(20.h),
-              Padding(
-                padding: EdgeInsets.only(
-                    left: 15.w, right: 15.w, bottom: 40.w, top: 20.w),
-                child: Container(
-                  // height: 505.h,
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                      color: kwhite,
-                      borderRadius: BorderRadius.circular(20.r),
-                      boxShadow: [
-                        BoxShadow(
-                          offset: Offset(0, 4),
-                          blurRadius: 10,
-                          color: Color(0xff000000).withOpacity(.06),
-                        )
-                      ]),
-                  child: Column(
-                    children: [
-                      // height(20.h),
-                      // Obx(
-                      //   () => Container(
-                      //     width: 293.w,
-                      //     height: 54.h,
-                      //     padding: EdgeInsets.symmetric(horizontal: 20.w),
-                      //     decoration: BoxDecoration(
-                      //         borderRadius: BorderRadius.circular(20.r),
-                      //         // boxShadow: [
-                      //         //   BoxShadow(
-                      //         //       offset: Offset(0, 4),
-                      //         //       color: Color(0xff000000).withOpacity(0.12),
-                      //         //       blurRadius: 21)
-                      //         // ],
-                      //         border: Border.all(
-                      //             width: 1.w, color: Color(0xffBDBDBD))),
-                      //     child: DropdownButton<String>(
-                      //       value: controller.selectName.value,
-                      //       style: GoogleFonts.poppins(
-                      //         fontSize: 14.sp,
-                      //         fontWeight: FontWeight.w600,
-                      //         color: Color(0xff4F4F4F),
-                      //       ),
-                      //       dropdownColor: kwhite,
-                      //       isExpanded: true,
-                      //       elevation: 0,
-                      //       underline: SizedBox(),
-                      //       items: controller.selected
-                      //           .map<DropdownMenuItem<String>>((String value) {
-                      //         return DropdownMenuItem<String>(
-                      //           child: Text(value),
-                      //           value: value,
-                      //         );
-                      //       }).toList(),
-                      //       icon: SvgPicture.asset(
-                      //           "assets/svg/arrow_downward_ios.svg"),
-                      //       onChanged: (String? val) {
-                      //         controller.selectName.value = val.toString();
-                      //       },
-                      //       borderRadius: BorderRadius.circular(20.r),
-                      //     ),
-                      //   ),
-                      // ),
+            ),
+            Obx(() {
+              // Rebuild when rating or text length changes.
+              final _ = controller.selectedRating.value;
+              final __ = controller.reviewLength.value;
+              if (!controller.canSubmit) return const SizedBox.shrink();
+              return _submitFooter(context, bottomInset);
+            }),
+          ],
+        ),
+      ),
+    );
+  }
 
-                      height(20.h),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w),
-                        child: TextFormField(
-                          controller: controller.feedbackController,
-                          minLines: 11,
-                          maxLines: 11,
-                          keyboardType: TextInputType.multiline,
-                          style: GoogleFonts.poppins(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: -0.41,
-                              color: Colors.black),
-                          decoration: InputDecoration(
-                              hintText: "Leave Your Feedback here",
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(
-                                    color: Color(0xffBDBDBD),
-                                  )),
-                              hintStyle: GoogleFonts.poppins(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w400,
-                                  letterSpacing: -0.41,
-                                  color: Color(0xffBDBDBD)),
-                              contentPadding:
-                                  EdgeInsets.only(left: 20.w, top: 25.h)),
-                        ),
-                      ),
-                      height(30.h),
-                      _button(
-                        button: "Submit",
-                        onTap: () {
-                          FocusScope.of(context).unfocus();
-                          controller.postReviewForChargeStation(context);
-                        },
-                      ),
-                      height(40.h),
-                    ],
-                  ),
-                ),
+  Widget _appBar() {
+    return Container(
+      width: double.infinity,
+      color: kBrandPrimaryBlue,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(17.w, 6.h, 17.w, 14.h),
+          child: Row(
+            children: [
+              const GlassBackButton(),
+              width(12.w),
+              CustomText(
+                text: 'Write a Review',
+                size: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                height: 28.5 / 16,
               ),
             ],
           ),
         ),
       ),
-    ),
-    ),
     );
   }
 
-  // Widget expandable() {
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(horizontal: 20.w),
-  //     child: ExpandablePanel(
-  //       collapsed: ExpandableButton(
-  //         child: Container(
-  //           height: 54.h,
-  //           width: double.maxFinite,
-  //           decoration: BoxDecoration(
-  //               borderRadius: BorderRadius.circular(20.r),
-  //               border: Border.all(
-  //                 color: Color(0xffBDBDBD),
-  //               )),
-  //           child: Padding(
-  //             padding: EdgeInsets.symmetric(horizontal: 13.w),
-  //             child: Container(
-  //               child: Row(
-  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                 children: [
-  //                   Obx(
-  //                     () => CustomBigText(
-  //                       text: controller.selectName.value,
-  //                       size: 14.sp,
-  //                       color: Color(0xff4F4F4F),
-  //                     ),
-  //                   ),
-  //                   SvgPicture.asset("assets/svg/arrow_downward_ios.svg")
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //       expanded: ExpandableButton(
-  //         child: Obx(
-  //           () => Container(
-  //               height: 265.h,
-  //               decoration: BoxDecoration(
-  //                 borderRadius: BorderRadius.circular(20.r),
-  //                 color: kwhite,
-  //                 // boxShadow: [
-  //                 //   BoxShadow(
-  //                 //       offset: Offset(0, 4),
-  //                 //       blurRadius: 21,
-  //                 //       spreadRadius: 0,
-  //                 //       color: Color(0xff000000).withOpacity(0.22))
-  //                 // ],
-  //               ),
-  //               child: ListView.builder(
-  //                   itemCount: controller.selected.length,
-  //                   itemBuilder: (_, index) {
-  //                     return Padding(
-  //                       padding: EdgeInsets.symmetric(horizontal: 13.w),
-  //                       child: InkWell(
-  //                         onTap: () {
-  //                           controller.selectName.value =
-  //                               controller.selected[index];
-  //                         },
-  //                         child: Container(
-  //                           child: Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               Padding(
-  //                                 padding: EdgeInsets.all(5.w),
-  //                                 child: CustomBigText(
-  //                                   ontap: () {},
-  //                                   text:
-  //                                       "${controller.selected[index].toString()}",
-  //                                   size: 14.sp,
-  //                                   color: Color(0xff4F4F4F),
-  //                                 ),
-  //                               ),
-  //                               Divider(
-  //                                 thickness: 1.h,
-  //                                 color: Color(0xffBDBDBD),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                       ),
-  //                     );
-  //                   })),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
+  Widget _ratingCard() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 20.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: _cardBorder),
+      ),
+      child: Column(
+        children: [
+          CustomText(
+            text: 'How was your charging experience?',
+            size: 16.sp,
+            fontWeight: FontWeight.w700,
+            color: kNeutralPrimary,
+            textAlign: TextAlign.center,
+            height: 24 / 16,
+          ),
+          height(4.h),
+          CustomText(
+            text: 'Tap a star to rate',
+            size: 12.sp,
+            fontWeight: FontWeight.w500,
+            color: _muted,
+            textAlign: TextAlign.center,
+            height: 16 / 12,
+          ),
+          height(12.h),
+          Obx(
+            () => Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                final star = index + 1;
+                final filled = controller.selectedRating.value >= star;
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5.w),
+                  child: GestureDetector(
+                    onTap: () => controller.setRating(star),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: EdgeInsets.all(4.w),
+                      child: Icon(
+                        Icons.star_rounded,
+                        size: 36.sp,
+                        color: filled ? _starFilled : _starEmpty,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _button({required String button, required void Function() onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 55.h,
-        width: 237.w,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(40.r),
-          color: Color(0xff0047C3),
+  Widget _reviewSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: CustomText(
+                text: 'Your Review',
+                size: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: kNeutralPrimary,
+                letterSpacing: 0.6,
+                height: 16 / 14,
+              ),
+            ),
+            Obx(
+              () => CustomText(
+                text:
+                    '${controller.reviewLength.value} / ${FeedBackPageController.maxReviewLength}',
+                size: 12.sp,
+                fontWeight: FontWeight.w500,
+                color: _muted,
+                height: 16.5 / 12,
+              ),
+            ),
+          ],
         ),
-        child: Center(
-          child: CustomBigText(
-            text: button,
-            size: 14.sp,
-            color: Color(0xffF2F2F2),
+        height(8.h),
+        Container(
+          width: double.infinity,
+          height: 164.h,
+          padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 19.h),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: _cardBorder),
+          ),
+          child: TextField(
+            controller: controller.feedbackController,
+            maxLength: FeedBackPageController.maxReviewLength,
+            maxLines: null,
+            expands: true,
+            textAlignVertical: TextAlignVertical.top,
+            keyboardType: TextInputType.multiline,
+            style: TextStyle(
+              fontFamily: kFontFamily,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w400,
+              height: 1.4,
+              color: kNeutralPrimary,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              counterText: '',
+              border: InputBorder.none,
+              hintText:
+                  'Describe charging speed, connector condition, parking access, or nearby amenities...',
+              hintStyle: TextStyle(
+                fontFamily: kFontFamily,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w400,
+                height: 1.4,
+                color: _hint,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _submitFooter(BuildContext context, double bottomInset) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.95),
+        border: const Border(
+          top: BorderSide(color: _footerBorder),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 24.h + bottomInset),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56.h,
+        child: ElevatedButton(
+          onPressed: () {
+            FocusScope.of(context).unfocus();
+            controller.postReviewForChargeStation(context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kBrandPrimaryBlue,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100.r),
+            ),
+          ),
+          child: CustomText(
+            text: 'Submit Review',
+            size: 16.sp,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.4,
+            color: Colors.white,
+            height: 24 / 16,
           ),
         ),
       ),
