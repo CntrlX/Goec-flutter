@@ -12,7 +12,6 @@ import 'package:freelancer_app/Utils/utils.dart';
 import '../../Singletones/common_functions.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:freelancer_app/View/Homepage/drawer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freelancer_app/View/Charge/charge_page.dart';
 import 'package:freelancer_app/View/Widgets/customText.dart';
@@ -34,10 +33,7 @@ class HomePageScreen extends GetView<HomePageController> {
     kContext = context;
     return appData.userModel.value.username.isNotEmpty
         ? Scaffold(
-            key: controller.drawerKey,
             backgroundColor: kDefaultHomePageBackgroundColor,
-            // drawer: CustomDrawer(context),
-            endDrawer: CustomDrawer(context),
             body: PageView(
               controller: controller.pageController,
               physics: NeverScrollableScrollPhysics(),
@@ -165,8 +161,6 @@ class HomePageScreen extends GetView<HomePageController> {
             ),
           )
         : Scaffold(
-            key: controller.drawerKey,
-            drawer: CustomDrawer(context),
             body: MapScreen(),
           );
   }

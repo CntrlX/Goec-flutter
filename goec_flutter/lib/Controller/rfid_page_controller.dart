@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
-import '../constants.dart';
 import 'package:get/get.dart';
-// import '../Model/RFIDModel.dart';
+import '../constants.dart';
 import '../Utils/toastUtils.dart';
 import '../Singletones/app_data.dart';
 import '../Singletones/common_functions.dart';
@@ -18,14 +16,26 @@ class RfidPageController extends GetxController {
     "assets/images/carouselTwo.png",
     "assets/images/carouselThree.png",
   ].obs;
-  CarouselController? carouselController;
+  
   RxDouble currentIndex = 0.0.obs;
   RxInt rfid_price = 0.obs;
   RxList rfid_list = RxList();
+
+  // Delivery form controllers
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController stateController = TextEditingController();
+  final TextEditingController pincodeController = TextEditingController();
+
   @override
   void onInit() {
-    // / implement onInit
     super.onInit();
+    // Prefill user information if available
+    final user = appData.userModel.value;
+    nameController.text = user.name.isNotEmpty ? user.name : '';
+    phoneController.text = user.username.isNotEmpty ? user.username : '';
     getRFIDPriceAndUserRFID();
   }
 
@@ -33,28 +43,32 @@ class RfidPageController extends GetxController {
     showLoading(kLoading);
     rfid_price.value = await CommonFunctions().getRFIDPrice();
     rfid_list.value = appData.userModel.value.rfidTag;
-    //  getUserRFIDs();
     hideLoading();
   }
 
-  // getUserRFIDs() async {
-  // rfid_list.value = await CommonFunctions().getUserRFIDs();
-  // }
-
   orderRFID() async {
+    final int price = rfid_price.value > 0 ? rfid_price.value : 370;
     showLoading(kLoading);
-    String order_id =
-        await CommonFunctions().getOrderIdRazorpay(rfid_price.value);
+    String order_id = await CommonFunctions().getOrderIdRazorpay(price);
     hideLoading();
-    CommonFunctions().openRazorPay(
-        amount: rfid_price.value,
+    
+    if (order_id.isNotEmpty) {
+      CommonFunctions().openRazorPay(
+        amount: price,
         order_id: order_id,
-        descirption: 'RFID payment');
+        descirption: 'RFID payment',
+      );
+    }
   }
 
   @override
   void onClose() {
-    // / implement onClose
+    nameController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    pincodeController.dispose();
     CommonFunctions().closeRazorPay();
     super.onClose();
   }

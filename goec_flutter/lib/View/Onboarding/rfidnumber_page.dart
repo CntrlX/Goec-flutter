@@ -1,285 +1,423 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:freelancer_app/Controller/rfid_page_controller.dart';
-import 'package:freelancer_app/View/Widgets/apptext.dart';
-import 'package:freelancer_app/View/Widgets/customText.dart';
-import 'package:freelancer_app/constants.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-
+import '../../Controller/rfid_page_controller.dart';
+import '../../Utils/routes.dart';
 import '../../Utils/toastUtils.dart';
-import '../Widgets/appbar.dart';
+import '../../constants.dart';
 
 class RFIDnumberScreen extends GetView<RfidPageController> {
   const RFIDnumberScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    size = MediaQuery.of(context).size;
-    return WhiteStatusBar(
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: ColoredBox(
-          color: Color(0xffF5F9FF),
-          child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: size.width * .062, vertical: size.height * .02),
-              child: Row(
+      body: Column(
+        children: [
+          _buildAppBar(context),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
                 children: [
-                  InkWell(
-                      onTap: () {
-                        Get.back();
-                      },
-                      child: Container(
-                          padding: EdgeInsets.all(5),
-                          child: SvgPicture.asset(
-                              'assets/svg/arrow_back_ios.svg'))),
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: CustomBigText(
-                          text: 'RFID',
-                          size: 16,
-                          color: Color(0xff828282),
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  width(24)
+                  _buildHeroCard(),
+                  _buildContentCard(context),
                 ],
               ),
             ),
-            SizedBox(
-              height: size.height * 0.02,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: kBrandPrimaryBlue,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16.w,
+              right: 16.w,
+              top: 10.h,
+              bottom: 14.h,
             ),
-            Obx(
-              () => Container(
-                // height: size.height * 0.33,
-                height: 285.h,
-                width: double.maxFinite,
-
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: CarouselSlider(
-                        // onPageChanged: (index, reason) => _currentIndex = index,
-
-                        items: controller.carouselImage
-                            .map(
-                              (img) => Container(
-                                // height: size.height * 0.25,
-                                // height: 300.h,
-                                // width: size.width * 0.8,
-                                width: 300.w,
-                                decoration: BoxDecoration(
-                                  color: kwhite,
-                                  borderRadius: BorderRadius.circular(20),
-                                  image: DecorationImage(
-                                      image: AssetImage(img),
-                                      fit: BoxFit.cover),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      offset: Offset(0, 4),
-                                      spreadRadius: 0,
-                                      blurRadius: 34.r,
-                                      color:
-                                          Color(0xff000000).withOpacity(0.06),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(child: Container()),
-                                      SizedBox(
-                                        width: 220.w,
-                                        child: CustomBigText(
-                                          text: controller.carouselText[
-                                              controller.currentIndex.toInt()],
-                                          size: 13.sp,
-                                          color: Color(0xff000000),
-                                          fontWeight: FontWeight.w500,
-                                          align: TextAlign.center,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 15.h,
-                                      ),
-                                    ]),
-                              ),
-                            )
-                            .toList(),
-                        options: CarouselOptions(
-                          // height: size.height * 0.25,
-                          height: 220.h,
-                          initialPage: 0,
-                          autoPlay: false,
-                          reverse: false,
-                          enlargeCenterPage: true,
-                          enableInfiniteScroll: true,
-                          scrollDirection: Axis.horizontal,
-                          autoPlayInterval: Duration(seconds: 2),
-                          autoPlayAnimationDuration:
-                              Duration(milliseconds: 2000),
-                          onPageChanged: (index, reason) =>
-                              controller.currentIndex.value = index.toDouble(),
-                        ),
-                      ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Get.back(),
+                  child: Container(
+                    width: 36.w,
+                    height: 36.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.15),
                     ),
-                    height(20.h),
-                    // new DotsIndicator(
-                    //   decorator: DotsDecorator(
-
-                    //     color: Color(0xffDEEAFF), // Inactive color
-                    //     activeColor: Color(0xff0047C3),
-                    //   ),
-                    //   dotsCount: controller.carouselText.length,
-                    //   position: controller.currentIndex.value,
-                    // ),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children:
-                          controller.carouselText.asMap().entries.map((entry) {
-                        return GestureDetector(
-                          onTap: () {
-                            controller.carouselController!.animateTo(
-                                entry.key.toDouble(),
-                                duration: Duration(milliseconds: 300),
-                                curve: Curves.easeInOut);
-                          },
-                          child: Container(
-                            width: 8.w,
-                            height: 8.h,
-                            margin: EdgeInsets.symmetric(
-                                vertical: 8.h, horizontal: 4.w),
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color:
-                                    (controller.currentIndex.value == entry.key
-                                        ? Color(0xff0047C3)
-                                        : Color(0xffDEEAFF))),
-                          ),
-                        );
-                      }).toList(),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 16,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            height(size.height * 0.02),
-            SizedBox(
-              height: size.height * 0.06,
-            ),
-            CustomSmallText(text: "RFID Numbers"),
-            SizedBox(
-              height: size.height * 0.01,
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: size.width * .15),
-              child: Obx(
-                () => controller.rfid_list.length == 0
-                    ? Container(
-                        height: size.height * 0.055,
-                        width: size.width * 0.6,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(
-                              width: 1,
-                              color: Color(0xff0047C3).withOpacity(.25),
-                            )),
-                        child: Center(
-                          child: CustomSmallText(
-                            color: Color(0xffEB5757),
-                            text: "No RFID Found",
-                            size: 15,
-                          ),
-                        ),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: controller.rfid_list.length,
-                        itemBuilder: ((context, index) {
-                          return Container(
-                            height: size.height * 0.055,
-                            width: size.width * 0.7,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                border: Border.all(
-                                  width: 1,
-                                  color: Color(0xff0047C3).withOpacity(.25),
-                                )),
-                            child: Center(
-                              child: CustomText(
-                                color: Color(0xff4f4f4f),
-                                letterSpacing: 1,
-                                fontWeight: FontWeight.w600,
-                                text: controller.rfid_list[index],
-                                size: 15,
-                              ),
-                            ),
-                          );
-                        })),
-              ),
-            ),
-            SizedBox(
-              height: size.height * 0.07,
-            ),
-            Spacer(),
-            InkWell(
-              onTap: () {
-                controller.orderRFID();
-              },
-              child: Container(
-                height: 56.h,
-                width: 218.w,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(73),
-                    color: Color(0xff0047C3),
-                    boxShadow: [
-                      BoxShadow(
-                        offset: Offset(0, 6),
-                        blurRadius: 26,
-                        spreadRadius: 0,
-                        color: Color(0xff000000).withOpacity(.25),
-                      ),
-                    ]),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: size.width * 0.09,
-                    ),
-                    Icon(
-                      Icons.add,
-                      size: size.width * 0.06,
-                      color: Color(0xffD9D9D9),
-                    ),
-                    SizedBox(
-                      width: size.width * 0.03,
-                    ),
-                    CustomBigText(
-                      text: "Order RFID",
-                      size: 16.sp,
-                      color: kwhite,
-                    ),
-                    SizedBox(
-                      width: size.width * 0.06,
-                    ),
-                  ],
+                SizedBox(width: 14.w),
+                Text(
+                  "RFID",
+                  style: TextStyle(
+                    fontFamily: kFontFamily,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ),
-            height(size.height * .05)
-          ],
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildHeroCard() {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      child: Image.asset(
+        "assets/images/rfid_card_banner.png",
+        width: double.infinity,
+        height: 183.h,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildContentCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: EdgeInsets.symmetric(horizontal: 21.w, vertical: 20.h),
+      child: Column(
+        children: [
+          Text(
+            "Your Charging Card",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: kFontFamily,
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xff0C1A30),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            "Tap and start charging at supported GOEC\nstations without opening the app.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: kFontFamily,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xff76859D),
+              height: 1.35,
+            ),
+          ),
+          SizedBox(height: 24.h),
+          // 3 Benefit Cards
+          Row(
+            children: [
+              Expanded(
+                child: _buildBenefitCard(
+                  svgPath: 'assets/svg/rfid_no_app.svg',
+                  title: "No app\nneeded",
+                  topPadding: 20.h,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: _buildBenefitCard(
+                  svgPath: 'assets/svg/rfid_instant.svg',
+                  title: "Instant\ntap-start",
+                  topPadding: 20.h,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: _buildBenefitCard(
+                  svgPath: 'assets/svg/rfid_globe.svg',
+                  title: "Works at all\nGO EC\nstations",
+                  topPadding: 12.h,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 24.h),
+          // Linked RFID list or Order RFID card box
+          Obx(() {
+            if (controller.rfid_list.isEmpty) {
+              return _buildEmptyStateCard();
+            } else {
+              return _buildLinkedRfidSection();
+            }
+          }),
+          SizedBox(height: 30.h),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBenefitCard({
+    required String svgPath,
+    required String title,
+    double topPadding = 16,
+  }) {
+    return Container(
+      height: 120.h,
+      padding: EdgeInsets.symmetric(horizontal: 4.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: const Color(0xffE6EAEF), width: 1),
+      ),
+      child: Column(
+        children: [
+          SizedBox(height: topPadding),
+          SizedBox(
+            width: 32.w,
+            height: 32.w,
+            child: Center(
+              child: SvgPicture.asset(
+                svgPath,
+                width: 24.w,
+                height: 24.w,
+              ),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: kFontFamily,
+              fontSize: 12.5.sp,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xff1E293B),
+              height: 1.25,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(color: const Color(0xffF1F5F9), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xff0F172A).withValues(alpha: 0.05),
+            blurRadius: 20,
+            spreadRadius: -2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            "No RFID card linked yet",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: kFontFamily,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xff121D31),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            "Order your GOEC RFID card and enjoy a faster,\nmore convenient charging experience.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: kFontFamily,
+              fontSize: 13.5.sp,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xff68768E),
+              height: 1.35,
+            ),
+          ),
+          SizedBox(height: 18.h),
+          SizedBox(
+            width: double.infinity,
+            height: 48.h,
+            child: ElevatedButton(
+              onPressed: () {
+                Get.toNamed(Routes.orderRfidPageRoute);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kBrandPrimaryBlue,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100.r),
+                ),
+              ),
+              child: Text(
+                "Order RFID Card",
+                style: TextStyle(
+                  fontFamily: kFontFamily,
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkedRfidSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Your Linked Cards",
+          style: TextStyle(
+            fontFamily: kFontFamily,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xff121D31),
+          ),
+        ),
+        SizedBox(height: 12.h),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: controller.rfid_list.length,
+          separatorBuilder: (context, index) => SizedBox(height: 10.h),
+          itemBuilder: (context, index) {
+            final tag = controller.rfid_list[index].toString();
+            return Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: const Color(0xffE6EAEF)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36.w,
+                    height: 36.w,
+                    decoration: BoxDecoration(
+                      color: const Color(0xffE6F0FF),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: SvgPicture.asset(
+                      'assets/svg/profile_rfid.svg',
+                      width: 18.w,
+                      height: 18.w,
+                      colorFilter: ColorFilter.mode(kBrandPrimaryBlue, BlendMode.srcIn),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tag,
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xff121D31),
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Row(
+                          children: [
+                            Container(
+                              width: 6.w,
+                              height: 6.w,
+                              decoration: const BoxDecoration(
+                                color: Color(0xff10B981),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              "Active",
+                              style: TextStyle(
+                                fontFamily: kFontFamily,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xff10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: SvgPicture.asset(
+                      'assets/svg/profile_copy.svg',
+                      width: 18.w,
+                      height: 18.w,
+                    ),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: tag));
+                      showSuccess("RFID number copied to clipboard!");
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        SizedBox(height: 18.h),
+        SizedBox(
+          width: double.infinity,
+          height: 48.h,
+          child: ElevatedButton(
+            onPressed: () {
+              Get.toNamed(Routes.orderRfidPageRoute);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kBrandPrimaryBlue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24.r),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              "Order Additional RFID Card",
+              style: TextStyle(
+                fontFamily: kFontFamily,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
