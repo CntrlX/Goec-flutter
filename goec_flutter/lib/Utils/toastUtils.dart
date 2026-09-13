@@ -20,6 +20,10 @@ void showError(String message) {
   EasyLoading.showError(message);
 }
 
+void showInfo(String message) {
+  EasyLoading.showInfo(message);
+}
+
 Widget helpCenterWidget(BuildContext context) {
   return InkWell(
     onTap: () {
