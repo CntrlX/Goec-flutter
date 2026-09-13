@@ -691,23 +691,51 @@ class CommonFunctions {
   }
 
 ///////////////////////////////DONE////////////////////////////////
+  Future<PaginatedResult<ChargeTransactionModel>> getChargeTransactionsPage({
+    required int pageNo,
+    String startDate = '',
+    String endDate = '',
+  }) async {
+    final res = await CallAPI().postData({
+      'pageNo': '$pageNo',
+      if (startDate.isNotEmpty) 'fromDate': startDate,
+      if (endDate.isNotEmpty) 'toDate': endDate,
+    }, kApi_ocpp_url + 'chargingHistory/' + appData.userModel.value.id);
+
+    if (res.statusCode != 200 || res.body['success'] != true) {
+      return PaginatedResult<ChargeTransactionModel>(
+        items: const [],
+        pageNo: pageNo,
+        totalCount: 0,
+        rawCount: 0,
+      );
+    }
+
+    final raw = res.body['result'] as List? ?? [];
+    final totalCount = (res.body['totalCount'] as num?)?.toInt() ?? 0;
+    appData.chargingHistoryCount = totalCount;
+
+    final items = <ChargeTransactionModel>[];
+    for (final element in raw) {
+      items.add(ChargeTransactionModel.fromJson(element));
+    }
+
+    return PaginatedResult<ChargeTransactionModel>(
+      items: items,
+      pageNo: pageNo,
+      totalCount: totalCount,
+      rawCount: raw.length,
+    );
+  }
+
   Future<List<ChargeTransactionModel>> getChargeTransactions(
       String pageNo, String startdate, String enddate) async {
-    var res = await CallAPI().postData({
-      'pageNo': pageNo,
-      if (startdate.isNotEmpty) 'fromDate': startdate,
-      if (enddate.isNotEmpty) 'toDate': enddate,
-    }, kApi_ocpp_url + 'chargingHistory/' + appData.userModel.value.id);
-    if (res.statusCode == 200 && res.body['success']) {
-      appData.chargingHistoryCount = res.body['totalCount'];
-      List<ChargeTransactionModel> list = [];
-      res.body['result'].forEach((element) {
-        list.add(ChargeTransactionModel.fromJson(element));
-      });
-      return list;
-    } else {
-      return [];
-    }
+    final page = await getChargeTransactionsPage(
+      pageNo: int.tryParse(pageNo) ?? 1,
+      startDate: startdate,
+      endDate: enddate,
+    );
+    return page.items;
   }
 
   downloadBookingInvoice(int transactionId) async {

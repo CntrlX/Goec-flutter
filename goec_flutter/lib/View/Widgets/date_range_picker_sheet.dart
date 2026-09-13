@@ -236,7 +236,7 @@ class _DateRangePickerModalContentState
                 style: TextStyle(
                   fontFamily: kFontFamily,
                   fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: const Color(0xFF121D31),
                 ),
               ),
@@ -320,7 +320,7 @@ class _DateRangePickerModalContentState
                       'Cancel',
                       style: TextStyle(
                         fontFamily: kFontFamily,
-                        fontSize: 14.5.sp,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
                         color: kBrandPrimaryBlue,
                       ),
@@ -353,7 +353,7 @@ class _DateRangePickerModalContentState
                       'Apply',
                       style: TextStyle(
                         fontFamily: kFontFamily,
-                        fontSize: 14.5.sp,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -424,7 +424,7 @@ class DateRangePickerFieldBox extends StatelessWidget {
                 hasValue ? text : placeholder,
                 style: TextStyle(
                   fontFamily: kFontFamily,
-                  fontSize: 14.5.sp,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w500,
                   color: hasValue
                       ? const Color(0xFF121D31)

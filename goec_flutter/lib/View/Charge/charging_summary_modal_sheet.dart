@@ -164,7 +164,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: kFontFamily,
                   fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: const Color(0xFF121D31),
                 ),
               ),
@@ -222,8 +222,8 @@ class ChargingSummaryModalContent extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: kFontFamily,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w800,
                           color: const Color(0xFF121D31),
                         ),
                       ),
@@ -234,8 +234,8 @@ class ChargingSummaryModalContent extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: kFontFamily,
-                          fontSize: 12.5.sp,
-                          fontWeight: FontWeight.w400,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w500,
                           color: const Color(0xFF68768E),
                         ),
                       ),
@@ -321,7 +321,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: kFontFamily,
                         fontSize: 12.sp,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w500,
                         color: const Color(0xFFA0AABD),
                       ),
                     ),
@@ -331,7 +331,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
                         text: '$kCurrency ${model.tariff.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontFamily: kFontFamily,
-                          fontSize: 13.sp,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF121D31),
                         ),
@@ -340,7 +340,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
                             text: '/kWh',
                             style: TextStyle(
                               fontFamily: kFontFamily,
-                              fontSize: 10.5.sp,
+                              fontSize: 12.sp,
                               fontWeight: FontWeight.w400,
                               color: const Color(0xFF68768E),
                             ),
@@ -360,7 +360,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
             'Charging & Payment',
             style: TextStyle(
               fontFamily: kFontFamily,
-              fontSize: 15.sp,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w700,
               color: const Color(0xFF121D31),
             ),
@@ -440,7 +440,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
                     'Download invoice',
                     style: TextStyle(
                       fontFamily: kFontFamily,
-                      fontSize: 15.sp,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -466,7 +466,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
           style: TextStyle(
             fontFamily: kFontFamily,
             fontSize: 12.sp,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
             color: const Color(0xFFA0AABD),
           ),
         ),
@@ -477,7 +477,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontFamily: kFontFamily,
-            fontSize: 13.sp,
+            fontSize: 12.sp,
             fontWeight: FontWeight.w700,
             color: const Color(0xFF121D31),
           ),
@@ -522,8 +522,8 @@ class ChargingSummaryModalContent extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: kFontFamily,
-              fontSize: 11.sp,
-              fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.w500,
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w700,
               color: isHighlighted
                   ? kBrandPrimaryBlue
                   : const Color(0xFF68768E),
@@ -538,8 +538,8 @@ class ChargingSummaryModalContent extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontFamily: kFontFamily,
-              fontSize: isHighlighted ? 12.5.sp : 12.sp,
-              fontWeight: isHighlighted ? FontWeight.w800 : FontWeight.w700,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w700,
               color: isHighlighted
                   ? kBrandPrimaryBlue
                   : const Color(0xFF121D31),

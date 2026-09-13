@@ -199,7 +199,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                                         style: TextStyle(
                                           fontFamily: kFontFamily,
                                           fontSize: 12.sp,
-                                          fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.w700,
                                           color: kBrandPrimaryBlue,
                                         ),
                                       ),
@@ -224,8 +224,10 @@ class _ChargeScreenState extends State<ChargeScreen>
                   // History List / Empty State
                   Obx(() {
                     final items = controller.model_list;
+                    final loadingMore = controller.isLoadingMore.value;
+                    final hasMore = controller.hasMore.value;
 
-                    if (items.isEmpty && !controller.isLoading) {
+                    if (items.isEmpty && !controller.isInitialLoading.value) {
                       return SliverToBoxAdapter(
                         child: _buildEmptyState(),
                       );
@@ -234,6 +236,24 @@ class _ChargeScreenState extends State<ChargeScreen>
                     return SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
+                          if (index >= items.length) {
+                            return Container(
+                              color: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              alignment: Alignment.center,
+                              child: loadingMore
+                                  ? SizedBox(
+                                      width: 24.w,
+                                      height: 24.w,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: kBrandPrimaryBlue,
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                            );
+                          }
+
                           final model = items[index];
                           final isLast = index == items.length - 1;
 
@@ -262,7 +282,8 @@ class _ChargeScreenState extends State<ChargeScreen>
                             ),
                           );
                         },
-                        childCount: items.length,
+                        childCount:
+                            items.length + ((hasMore || loadingMore) ? 1 : 0),
                       ),
                     );
                   }),
@@ -305,8 +326,8 @@ class _ChargeScreenState extends State<ChargeScreen>
                   "History",
                   style: TextStyle(
                     fontFamily: kFontFamily,
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
@@ -359,7 +380,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                         _getGreeting(),
                         style: TextStyle(
                           fontFamily: kFontFamily,
-                          fontSize: 13.5.sp,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w400,
                           color: const Color(0xFF64748B),
                         ),
@@ -369,8 +390,8 @@ class _ChargeScreenState extends State<ChargeScreen>
                         "Ready to charge?",
                         style: TextStyle(
                           fontFamily: kFontFamily,
-                          fontSize: 22.sp,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w700,
                           color: const Color(0xFF0F172A),
                           letterSpacing: -0.3,
                         ),
@@ -380,7 +401,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                         "Plug in, tap and get moving.",
                         style: TextStyle(
                           fontFamily: kFontFamily,
-                          fontSize: 13.sp,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w400,
                           color: const Color(0xFF64748B),
                         ),
@@ -446,8 +467,8 @@ class _ChargeScreenState extends State<ChargeScreen>
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: kFontFamily,
-                                  fontSize: 16.5.sp,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w700,
                                   color: kBrandPrimaryBlue,
                                   letterSpacing: -0.2,
                                 ),
@@ -459,7 +480,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontFamily: kFontFamily,
-                                fontSize: 12.5.sp,
+                                fontSize: 12.sp,
                                 fontWeight: FontWeight.w400,
                                 color: const Color(0xFF68768E),
                               ),
@@ -503,8 +524,8 @@ class _ChargeScreenState extends State<ChargeScreen>
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: kFontFamily,
-                                  fontSize: 16.5.sp,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w700,
                                   color: const Color(0xFF03E8BE),
                                   letterSpacing: -0.2,
                                 ),
@@ -516,7 +537,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontFamily: kFontFamily,
-                                fontSize: 12.5.sp,
+                                fontSize: 12.sp,
                                 fontWeight: FontWeight.w400,
                                 color: const Color(0xFF68768E),
                               ),
@@ -557,7 +578,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                             "Start Charging",
                             style: TextStyle(
                               fontFamily: kFontFamily,
-                              fontSize: 15.5.sp,
+                              fontSize: 16.sp,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
@@ -597,8 +618,8 @@ class _ChargeScreenState extends State<ChargeScreen>
             "No charging history yet",
             style: TextStyle(
               fontFamily: kFontFamily,
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
               color: const Color(0xFF121D31),
             ),
           ),
@@ -608,7 +629,7 @@ class _ChargeScreenState extends State<ChargeScreen>
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: kFontFamily,
-              fontSize: 13.5.sp,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w400,
               color: const Color(0xFF68768E),
               height: 1.45,
@@ -666,7 +687,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: kFontFamily,
-                    fontSize: 15.sp,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF121D31),
                   ),
@@ -678,7 +699,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: kFontFamily,
-                    fontSize: 13.sp,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
                     color: const Color(0xFFA0AABD),
                   ),
@@ -706,7 +727,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                     duration,
                     style: TextStyle(
                       fontFamily: kFontFamily,
-                      fontSize: 11.5.sp,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF68768E),
                     ),
@@ -718,7 +739,7 @@ class _ChargeScreenState extends State<ChargeScreen>
                 "Cr. ${model.amount.toStringAsFixed(2)}",
                 style: TextStyle(
                   fontFamily: kFontFamily,
-                  fontSize: 15.sp,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.w800,
                   color: kBrandPrimaryBlue,
                 ),

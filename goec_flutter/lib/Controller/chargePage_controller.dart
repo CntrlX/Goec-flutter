@@ -1,136 +1,183 @@
-import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import '../Singletones/app_data.dart';
-import '../Singletones/dialogs.dart';
 import 'package:flutter/material.dart';
-import 'package:freelancer_app/constants.dart';
-import 'package:freelancer_app/Utils/toastUtils.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:freelancer_app/Model/chargeTransactionModel.dart';
+import 'package:freelancer_app/Model/paginated_result.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
+import 'package:freelancer_app/Singletones/dialogs.dart';
+import 'package:freelancer_app/Utils/toastUtils.dart';
+import 'package:freelancer_app/constants.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
-class ChargeScreenController extends GetxController
-    with GetSingleTickerProviderStateMixin {
-  RxInt IsTabIndex = 0.obs;
-  bool isLoading = false;
+class ChargeScreenController extends GetxController {
+  static const int pageSize = 10;
 
-  // late TabController tabController;
-  RxList<ChargeTransactionModel> model_list = RxList();
-  RxDouble boxHeight = (0.0).obs;
-  ScrollController scrollController = ScrollController();
-  int page = 1;
-  TextEditingController startDate = TextEditingController();
-  TextEditingController endDate = TextEditingController();
-  bool lock = false;
+  final TextEditingController startDate = TextEditingController();
+  final TextEditingController endDate = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+
+  final RxInt IsTabIndex = 0.obs;
+  final RxList<ChargeTransactionModel> model_list =
+      <ChargeTransactionModel>[].obs;
+  final RxDouble boxHeight = (0.0).obs;
+
+  final RxBool isInitialLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxBool hasMore = true.obs;
+  final RxBool hasActiveFilter = false.obs;
+
+  int _page = 0;
+  int _totalCount = 0;
+  int _fetchedCount = 0;
+  bool _filterLock = false;
+
+  bool get _isBusy => isInitialLoading.value || isLoadingMore.value;
+
+  /// Backward-compatible alias used by older UI checks.
+  bool get isLoading => _isBusy;
 
   @override
   void onInit() {
-    // / implement onInit
     super.onInit();
-    getChargeTransactions();
-    _scrollListen();
+    scrollController.addListener(_onScroll);
+    refreshTransactions(showOverlay: true);
   }
 
   @override
   void onClose() {
-    // / implement onClose
-    super.onClose();
+    scrollController.removeListener(_onScroll);
     scrollController.dispose();
+    startDate.dispose();
+    endDate.dispose();
+    super.onClose();
   }
 
-  _scrollListen() {
-    scrollController.addListener(() async {
-      var nextPageTrigger = 0.99 * scrollController.position.maxScrollExtent;
-      if (model_list.length < appData.chargingHistoryCount &&
-          !isLoading &&
-          scrollController.position.pixels > nextPageTrigger) {
-        page++;
-        isLoading = true;
-        await loadMore();
-        isLoading = false;
+  void _onScroll() {
+    if (!scrollController.hasClients || _isBusy || !hasMore.value) return;
+    final position = scrollController.position;
+    if (!position.hasPixels || !position.hasContentDimensions) return;
+
+    final threshold = position.maxScrollExtent * 0.85;
+    if (position.pixels >= threshold) {
+      loadMoreTransactions();
+    }
+  }
+
+  ({String start, String end}) _formattedDateRange() {
+    if (startDate.text.isEmpty || endDate.text.isEmpty) {
+      return (start: '', end: '');
+    }
+    return (
+      start: DateFormat('dd-MM-yyyy').format(
+        DateFormat('dd/MM/yyyy').parse(startDate.text),
+      ),
+      end: DateFormat('dd-MM-yyyy').format(
+        DateFormat('dd/MM/yyyy').parse(endDate.text),
+      ),
+    );
+  }
+
+  Future<PaginatedResult<ChargeTransactionModel>> _fetchPage(int pageNo) {
+    final dates = _formattedDateRange();
+    return CommonFunctions().getChargeTransactionsPage(
+      pageNo: pageNo,
+      startDate: dates.start,
+      endDate: dates.end,
+    );
+  }
+
+  void _applyPageMeta(
+    PaginatedResult<ChargeTransactionModel> page, {
+    required bool reset,
+  }) {
+    if (reset) {
+      _fetchedCount = 0;
+    }
+    _page = page.pageNo;
+    _totalCount = page.totalCount;
+    _fetchedCount += page.rawCount;
+    hasMore.value = PaginatedResult.hasMorePages(
+      fetchedSoFar: _fetchedCount,
+      totalCount: _totalCount,
+    );
+  }
+
+  void _updateFilterStatus() {
+    hasActiveFilter.value =
+        startDate.text.isNotEmpty || endDate.text.isNotEmpty;
+  }
+
+  Future<void> refreshTransactions({bool showOverlay = false}) async {
+    if (isInitialLoading.value) return;
+
+    isInitialLoading.value = true;
+    if (showOverlay) showLoading(kLoading);
+
+    try {
+      final page = await _fetchPage(1);
+      _applyPageMeta(page, reset: true);
+      model_list
+        ..clear()
+        ..addAll(page.items);
+      setBoxHeight();
+    } finally {
+      isInitialLoading.value = false;
+      if (showOverlay) hideLoading();
+    }
+  }
+
+  Future<void> loadMoreTransactions() async {
+    if (_isBusy || !hasMore.value) return;
+
+    isLoadingMore.value = true;
+    try {
+      final page = await _fetchPage(_page + 1);
+      _applyPageMeta(page, reset: false);
+      if (page.items.isNotEmpty) {
+        model_list.addAll(page.items);
+        setBoxHeight();
       }
-    });
-  }
-
-  onReload() async {
-    var res = await CommonFunctions().getChargeTransactions('1', '', '');
-    model_list.clear();
-    model_list.addAll(res);
-    page = 1;
-  }
-
-  getChargeTransactions() async {
-    showLoading(kLoading);
-    page = 1;
-    String start = '';
-    String end = '';
-    if (startDate.text.isNotEmpty && endDate.text.isNotEmpty) {
-      start = DateFormat('dd-MM-yyyy')
-          .format(DateFormat('dd/MM/yyyy').parse(startDate.text));
-      end = DateFormat('dd-MM-yyyy')
-          .format(DateFormat('dd/MM/yyyy').parse(endDate.text));
+    } finally {
+      isLoadingMore.value = false;
     }
-    var res =
-        await CommonFunctions().getChargeTransactions('$page', start, end);
-    model_list.clear();
-    hideLoading();
-    model_list.addAll(res);
   }
 
-  loadMore() async {
-    showLoading(kLoading);
-    String start = '';
-    String end = '';
-    if (startDate.text.isNotEmpty && endDate.text.isNotEmpty) {
-      start = DateFormat('dd-MM-yyyy')
-          .format(DateFormat('dd/MM/yyyy').parse(startDate.text));
-      end = DateFormat('dd-MM-yyyy')
-          .format(DateFormat('dd/MM/yyyy').parse(endDate.text));
-    }
-    var res =
-        await CommonFunctions().getChargeTransactions('$page', start, end);
-    hideLoading();
-    model_list.addAll(res);
+  Future<void> getChargeTransactions() =>
+      refreshTransactions(showOverlay: true);
+
+  Future<void> onReload() async {
+    await refreshTransactions(showOverlay: false);
   }
 
-  getBooking(ChargeTransactionModel model) async {
+  Future<void> getBooking(ChargeTransactionModel model) async {
     Dialogs().charge_transaction_popup(model: model);
-    // if (isLoading) return;
-    // isLoading = true;
-    // showLoading(kLoading);
-    // BookingModel model =
-    //     await CommonFunctions().getBooking(bookingId: "${bookingId}");
-    // hideLoading();
-
-    // if (model.bookingId != -1) {
-    //   Dialogs().charge_transaction_popup(
-    //       model: model,
-    //       stationAddress: stationAddress,
-    //       stationName: stationName);
-    // }
-    // isLoading = false;
   }
 
-  setBoxHeight() {
+  void setBoxHeight() {
     boxHeight.value =
         size.height * .28 + (size.height * .11) * (model_list.length);
   }
 
-  clearFilter() async {
+  Future<void> clearFilter() async {
     startDate.clear();
     endDate.clear();
-    await getChargeTransactions();
+    _updateFilterStatus();
+    await refreshTransactions(showOverlay: true);
   }
 
-  applyFilter() async {
-    if (lock) return;
+  Future<void> applyFilter() async {
+    if (_filterLock) return;
     if (startDate.text.isEmpty || endDate.text.isEmpty) {
       EasyLoading.showInfo('Please select Start and End date.');
       return;
     }
-    lock = true;
-    await getChargeTransactions();
-    Get.back();
-    lock = false;
+    _filterLock = true;
+    try {
+      _updateFilterStatus();
+      await refreshTransactions(showOverlay: true);
+      Get.back();
+    } finally {
+      _filterLock = false;
+    }
   }
 }
