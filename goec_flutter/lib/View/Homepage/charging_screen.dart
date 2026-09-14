@@ -1,22 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import '../../Singletones/dialogs.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:freelancer_app/constants.dart';
-import 'package:freelancer_app/Utils/toastUtils.dart';
-import 'package:freelancer_app/Singletones/app_data.dart';
-import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freelancer_app/View/Widgets/customText.dart';
-import 'ChargningAnimations/charging_loader.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import '../../constants.dart';
+import '../../Utils/routes.dart';
+import '../../Singletones/dialogs.dart';
+import '../../Controller/charging_screen_controller.dart';
 import 'ChargningAnimations/charging_progress.dart';
-// import 'ChargningAnimations/gradiant_circular_progressbar.dart';
-import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
-// import 'ChargningAnimations/percentage_circular_progress_indicator.dart';
-import 'package:freelancer_app/Controller/charging_screen_controller.dart';
-import 'package:freelancer_app/View/Homepage/ChargningAnimations/lottie_loading_animation.dart';
+import 'ChargningAnimations/charging_loader.dart';
+import '../Widgets/glass_circle_icon_button.dart';
 
 class ChargingScreen extends GetView<ChargingScreenController> {
   const ChargingScreen({super.key});
@@ -24,756 +18,738 @@ class ChargingScreen extends GetView<ChargingScreenController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        body: Obx(() => SafeArea(
-              child: Container(
-                  padding: EdgeInsets.only(left: 21.w, right: 21.w),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: size.width * .0,
-                              vertical: size.height * .015),
-                          child: Row(
-                            children: [
-                              InkWell(
-                                  onTap: () {
-                                    Get.back();
-                                  },
-                                  child: Container(
-                                      padding: EdgeInsets.all(8),
-                                      child: SvgPicture.asset(
-                                          'assets/svg/arrow_back_ios.svg'))),
-                              Expanded(
-                                  child: Container(
-                                      alignment: Alignment.center,
-                                      child: CustomText(
-                                          text: 'Charging Session',
-                                          size: 18,
-                                          color: Color(0xff4F4F4F),
-                                          fontWeight: FontWeight.bold))),
-                              width(24)
-                            ],
-                          ),
-                        ),
-                        // ! first card
-                        chargingIndicatorCard(controller),
-                        SizedBox(height: 15.h),
-                        // ! second card
-                        Container(
-                          padding: EdgeInsets.only(
-                            left: 26.w,
-                            top: 21.h,
-                            right: 28.w,
-                            bottom: 26.h,
-                          ),
-                          decoration: BoxDecoration(
-                              color: kwhite,
-                              borderRadius: BorderRadius.circular(20).r,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 20.0,
-                                  // offset: Offset(-4, 4),
-                                ),
-                                // BoxShadow(
-                                //   color: Color.fromARGB(6, 0, 0, 0),
-                                //   blurRadius: 4.0,
-                                //   offset: Offset(32, -4),
-                                // )
-                              ]),
-                          child: Column(
-                            children: [
-                              CustomSmallText(
-                                text: "Charger Details",
-                                size: 12.sp,
-                              ),
-                              // ?first row
-                              Padding(
-                                padding:
-                                    EdgeInsets.only(bottom: 17.h, top: 14.h),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    CustomBigText(
-                                      text:
-                                          "${controller.status_model.value.outputType} ${controller.status_model.value.capacity} KwH",
-                                      size: 14.sp,
-                                      color: Color(0xff4F4F4F),
-                                    ),
-                                    Row(
-                                      children: [
-                                        CustomBigText(
-                                          text:
-                                              "${controller.status_model.value.connectorType}",
-                                          size: 14.sp,
-                                          color: Color(0xff4F4F4F),
-                                        ),
-                                        SizedBox(width: 14.w),
-                                        if (controller.status_model.value
-                                            .connectorType.isNotEmpty)
-                                          SvgPicture.asset(
-                                              height: 24.h, 'assets/svg/css.svg'
-                                              // "assets/svg/${controller.status_model.value.connectorType.toLowerCase()}.svg",
-                                              )
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: size.width * 0.00),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    CustomSmallText(
-                                      text: 'Tariff',
-                                      size: 12,
-                                    ),
-                                    Text(
-                                      '$kCurrency ${controller.activeSessionModel.tariff.toStringAsFixed(2)} /KwH',
-                                      style: kAppSmallTextStyle,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Divider(
-                                color: Color(0xffBDBDBD),
-                                thickness: .6,
-                              ),
-                              Container(
-                                padding:
-                                    EdgeInsets.only(bottom: 32.h, top: 17.h),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          CustomSmallText(
-                                              text: "Charged Amount",
-                                              size: 12.sp),
-                                          CustomSmallText(
-                                              text: "Energy consumed",
-                                              size: 12.sp)
-                                        ]),
-                                    Obx(
-                                      () => Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "$kCurrency ${(controller.status_model.value.amount).toStringAsFixed(2)}",
-                                              style: kAppBigTextStyle.copyWith(
-                                                fontSize: 17.sp,
-                                                color: Color(0xff0047C3),
-                                              ),
-                                            ),
-                                            Text(
-                                              "${controller.status_model.value.unitUsed.toStringAsFixed(2)} kWh",
-                                              style: kAppBigTextStyle.copyWith(
-                                                fontSize: 17.sp,
-                                                color: Color(0xff0047C3),
-                                              ),
-                                            ),
-                                          ]),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              //  !buttons
-                              if (controller.chargingStatus.value ==
-                                      "progress" ||
-                                  controller.chargingStatus.value ==
-                                      'finishing')
-                                _withBgBtn(
-                                  text: controller.chargingStatus.value ==
-                                          'finishing'
-                                      ? 'Finishing...'
-                                      : 'Stop Charging',
-                                  onTap: () async {
-                                    if (controller.chargingStatus.value ==
-                                        'progress') {
-                                      controller.chargingStatus.value =
-                                          'finishing';
-                                    }
-                                    if (Get.isDialogOpen == false)
-                                      Dialogs().gunStatusAlert('Finishing up',
-                                          'Please wait till Charging session is finished to unplug the charger');
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.h),
+        child: Container(
+          color: const Color(0xFF0049C2),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: Row(
+                children: [
 
-                                    controller.stopCharging();
-                                  },
-                                  color: controller.chargingStatus.value ==
-                                          'finishing'
-                                      ? Colors.grey.shade500
-                                      : Color(0xffEB5757),
-                                  textColor: Color(0xffF2F2F2),
-                                )
-                              else if (controller.chargingStatus.value ==
-                                  "connected")
-                                _withBgBtn(text: 'Connected', onTap: () {})
-                              else if (controller.chargingStatus.value ==
-                                      "finished" ||
-                                  controller.chargingStatus.value ==
-                                      "completed" ||
-                                  controller.chargingStatus.value ==
-                                      "disconnected")
-                                // _dualBtn(
-                                //     (){controller.toReconnect()},
-                                //    (){controller.toReconnect()})
-                                _dualBtn(() async {
-                                  controller.downloadInvoice();
-                                }, () {
-                                  controller.onClickFinished();
-                                })
-                              else
-                                _connectingBtn(onTap: () {
-                                  // controller.toConnected();
-                                })
-                            ],
-                          ),
-                        ),
-                        // Container(
-                        //   height: 380.h,
-                        //   width: double.infinity,
-                        //   padding: EdgeInsets.only(top: 30.h, bottom: 42.h),
-                        //   decoration: BoxDecoration(
-                        //       color: kwhite,
-                        //       borderRadius: BorderRadius.circular(20).r,
-                        //       boxShadow: [
-                        //         BoxShadow(
-                        //             color: Color.fromARGB(6, 0, 0, 0),
-                        //             blurRadius: 4.0,
-                        //             offset: Offset(-4, 4)),
-                        //         BoxShadow(
-                        //             color: Color.fromARGB(6, 0, 0, 0),
-                        //             blurRadius: 4.0,
-                        //             offset: Offset(32, -4))
-                        //       ]),
-                        //   child: Column(
-                        //     crossAxisAlignment: CrossAxisAlignment.center,
-                        //     children: [
-                        //       Flexible(
-                        //           child: Stack(
-                        //         alignment: Alignment.center,
-                        //         children: [
-                        //           Container(
-                        //               width: double.infinity,
-                        //               color: Colors.white,
-                        //               child: Obx(
-                        //                 () => controller.chargingStatus.value ==
-                        //                             'initiating' ||
-                        //                         ((controller.chargingStatus
-                        //                                     .value.isEmpty ||
-                        //                                 controller
-                        //                                         .activeSessionModel
-                        //                                         .outputType ==
-                        //                                     'AC') &&
-                        //                             (controller.chargingStatus
-                        //                                     .value !=
-                        //                                 'finished'))
-                        //                     ? GradientIndicator()
-                        //                     : PercentageIndicator(
-                        //                         progress: (controller
-                        //                                     .status_model
-                        //                                     .value
-                        //                                     .percentage /
-                        //                                 100.0) +
-                        //                             .001),
-                        //               )),
-                        //           Container(
-                        //               // color: Colors.amber,
-                        //               child: Column(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             children: [
-                        //               height(55.h),
-                        //               Image.asset(
-                        //                 'assets/images/bolt.png',
-                        //                 height: 50,
-                        //               ),
-                        //               height(5.h),
-                        //               CustomText(
-                        //                 text:
-                        //                     '${controller.status_model.value.percentage}%',
-                        //                 isItalic: true,
-                        //                 fontWeight: FontWeight.w700,
-                        //                 size: 20,
-                        //                 color: Color(0xff2F80ED),
-                        //               ),
-                        //               height(20.h),
-                        //               Row(
-                        //                 mainAxisSize: MainAxisSize.min,
-                        //                 children: [
-                        //                   Column(
-                        //                     mainAxisSize: MainAxisSize.min,
-                        //                     mainAxisAlignment:
-                        //                         MainAxisAlignment.start,
-                        //                     children: [
-                        //                       CustomText(
-                        //                         text: '${controller.time[0]}',
-                        //                         fontWeight: FontWeight.bold,
-                        //                         size: 16,
-                        //                         color: Color(0xff0047C2),
-                        //                       ),
-                        //                       CustomText(
-                        //                         text: 'hrs',
-                        //                         fontWeight: FontWeight.w400,
-                        //                         size: 12,
-                        //                         color: Color(0xff828282),
-                        //                       ),
-                        //                     ],
-                        //                   ),
-                        //                   width(10.w),
-                        //                   Column(
-                        //                     mainAxisSize: MainAxisSize.min,
-                        //                     mainAxisAlignment:
-                        //                         MainAxisAlignment.start,
-                        //                     children: [
-                        //                       CustomText(
-                        //                         text: '${controller.time[1]}',
-                        //                         fontWeight: FontWeight.bold,
-                        //                         size: 16,
-                        //                         color: Color(0xff0047C2),
-                        //                       ),
-                        //                       CustomText(
-                        //                         text: 'min',
-                        //                         fontWeight: FontWeight.w400,
-                        //                         size: 12,
-                        //                         color: Color(0xff828282),
-                        //                       ),
-                        //                     ],
-                        //                   ),
-                        //                 ],
-                        //               )
-                        //             ],
-                        //           ))
-                        //         ],
-                        //       )),
-                        //       Row(
-                        //         mainAxisAlignment: MainAxisAlignment.center,
-                        //         children: [
-                        //           Image.asset(
-                        //             'assets/images/bolt.png',
-                        //             height: 20.sp,
-                        //           ),
-                        //           width(15.w),
-                        //           CustomText(
-                        //             text:
-                        //                 '${controller.status_model.value.percentage}%',
-                        //             isItalic: true,
-                        //             fontWeight: FontWeight.w700,
-                        //             size: 20,
-                        //             color: Color(0xff2F80ED),
-                        //           ),
-                        //           width(15.w),
-                        //           Container(
-                        //             padding: EdgeInsets.symmetric(
-                        //               horizontal: 10.w,
-                        //               vertical: 2.h,
-                        //             ),
-                        //             decoration: BoxDecoration(
-                        //               borderRadius:
-                        //                   BorderRadius.circular(10.sp),
-                        //               color: Color(0xffF6F6F6),
-                        //             ),
-                        //             child: Row(
-                        //               children: [
-                        //                 CustomText(
-                        //                   text: '${controller.time[0]}',
-                        //                   fontWeight: FontWeight.bold,
-                        //                   size: 16.sp,
-                        //                   color: Color(0xff0047C2),
-                        //                 ),
-                        //                 width(5.w),
-                        //                 CustomText(
-                        //                   text: 'hrs',
-                        //                   fontWeight: FontWeight.w400,
-                        //                   size: 12.sp,
-                        //                   color: Color(0xff828282),
-                        //                 ),
-                        //                 width(5.w),
-                        //                 CustomText(
-                        //                   text: '${controller.time[1]}',
-                        //                   fontWeight: FontWeight.bold,
-                        //                   size: 16.sp,
-                        //                   color: Color(0xff0047C2),
-                        //                 ),
-                        //                 width(5.w),
-                        //                 CustomText(
-                        //                   text: 'min',
-                        //                   fontWeight: FontWeight.w400,
-                        //                   size: 12.sp,
-                        //                   color: Color(0xff828282),
-                        //                 ),
-                        //               ],
-                        //             ),
-                        //           )
-                        //         ],
-                        //       ),
-                        //       if (controller.chargingStatus.value ==
-                        //               "connected" ||
-                        //           controller.chargingStatus.value == "progress")
-                        //         CustomBigText(
-                        //             text: "Charging In Progress",
-                        //             size: 12.sp,
-                        //             color: Color(0xff828282))
-                        //       else if (controller.chargingStatus.value ==
-                        //           "finishing")
-                        //         CustomBigText(
-                        //             text: "Charging finishing...",
-                        //             size: 12.sp,
-                        //             color: Color(0xff828282))
-                        //       else if (controller.chargingStatus.value ==
-                        //           "finished")
-                        //         CustomBigText(
-                        //             text: "Charging Finished",
-                        //             size: 12.sp,
-                        //             color: Color(0xff0047C3))
-                        //       else if (controller.chargingStatus.value ==
-                        //           "completed")
-                        //         CustomBigText(
-                        //             text: "Charging Completed",
-                        //             size: 12.sp,
-                        //             color: Color(0xff219653))
-                        //       else if (controller.chargingStatus.value ==
-                        //           "disconnected")
-                        //         Center(
-                        //           child: Row(
-                        //             mainAxisAlignment: MainAxisAlignment.center,
-                        //             children: [
-                        //               Image.asset(
-                        //                   width: 13,
-                        //                   height: 13,
-                        //                   "assets/images/errer.png"),
-                        //               SizedBox(
-                        //                 width: 4,
-                        //               ),
-                        //               CustomBigText(
-                        //                   text: "Charger Disconnected",
-                        //                   size: 12.sp,
-                        //                   color: Color(0xffEB5757))
-                        //             ],
-                        //           ),
-                        //         )
-                        //       else if (controller.chargingStatus.value ==
-                        //           'initiating')
-                        //         CustomBigText(
-                        //             text: "Initiating ...",
-                        //             size: 12.sp,
-                        //             color: Color(0xff0047C3))
-                        //       else
-                        //         CustomBigText(
-                        //             text: "Connecting ...",
-                        //             size: 12.sp,
-                        //             color: Color(0xff0047C3)),
-                        //       SizedBox(
-                        //         height: 24.h,
-                        //       ),
-                        //       SizedBox(
-                        //         child: Center(
-                        //           child: Row(
-                        //             mainAxisAlignment: MainAxisAlignment.center,
-                        //             children: [
-                        //               // Image.asset(
-                        //               //     width: 76, "assets/images/jeep1.png"),
-                        //               cachedNetworkImage(
-                        //                   appData.userModel.value.defaultVehicle
-                        //                       .icon,
-                        //                   width: 80.sp),
-                        //               SizedBox(width: 13),
-                        //               Column(
-                        //                 mainAxisAlignment:
-                        //                     MainAxisAlignment.center,
-                        //                 crossAxisAlignment:
-                        //                     CrossAxisAlignment.start,
-                        //                 children: [
-                        //                   CustomSmallText(
-                        //                       text: appData.userModel.value
-                        //                           .defaultVehicle.brand),
-                        //                   CustomBigText(
-                        //                     text: appData.userModel.value
-                        //                         .defaultVehicle.modelName,
-                        //                     size: 16,
-                        //                   )
-                        //                 ],
-                        //               )
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       )
-                        //     ],
-                        //   ),
-                        // ),
-                      ],
+                  GlassBackButton(),
+                  SizedBox(width: 14.w),
+                  Text(
+                    'Charging Session',
+                    style: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
-                  )),
-            )));
-  }
-
-  Widget _withBgBtn(
-      {required String text,
-      VoidCallback? onTap,
-      Color? color,
-      Color? textColor}) {
-    return InkWell(
-      child: Container(
-          height: 52.h,
-          padding: EdgeInsets.symmetric(horizontal: 30),
-          width: double.infinity,
-          decoration: BoxDecoration(
-              color: color ?? Color(0xffD0FFE4),
-              borderRadius: BorderRadius.circular(56.r)),
-          child: Center(
-            child: CustomBigText(
-              text: text,
-              size: 14.sp,
-              color: textColor ?? Color(0xff219653),
+                  ),
+                ],
+              ),
             ),
-          )),
-      onTap: onTap,
+          ),
+        ),
+      ),
+      body: Obx(
+        () => SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.only(bottom: 24.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 24.h),
+
+              // 1. Hero Charging Gauge
+              _buildHeroGauge(controller),
+
+              SizedBox(height: 28.h),
+
+              // 2. Charger Details Card
+              _buildChargerDetailsCard(context, controller),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Obx(() => _buildFooter(context, controller)),
     );
   }
 
-  Widget _dualBtn(VoidCallback? onTap_left, VoidCallback? onTap_right) {
-    return SizedBox(
-      width: double.infinity,
-      height: 52.h,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  /// 1. Hero Circular Gauge and SOC / Time display
+  Widget _buildHeroGauge(ChargingScreenController controller) {
+    final percentage = controller.status_model.value.percentage;
+    final isInitiating = controller.chargingStatus.value == 'initiating' ||
+        ((controller.chargingStatus.value.isEmpty ||
+                controller.activeSessionModel.outputType == 'AC') &&
+            (controller.chargingStatus.value != 'finished' &&
+                controller.chargingStatus.value != 'completed'));
+
+    return Column(
+      children: [
+        // Circular Gauge Animation
+        SizedBox(
+          width: double.infinity,
+          child: isInitiating
+              ? const Center(child: ChargingLoader())
+              : ChargingProgress(progress: percentage / 100.0),
+        ),
+
+        SizedBox(height: 20.h),
+
+        // Percentage & Elapsed Time Pill
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Cyan Lightning Icon
+            SvgPicture.asset(
+              'assets/svg/charging_energy.svg',
+              width: 18.w,
+              height: 18.w,
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF0284C7),
+                BlendMode.srcIn,
+              ),
+            ),
+            SizedBox(width: 6.w),
+
+            // Gradient SOC Text
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [Color(0xFF0049C2), Color(0xFF02E8BD)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
+              child: Text(
+                '${percentage.toInt()}%',
+                style: TextStyle(
+                  fontFamily: kFontFamily,
+                  fontSize: 30.sp,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.75,
+                ),
+              ),
+            ),
+
+            SizedBox(width: 12.w),
+
+            // Estimated Duration Pill Badge
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(9999.r),
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${controller.time[0]}',
+                    style: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF0049C2),
+                    ),
+                  ),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'hrs',
+                    style: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF68768E),
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  Text(
+                    '${controller.time[1]}',
+                    style: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF0049C2),
+                    ),
+                  ),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'min',
+                    style: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF68768E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        SizedBox(height: 6.h),
+
+        // Subtitle status
+        Text(
+          _getStatusSubtitle(controller.chargingStatus.value),
+          style: TextStyle(
+            fontFamily: kFontFamily,
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF68768E),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getStatusSubtitle(String status) {
+    if (status == 'finishing') return 'Charging finishing...';
+    if (status == 'finished') return 'Charging Finished';
+    if (status == 'completed') return 'Charging Completed';
+    if (status == 'disconnected') return 'Charger Disconnected';
+    if (status == 'initiating') return 'Initiating session...';
+    return 'Charging in progress';
+  }
+
+  /// 2. Charger Details Card
+  Widget _buildChargerDetailsCard(
+      BuildContext context, ChargingScreenController controller) {
+    final active = controller.activeSessionModel;
+    final status = controller.status_model.value;
+
+    final outputType = status.outputType.isNotEmpty
+        ? status.outputType
+        : (active.outputType.isNotEmpty ? active.outputType : 'AC');
+    final capacity = status.capacity > 0 ? status.capacity : active.capacity;
+    final connectorType = status.connectorType.isNotEmpty
+        ? status.connectorType
+        : (active.connectorType.isNotEmpty ? active.connectorType : 'Type 2');
+    final tariff = active.tariff > 0 ? active.tariff : 0.0;
+    final energyUsed = status.unitUsed;
+    final chargedAmount = status.amount > 0 ? status.amount : (tariff * energyUsed);
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20.w),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26.r),
+        border: Border.all(color: const Color(0xFFE6EAEF), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Flexible(
-            child: InkWell(
-              onTap: onTap_left,
-              child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 0.w),
-                  decoration: BoxDecoration(
-                      border: Border.all(width: 1, color: Color(0xff0047C3)),
-                      borderRadius: BorderRadius.circular(56.r)),
-                  child: Center(
-                    child: CustomBigText(
-                      text: "Download Invoice",
-                      size: 14.sp,
-                      color: Color(0xff0047C3),
+          // Header Row: Charger Details + View Station Link
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Charger Details',
+                style: TextStyle(
+                  fontFamily: kFontFamily,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF121D31),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (active.chargingStationId.isNotEmpty &&
+                      active.chargingStationId != '-1') {
+                    Get.toNamed(
+                      Routes.calistaCafePageRoute,
+                      arguments: active.chargingStationId,
+                    );
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  children: [
+                    Text(
+                      'View Station',
+                      style: TextStyle(
+                        fontFamily: kFontFamily,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0049C2),
+                      ),
                     ),
-                  )),
+                    SizedBox(width: 4.w),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 10.w,
+                      color: const Color(0xFF0049C2),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 16.h),
+
+          // Row 1: Power & Connector Type Columns
+          Row(
+            children: [
+              // Power Column
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44.w,
+                      height: 44.w,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEAF2FD),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      alignment: Alignment.center,
+                      child: SvgPicture.asset(
+                        'assets/svg/charging_power.svg',
+                        width: 20.w,
+                        height: 20.w,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$outputType ${capacity.toStringAsFixed(1)} kW',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: kFontFamily,
+                              fontSize: 13.5.sp,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF121D31),
+                            ),
+                          ),
+                          Text(
+                            'Charger Power',
+                            style: TextStyle(
+                              fontFamily: kFontFamily,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF68768E),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(width: 12.w),
+
+              // Connector Column
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44.w,
+                      height: 44.w,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEAF2FD),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      alignment: Alignment.center,
+                      child: SvgPicture.asset(
+                        'assets/svg/charging_connector.svg',
+                        width: 20.w,
+                        height: 20.w,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            connectorType,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: kFontFamily,
+                              fontSize: 13.5.sp,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF121D31),
+                            ),
+                          ),
+                          Text(
+                            'Connector Type',
+                            style: TextStyle(
+                              fontFamily: kFontFamily,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF68768E),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 14.h),
+            child: const Divider(
+              color: Color(0xFFF1F5F9),
+              thickness: 1,
+              height: 1,
             ),
           ),
-          SizedBox(
-            width: 6.w,
-          ),
-          Flexible(
-            child: InkWell(
-              child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 0.w),
-                  decoration: BoxDecoration(
-                      color: Color(0xff0047C3),
-                      borderRadius: BorderRadius.circular(56.r)),
-                  child: Center(
-                    child: CustomBigText(
-                      text: "Finish",
-                      size: 14.sp,
-                      color: Color(0xffF2F2F2),
+
+          // Row 2: Tariff Rate Row
+          Row(
+            children: [
+              Container(
+                width: 44.w,
+                height: 44.w,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF2FD),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                alignment: Alignment.center,
+                child: SvgPicture.asset(
+                  'assets/svg/charging_tariff.svg',
+                  width: 20.w,
+                  height: 20.w,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      text: '$kCurrency ${tariff.toStringAsFixed(2)} ',
+                      style: TextStyle(
+                        fontFamily: kFontFamily,
+                        fontSize: 14.5.sp,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF121D31),
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '/kWh',
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF68768E),
+                          ),
+                        ),
+                      ],
                     ),
-                  )),
-              onTap: onTap_right,
-            ),
-          )
+                  ),
+                  Text(
+                    'Tariff Rate',
+                    style: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF68768E),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          SizedBox(height: 16.h),
+
+          // Row 3: Energy Consumed & Charged Amount Dynamic Sub-Cards
+          Row(
+            children: [
+              // Energy Consumed Sub-Card
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/svg/charging_energy.svg',
+                            width: 14.w,
+                            height: 14.w,
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: Text(
+                              'Energy Consumed',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: kFontFamily,
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF68768E),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        '${energyUsed.toStringAsFixed(2)} kWh',
+                        style: TextStyle(
+                          fontFamily: kFontFamily,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0049C2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(width: 12.w),
+
+              // Charged Amount Sub-Card
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/svg/charging_coins.svg',
+                            width: 14.w,
+                            height: 14.w,
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: Text(
+                              'Charged Amount',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: kFontFamily,
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF68768E),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        '$kCurrency ${chargedAmount.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontFamily: kFontFamily,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0049C2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _connectingBtn({VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-          height: 52.h,
-          padding: EdgeInsets.symmetric(horizontal: 30),
-          width: double.infinity,
-          decoration: BoxDecoration(
-              border: Border.all(width: 1, color: Color(0xff0047C3)),
-              borderRadius: BorderRadius.circular(56.r)),
-          child: Row(
-            children: [
-              Obx(
-                () => CustomBigText(
-                  text: controller.chargingStatus.value == 'initiating'
-                      ? 'Initiating...'
-                      : "Connecting...",
-                  size: 14.sp,
-                  color: Color(0xff0047C3),
-                ),
-              ),
-              Spacer(),
-              Expanded(
-                child: Container(child: LottieLoadingWidget()),
-              )
-            ],
-          )),
-    );
-  }
-}
+  /// 3. Bottom Action Footer & Disclaimer
+  Widget _buildFooter(
+      BuildContext context, ChargingScreenController controller) {
+    final status = controller.chargingStatus.value;
+    final isFinished = status == 'finished' ||
+        status == 'completed' ||
+        status == 'disconnected';
 
-Widget chargingIndicatorCard(ChargingScreenController controller) {
-  return Container(
-    // height: 380.h,
-    width: double.infinity,
-    padding: EdgeInsets.only(top: 15.h, bottom: 20.h),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: double.infinity,
-          child: Obx(
-            () => controller.chargingStatus.value == 'initiating' ||
-                    ((controller.chargingStatus.value.isEmpty ||
-                            controller.activeSessionModel.outputType == 'AC') &&
-                        (controller.chargingStatus.value != 'finished'))
-                ? ChargingLoader()
-                : ChargingProgress(
-                    progress:
-                        (controller.status_model.value.percentage / 100.0),
-                  ),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.95),
+        border: const Border(
+          top: BorderSide(color: Color(0xFFEBEFEA), width: 1),
         ),
-        height(20.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, 20.h),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              'assets/images/bolt.png',
-              height: 20.sp,
-            ),
-            width(15.w),
-            CustomText(
-              text: '${controller.status_model.value.percentage}%',
-              isItalic: true,
-              fontWeight: FontWeight.w700,
-              size: 20,
-              color: Color(0xff2F80ED),
-            ),
-            width(15.w),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 10.w,
-                vertical: 2.h,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.sp),
-                color: Color(0xffF6F6F6),
-              ),
-              child: Row(
+            if (isFinished)
+              Row(
                 children: [
-                  CustomText(
-                    text: '${controller.time[0]}',
-                    fontWeight: FontWeight.bold,
-                    size: 16.sp,
-                    color: Color(0xff0047C2),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => controller.downloadInvoice(),
+                      child: Container(
+                        height: 52.h,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(100.r),
+                          border: Border.all(
+                            color: const Color(0xFF0049C2),
+                            width: 1.5,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Download Invoice',
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0049C2),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  width(5.w),
-                  CustomText(
-                    text: 'hrs',
-                    fontWeight: FontWeight.w400,
-                    size: 12.sp,
-                    color: Color(0xff828282),
-                  ),
-                  width(5.w),
-                  CustomText(
-                    text: '${controller.time[1]}',
-                    fontWeight: FontWeight.bold,
-                    size: 16.sp,
-                    color: Color(0xff0047C2),
-                  ),
-                  width(5.w),
-                  CustomText(
-                    text: 'min',
-                    fontWeight: FontWeight.w400,
-                    size: 12.sp,
-                    color: Color(0xff828282),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => controller.onClickFinished(),
+                      child: Container(
+                        height: 52.h,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0049C2),
+                          borderRadius: BorderRadius.circular(100.r),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Finish',
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
+              )
+            else
+              GestureDetector(
+                onTap: () async {
+                  if (status == 'progress' || status.isEmpty) {
+                    controller.chargingStatus.value = 'finishing';
+                  }
+                  if (Get.isDialogOpen == false) {
+                    Dialogs().gunStatusAlert(
+                      'Finishing up',
+                      'Please wait till Charging session is finished to unplug the charger',
+                    );
+                  }
+                  controller.stopCharging();
+                },
+                child: Container(
+                  height: 56.h,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: status == 'finishing'
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF0049C2),
+                    borderRadius: BorderRadius.circular(100.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0049C2).withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Square Stop Icon
+                      Container(
+                        width: 15.w,
+                        height: 15.w,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(3.r),
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+                      Text(
+                        status == 'finishing' ? 'Finishing...' : 'Stop Charging',
+                        style: TextStyle(
+                          fontFamily: kFontFamily,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            )
+
+            SizedBox(height: 10.h),
+
+            // Helper Disclaimer Note
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: 2.h),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    size: 15.w,
+                    color: const Color(0xFFA0AABD),
+                  ),
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    'You can stop charging anytime. Final amount will be calculated based on actual energy consumed.',
+                    style: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 11.5.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFA0AABD),
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        SizedBox(height: 20.h),
-        if (controller.chargingStatus.value == "connected" ||
-            controller.chargingStatus.value == "progress")
-          CustomBigText(
-              text: "Charging In Progress",
-              size: 12.sp,
-              color: Color(0xff828282))
-        else if (controller.chargingStatus.value == "finishing")
-          CustomBigText(
-              text: "Charging finishing...",
-              size: 12.sp,
-              color: Color(0xff828282))
-        else if (controller.chargingStatus.value == "finished")
-          CustomBigText(
-              text: "Charging Finished", size: 12.sp, color: Color(0xff0047C3))
-        else if (controller.chargingStatus.value == "completed")
-          CustomBigText(
-              text: "Charging Completed", size: 12.sp, color: Color(0xff219653))
-        else if (controller.chargingStatus.value == "disconnected")
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(width: 13, height: 13, "assets/images/errer.png"),
-                SizedBox(
-                  width: 4,
-                ),
-                CustomBigText(
-                    text: "Charger Disconnected",
-                    size: 12.sp,
-                    color: Color(0xffEB5757))
-              ],
-            ),
-          )
-        else if (controller.chargingStatus.value == 'initiating')
-          CustomBigText(
-            text: "Initiating ...",
-            size: 12.sp,
-            color: Color(0xff0047C3),
-          )
-        else
-          CustomBigText(
-            text: "Connecting ...",
-            size: 12.sp,
-            color: Color(0xff0047C3),
-          ),
-        SizedBox(height: 15.h),
-        SizedBox(
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                cachedNetworkImage(
-                  appData.userModel.value.defaultVehicle.icon,
-                  width: 80.sp,
-                ),
-                SizedBox(width: 13),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomSmallText(
-                        text: appData.userModel.value.defaultVehicle.brand),
-                    CustomBigText(
-                      text: appData.userModel.value.defaultVehicle.modelName,
-                      size: 16,
-                    )
-                  ],
-                )
-              ],
-            ),
-          ),
-        )
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
