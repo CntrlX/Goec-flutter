@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 
 class HelpPageController extends GetxController {
   RxList carouselText = [
@@ -15,9 +14,9 @@ class HelpPageController extends GetxController {
     "For a future-focused business, capitalize on the growing EV market."
   ].obs;
   RxList carouselImage = [
-    "assets/images/carouselOne.png",
-    "assets/images/carouselTwo.png",
-    "assets/images/carouselThree.png",
+    "assets/images/support_banner_1.png",
+    "assets/images/support_banner_2.png",
+    "assets/images/support_banner_3.png",
   ].obs;
   CarouselController? carouselController;
   RxDouble currentIndex = 0.0.obs;

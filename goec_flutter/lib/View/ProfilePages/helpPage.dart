@@ -1,273 +1,295 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:freelancer_app/Controller/help_page_controller.dart';
-import 'package:freelancer_app/View/Widgets/apptext.dart';
-import 'package:freelancer_app/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import '../../Utils/toastUtils.dart';
-import '../Widgets/appbar.dart';
+
+import 'package:freelancer_app/Controller/help_page_controller.dart';
+import 'package:freelancer_app/constants.dart';
+import 'package:freelancer_app/View/Widgets/appbar.dart';
+import 'package:freelancer_app/View/Widgets/glass_circle_icon_button.dart';
 
 class HelpScreen extends GetView<HelpPageController> {
   const HelpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (size.height == 0) size = MediaQuery.of(context).size;
-    return WhiteStatusBar(
+    return BlueStatusBar(
       child: Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: ColoredBox(
-          color: Color(0xffF5F9FF),
-          child: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: size.width * .062, vertical: size.height * .02),
-            child: Row(
-              children: [
-                InkWell(
-                    onTap: () {
-                      Get.back();
-                    },
-                    child: Container(
-                        padding: EdgeInsets.all(5),
-                        child:
-                            SvgPicture.asset('assets/svg/arrow_back_ios.svg'))),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: CustomBigText(
-                        text: 'Help',
-                        size: 16,
-                        color: Color(0xff828282),
-                        fontWeight: FontWeight.bold),
-                  ),
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 16.h),
+                    _buildCarousel(),
+                    SizedBox(height: 24.h),
+                    _buildGetSupportSection(),
+                    SizedBox(height: 40.h),
+                  ],
                 ),
-                width(24.w)
-              ],
-            ),
-          ),
-          height(size.height * 0.04),
-          Obx(
-            () => Container(
-              // height: size.height * 0.33,
-              height: 285.h,
-              width: double.maxFinite,
-
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CarouselSlider(
-                      // onPageChanged: (index, reason) => _currentIndex = index,
-
-                      items: controller.carouselImage
-                          .map(
-                            (img) => Container(
-                              padding: EdgeInsets.symmetric(horizontal: 37.w),
-                              // height: size.height * 0.25,
-                              // height: 300.h,
-                              // width: size.width * 0.8,
-                              width: 300.w,
-                              decoration: BoxDecoration(
-                                color: kwhite,
-                                borderRadius: BorderRadius.circular(20),
-                                image: DecorationImage(
-                                    image: AssetImage(img), fit: BoxFit.cover),
-                                boxShadow: [
-                                  BoxShadow(
-                                    offset: Offset(0, 4),
-                                    spreadRadius: 0,
-                                    blurRadius: 34.r,
-                                    color: Color(0xff000000).withOpacity(0.06),
-                                  ),
-                                ],
-                              ),
-                              child: Column(children: [
-                                Expanded(child: Container()),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: CustomBigText(
-                                        text: controller.carouselText[
-                                            controller.currentIndex.toInt()],
-                                        size: 13.sp,
-                                        color: Color(0xff000000),
-                                        fontWeight: FontWeight.w500,
-                                        align: TextAlign.center,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 15.h,
-                                ),
-                              ]),
-                            ),
-                          )
-                          .toList(),
-                      options: CarouselOptions(
-                        // height: size.height * 0.25,
-                        height: 220.h,
-                        initialPage: 0,
-                        autoPlay: false,
-                        reverse: false,
-                        enlargeCenterPage: true,
-                        enableInfiniteScroll: false,
-                        scrollDirection: Axis.horizontal,
-                        autoPlayInterval: Duration(seconds: 2),
-                        autoPlayAnimationDuration: Duration(milliseconds: 2000),
-                        onPageChanged: (index, reason) =>
-                            controller.currentIndex.value = index.toDouble(),
-                      ),
-                    ),
-                  ),
-                  height(15.h),
-                  // new DotsIndicator(
-                  //   decorator: DotsDecorator(
-
-                  //     color: Color(0xffDEEAFF), // Inactive color
-                  //     activeColor: Color(0xff0047C3),
-                  //   ),
-                  //   dotsCount: controller.carouselText.length,
-                  //   position: controller.currentIndex.value,
-                  // ),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children:
-                        controller.carouselText.asMap().entries.map((entry) {
-                      return GestureDetector(
-                        onTap: () {
-                          controller.carouselController!.animateTo(
-                              entry.key.toDouble(),
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeInOut);
-                        },
-                        child: Container(
-                          width: 8.w,
-                          height: 8.h,
-                          margin: EdgeInsets.symmetric(
-                              vertical: 8.h, horizontal: 4.w),
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: (controller.currentIndex.value == entry.key
-                                  ? Color(0xff0047C3)
-                                  : Color(0xffDEEAFF))),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
               ),
             ),
-          ),
-          height(size.height * 0.02),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: size.width * .062),
-            child:
-                _contractCard("Talk to Customer care", Icons.call, "null", () {
-              controller.openPhoneCall("+8801738347723");
-            }),
-          ),
-          height(size.height * 0.02),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: size.width * .062),
-            child: _contractCard(
-                "Chat on Whatsapp", null, "assets/images/whatsapp.png", () {
-              // if (Platform.isAndroid) {
-              //   controller.openWhatsApp();
-              //   log("android whatsapp working");
-              // } else if (Platform.isIOS) {
-              //   controller.openWhatsApp();
-              // }
-              controller.openWhatsApp();
-            }),
-          ),
-          height(size.height * 0.02),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: size.width * .062),
-            child: _contractCard(
-                "Report an Issue", null, "assets/images/report_issue.png", () {
-              // if (Platform.isAndroid) {
-              //   controller.openMail("mahmudulhasan5008@gmail.com");
-              // } else if (Platform.isIOS) {
-              //   controller.openMail("mahmudulhasan5008@gmail.com");
-              // }
-              controller.openMail("mahmudulhasan5008@gmail.com");
-            }),
-          ),
-          height(size.height * 0.025),
-          Expanded(
-            child: Container(),
-          ),
-          // Padding(
-          //   padding: EdgeInsets.only(
-          //       left: size.width * 0.2,
-          //       right: size.width * 0.13,
-          //       bottom: size.height * 0.05),
-          //   child: CustomText(
-          //     color: Color(0xff4f4f4f),
-          //     size: 12,
-          //     text:
-          //         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ',
-          //   ),
-          // ),
-        ],
+          ],
+        ),
       ),
-    ),
-    ),
-    ),
     );
   }
 
-  Widget _contractCard(
-      String title, IconData? icon, String? image, void Function()? ontap) {
-    return InkWell(
-      onTap: ontap,
-      child: Container(
-        height: size.height * 0.075,
-        decoration: BoxDecoration(
-            color: kwhite,
-            borderRadius: BorderRadius.circular(20),
+  Widget _buildHeader(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF0049C2),
+      padding: EdgeInsets.only(
+        top: topPad + 6.h,
+        bottom: 14.h,
+        left: 16.w,
+        right: 16.w,
+      ),
+      child: Row(
+        children: [
+          GlassBackButton(
+            size: 36.w,
+            onTap: () => Get.back(),
+          ),
+          SizedBox(width: 12.w),
+          Text(
+            'Support',
+            style: GoogleFonts.nunitoSans(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarousel() {
+    return Column(
+      children: [
+        CarouselSlider(
+          items: controller.carouselImage.map<Widget>((img) {
+            return SizedBox(
+              width: double.infinity,
+              height: 210.h,
+              child: Image.asset(
+                img.toString(),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 210.h,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 210.h,
+                  color: const Color(0xFFF6F8FA),
+                  child: const Center(
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: Color(0xFF94A3B8)),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+          options: CarouselOptions(
+            height: 210.h,
+            viewportFraction: 1.0,
+            autoPlay: true,
+            autoPlayInterval: const Duration(seconds: 4),
+            autoPlayAnimationDuration: const Duration(milliseconds: 700),
+            autoPlayCurve: Curves.easeInOutCubic,
+            enableInfiniteScroll: true,
+            onPageChanged: (index, reason) {
+              controller.currentIndex.value = index.toDouble();
+            },
+          ),
+        ),
+        SizedBox(height: 14.h),
+        Obx(
+          () => Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: controller.carouselImage.asMap().entries.map((entry) {
+              final isSelected =
+                  controller.currentIndex.value.round() == entry.key;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: EdgeInsets.symmetric(horizontal: 3.w),
+                width: isSelected ? 16.w : 6.w,
+                height: 6.h,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(9999),
+                  color: isSelected
+                      ? const Color(0xFF1552C6)
+                      : const Color(0xFFBFDBFE),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGetSupportSection() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                'Get Support',
+                style: GoogleFonts.nunitoSans(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF121D31),
+                ),
+              ),
+              Text(
+                'Quick help, just a tap away',
+                style: GoogleFonts.nunitoSans(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF68768E),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          _buildSupportCard(
+            title: 'Talk to Customer Care',
+            subtitle: 'Speak with our support team',
+            iconBg: const Color(0xFFEFF6FF),
+            iconWidget: Icon(
+              Icons.phone_rounded,
+              color: const Color(0xFF0049C2),
+              size: 20.sp,
+            ),
+            onTap: () {
+              controller.openPhoneCall(
+                isNepal ? "+919739457112" : "+919778687615",
+              );
+            },
+          ),
+          SizedBox(height: 10.h),
+          _buildSupportCard(
+            title: 'Chat on WhatsApp',
+            subtitle: 'Get instant support on WhatsApp',
+            iconBg: const Color(0xFFECFDF5),
+            iconWidget: Image.asset(
+              'assets/images/whatsapp.png',
+              width: 22.w,
+              height: 22.w,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.chat_bubble_rounded,
+                color: const Color(0xFF25D366),
+                size: 20.sp,
+              ),
+            ),
+            onTap: () {
+              controller.openWhatsApp();
+            },
+          ),
+          SizedBox(height: 10.h),
+          _buildSupportCard(
+            title: 'Report an Issue',
+            subtitle: 'Let us know what went wrong',
+            iconBg: const Color(0xFFFFF1F2),
+            iconWidget: Icon(
+              Icons.warning_amber_rounded,
+              color: const Color(0xFFF43F5E),
+              size: 22.sp,
+            ),
+            onTap: () {
+              controller.openMail("care@goecworld.com");
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupportCard({
+    required String title,
+    required String subtitle,
+    required Color iconBg,
+    required Widget iconWidget,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16.r),
+      elevation: 0,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Container(
+          padding: EdgeInsets.all(14.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: const Color(0xFFF1F5F9).withValues(alpha: 0.9),
+            ),
             boxShadow: [
               BoxShadow(
-                offset: Offset(0, 4),
-                blurRadius: 10,
-                color: Color(0xff000000).withOpacity(0.12),
-              )
-            ]),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: size.width * 0.04),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  icon != null
-                      ? Icon(
-                          icon,
-                          size: 17,
-                          color: Color(0xff4F4F4F),
-                        )
-                      : Center(
-                          child:
-                              Container(height: 22, child: Image.asset(image!)),
-                        ),
-                  width(size.width * 0.05),
-                  CustomBigText(
-                    text: title,
-                    size: 14,
-                    color: Color(0xff4F4F4F),
-                    letterspacing: -0.408,
-                  )
-                ],
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-              SvgPicture.asset("assets/svg/arrow_forward_ios.svg")
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44.w,
+                height: 44.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: iconBg,
+                ),
+                alignment: Alignment.center,
+                child: iconWidget,
+              ),
+              SizedBox(width: 14.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.nunitoSans(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF121D31),
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.nunitoSans(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF68768E),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20.sp,
+                color: const Color(0xFFA0AABD),
+              ),
             ],
           ),
         ),

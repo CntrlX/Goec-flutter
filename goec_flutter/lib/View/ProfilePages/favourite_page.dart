@@ -74,8 +74,9 @@ class FavouriteScreen extends GetView<FavouritePageController> {
           Text(
             'Favorites',
             style: GoogleFonts.nunitoSans(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              height: 28.5 / 16,
               color: Colors.white,
             ),
           ),
@@ -166,6 +167,7 @@ class FavouriteScreen extends GetView<FavouritePageController> {
                       style: GoogleFonts.nunitoSans(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
+                        height: 22 / 16,
                         color: const Color(0xFF0F172A),
                       ),
                     ),
@@ -177,6 +179,7 @@ class FavouriteScreen extends GetView<FavouritePageController> {
                       style: GoogleFonts.nunitoSans(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w400,
+                        height: 19.5 / 13,
                         color: const Color(0xFF94A3B8),
                       ),
                     ),
@@ -318,10 +321,12 @@ class FavouriteScreen extends GetView<FavouritePageController> {
               SizedBox(height: 24.h),
 
               Text(
-                'No Saved Stations Yet',
+                'No Favorite Stations added yet!',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.nunitoSans(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                  height: 28 / 16,
                   color: const Color(0xFF0F172A),
                 ),
               ),
@@ -335,7 +340,7 @@ class FavouriteScreen extends GetView<FavouritePageController> {
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w400,
                   color: const Color(0xFF94A3B8),
-                  height: 1.45,
+                  height: 19.5 / 13,
                 ),
               ),
 

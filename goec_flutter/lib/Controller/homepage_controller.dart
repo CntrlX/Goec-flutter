@@ -54,9 +54,9 @@ class HomePageController extends GetxController {
     "For a future-focused business, capitalize on the growing EV market."
   ].obs;
   RxList carouselImage = [
-    "assets/images/carouselOne.png",
-    "assets/images/carouselTwo.png",
-    "assets/images/carouselThree.png",
+    "assets/images/support_banner_1.png",
+    "assets/images/support_banner_2.png",
+    "assets/images/support_banner_3.png",
   ].obs;
   //NEW HELP PAGE ENDS
 
