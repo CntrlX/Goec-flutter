@@ -143,9 +143,10 @@ class _HomePageScreenState extends State<HomePageScreen> {
       if (!shouldBuild) {
         return const SizedBox.shrink();
       }
-      // Freeze inactive tabs (esp. Google Map) so animated switches stay smooth.
+      // Keep both sliding pages alive during the transition; freeze only
+      // when fully off-screen. Mask updates sparsely (not every frame).
       return TickerMode(
-        enabled: current == index,
+        enabled: controller.isTabVisiblyActive(index),
         child: RepaintBoundary(
           child: _tabFor(index),
         ),
@@ -177,7 +178,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                 }
                 controller.goToTab(
                   2,
-                  duration: const Duration(milliseconds: 600),
+                  duration: const Duration(milliseconds: 420),
                 );
               },
               child: Obx(() {

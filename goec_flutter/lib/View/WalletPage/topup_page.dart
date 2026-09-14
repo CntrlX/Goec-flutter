@@ -232,30 +232,30 @@ class _PopUpPageState extends State<PopUpPage> {
       ),
       child: Stack(
         children: [
-          // Background Circle 1 (Outer soft blue ellipse touching edges)
+          // Background Ellipses (Balanced & enlarged behind wallet, with Figma colors & opacity)
+          // Ellipse 8 (Top / Upper-Right): #EFF5FD @ 80%
           Positioned(
-            right: -24.w,
-            top: -24.h,
-            bottom: -24.h,
-            width: 190.w,
+            right: -20.w,
+            top: -18.h,
+            width: 170.w,
+            height: 170.w,
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFF1F6FE),
+                color: const Color(0xFFEFF5FD).withValues(alpha: 0.8),
               ),
             ),
           ),
-
-          // Background Circle 2 (Inner soft blue circle)
+          // Ellipse 9 (Bottom / Lower-Left): #E7EFFD @ 80%
           Positioned(
-            right: -6.w,
-            top: -6.h,
-            bottom: -6.h,
-            width: 152.w,
+            right: 18.w,
+            top: 44.h,
+            width: 160.w,
+            height: 160.w,
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFE4EFFF),
+                color: const Color(0xFFE7EFFD).withValues(alpha: 0.8),
               ),
             ),
           ),

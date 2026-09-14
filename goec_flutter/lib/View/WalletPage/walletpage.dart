@@ -10,11 +10,11 @@ import 'package:intl/intl.dart';
 import '../../Controller/walletPage_controller.dart';
 import '../../Model/orderModel.dart';
 import '../../Singletones/app_data.dart';
-import '../../Singletones/dialogs.dart';
 import '../../constants.dart';
 import '../Widgets/cached_svg_badge.dart';
 import 'topup_page.dart';
 import 'wallet_filter_sheet.dart';
+import 'wallet_transaction_modal_sheet.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -239,9 +239,9 @@ class _WalletScreenState extends State<WalletScreen>
                                   GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () {
-                                      Dialogs().wallet_transaction_popup(
+                                      showWalletTransactionModalSheet(
+                                        context,
                                         model: model,
-                                        index: index,
                                       );
                                     },
                                     child: _buildTransactionItem(model),
@@ -362,27 +362,30 @@ class _WalletScreenState extends State<WalletScreen>
       ),
       child: Stack(
         children: [
+          // Background Ellipses (Balanced & enlarged behind wallet, with Figma colors & opacity)
+          // Ellipse 8 (Top / Upper-Right): #EFF5FD @ 80%
           Positioned(
-            right: -24.w,
-            top: -24.h,
-            bottom: -24.h,
-            width: 190.w,
-            child: const DecoratedBox(
+            right: -20.w,
+            top: -18.h,
+            width: 170.w,
+            height: 170.w,
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFF1F6FE),
+                color: const Color(0xFFEFF5FD).withValues(alpha: 0.8),
               ),
             ),
           ),
+          // Ellipse 9 (Bottom / Lower-Left): #E7EFFD @ 80%
           Positioned(
-            right: -6.w,
-            top: -6.h,
-            bottom: -6.h,
-            width: 152.w,
-            child: const DecoratedBox(
+            right: 18.w,
+            top: 44.h,
+            width: 160.w,
+            height: 160.w,
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFE4EFFF),
+                color: const Color(0xFFE7EFFD).withValues(alpha: 0.8),
               ),
             ),
           ),

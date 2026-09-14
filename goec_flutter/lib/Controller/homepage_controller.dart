@@ -70,32 +70,92 @@ class HomePageController extends GetxController {
   //Ends
 
   final GlobalKey<ScaffoldState> drawerKey = GlobalKey();
-  /// Kept for compatibility; tab switching no longer animates a [PageView].
   PageController pageController = PageController(initialPage: 2);
   PanelController panelController = PanelController();
+
+  /// Fractional PageView position — used to keep both sliding tabs alive
+  /// during animated transitions (smoother than freezing on activeIndex).
+  final RxDouble pagePosition = 2.0.obs;
+
+  /// Bitmask of tabs currently on-screen (including mid-transition).
+  /// Updated only when visibility changes — avoids per-frame Obx rebuilds.
+  final RxInt visibleTabMask = (1 << 2).obs;
 
   /// Tabs that have been opened at least once (preserves state without
   /// building every tab up front).
   final Set<int> visitedTabs = <int>{2};
 
+  bool _isTabAnimating = false;
+
+  void _onPageControllerTick() {
+    if (!pageController.hasClients) return;
+    final page = pageController.page;
+    if (page == null) return;
+    if ((pagePosition.value - page).abs() > 0.001) {
+      pagePosition.value = page;
+    }
+    var mask = 0;
+    for (var i = 0; i < 5; i++) {
+      if ((page - i).abs() < 0.999) {
+        mask |= 1 << i;
+      }
+    }
+    if (visibleTabMask.value != mask) {
+      visibleTabMask.value = mask;
+    }
+  }
+
+  void _attachPageListener() {
+    pageController.addListener(_onPageControllerTick);
+  }
+
+  bool isTabVisiblyActive(int index) =>
+      (visibleTabMask.value & (1 << index)) != 0;
+
   Future<void> goToTab(
     int index, {
     bool animate = true,
-    Duration duration = const Duration(milliseconds: 300),
-    Curve curve = Curves.ease,
+    Duration duration = const Duration(milliseconds: 320),
+    Curve curve = Curves.easeInOutCubic,
   }) async {
     if (index < 0 || index > 4) return;
+    if (_isTabAnimating) return;
+    if (activeIndex.value == index &&
+        pageController.hasClients &&
+        (pageController.page?.round() ?? activeIndex.value) == index) {
+      return;
+    }
+
+    // Build destination before the slide starts to avoid a blank frame.
     visitedTabs.add(index);
+    // Ensure destination bit is on before paint so the page isn't blank.
+    visibleTabMask.value = visibleTabMask.value | (1 << index);
     activeIndex.value = index;
+
     if (!pageController.hasClients) return;
-    if (animate) {
+
+    if (!animate) {
+      pageController.jumpToPage(index);
+      pagePosition.value = index.toDouble();
+      visibleTabMask.value = 1 << index;
+      return;
+    }
+
+    _isTabAnimating = true;
+    try {
       await pageController.animateToPage(
         index,
         duration: duration,
         curve: curve,
       );
-    } else {
-      pageController.jumpToPage(index);
+    } finally {
+      _isTabAnimating = false;
+      if (pageController.hasClients) {
+        pagePosition.value = pageController.page ?? index.toDouble();
+      } else {
+        pagePosition.value = index.toDouble();
+      }
+      visibleTabMask.value = 1 << index;
     }
   }
 
@@ -112,6 +172,7 @@ class HomePageController extends GetxController {
 
   @override
   void onInit() async {
+    _attachPageListener();
     super.onInit();
     await _initImages();
     await FireBaseNotification().init();
@@ -143,7 +204,9 @@ class HomePageController extends GetxController {
     });
   }
 
-  onClose() {
+  @override
+  void onClose() {
+    pageController.removeListener(_onPageControllerTick);
     MapFunctions().dispose();
     NotificationService().cancelLocalNotification(1);
     super.onClose();
