@@ -700,7 +700,7 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                   ),
                   alignment: Alignment.center,
                   child: SvgPicture.asset(
-                    'assets/svg/connector_plug.svg',
+                    connectorTypeSvgAsset(item.port.connectorType),
                     width: 20.w,
                     height: 20.w,
                     colorFilter: ColorFilter.mode(

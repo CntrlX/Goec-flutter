@@ -12,6 +12,55 @@ import '../Singletones/app_data.dart';
 import '../constants.dart';
 import 'SharedPreferenceUtils.dart';
 
+/// Charger-type icon path used by [filter_screen] (`assets/svg/${title.toLowerCase()}.svg`).
+/// Maps common API variants (CCS, Type2, CHAdeMO, …) onto those same assets.
+String connectorTypeSvgAsset(String connectorType) {
+  final raw = connectorType.trim();
+  if (raw.isEmpty) return 'assets/svg/connector_plug.svg';
+
+  final t = raw.toLowerCase().replaceAll(RegExp(r'[\s_\-/]+'), ' ').trim();
+
+  if (t.contains('chademo') || t.contains('cha demo')) {
+    return 'assets/svg/chademo.svg';
+  }
+  if (t.contains('gbt') || t.contains('gb t') || t.contains('gb/t')) {
+    return 'assets/svg/gbt.svg';
+  }
+  if (t.contains('iec') || t.contains('60309')) {
+    return 'assets/svg/iec_60309.svg';
+  }
+  if (t == 'type 2' || t == 'type2' || t.contains('type 2')) {
+    return 'assets/svg/type 2.svg';
+  }
+  if (t == 'type 1' || t == 'type1' || t.contains('type 1')) {
+    return 'assets/svg/type 1.svg';
+  }
+  if (t.contains('combol')) {
+    return 'assets/svg/combol.svg';
+  }
+  // Filter label is "CSS"; APIs often send CCS / Combo.
+  if (t.contains('ccs') || t.contains('css') || t.contains('combo')) {
+    return 'assets/svg/css.svg';
+  }
+
+  // Exact filter titles: CSS, GBT, Type 2, IEC_60309, CHAdemO, Combol, Type 1
+  final filterKey = raw.toLowerCase();
+  const known = {
+    'css',
+    'gbt',
+    'type 2',
+    'iec_60309',
+    'chademo',
+    'combol',
+    'type 1',
+  };
+  if (known.contains(filterKey)) {
+    return 'assets/svg/$filterKey.svg';
+  }
+
+  return 'assets/svg/connector_plug.svg';
+}
+
 String? validateText(String value) {
   if (value.isEmpty) {
     return "Required field";
