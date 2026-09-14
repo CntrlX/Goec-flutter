@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -661,17 +662,9 @@ class ChargingScreen extends GetView<ChargingScreenController> {
               )
             else
               GestureDetector(
-                onTap: () async {
-                  if (status == 'progress' || status.isEmpty) {
-                    controller.chargingStatus.value = 'finishing';
-                  }
-                  if (Get.isDialogOpen == false) {
-                    Dialogs().gunStatusAlert(
-                      'Finishing up',
-                      'Please wait till Charging session is finished to unplug the charger',
-                    );
-                  }
-                  controller.stopCharging();
+                onTap: () {
+                  if (status == 'finishing') return;
+                  _showStopChargingConfirmationSheet(context, controller);
                 },
                 child: Container(
                   height: 56.h,
@@ -749,6 +742,330 @@ class ChargingScreen extends GetView<ChargingScreenController> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showStopChargingConfirmationSheet(
+      BuildContext context, ChargingScreenController controller) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Stop Charging Confirmation',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (ctx, animation, secondaryAnimation) =>
+          const SizedBox.shrink(),
+      transitionBuilder: (ctx, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return Stack(
+          children: [
+            // Blurred and dimmed backdrop
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: curved,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(ctx).maybePop(),
+                  behavior: HitTestBehavior.opaque,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.25),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Sliding modal sheet
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: Material(
+                  color: Colors.transparent,
+                  child: _StopChargingModalContent(controller: controller),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StopChargingModalContent extends StatelessWidget {
+  final ChargingScreenController controller;
+
+  const _StopChargingModalContent({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF011631).withValues(alpha: 0.14),
+            blurRadius: 28,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.fromLTRB(
+        24.w,
+        28.h,
+        24.w,
+        24.h + MediaQuery.of(context).padding.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Title & Close Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Stop charging?',
+                style: TextStyle(
+                  fontFamily: kFontFamily,
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  width: 32.w,
+                  height: 32.w,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF1F5F9),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18.w,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 14.h),
+
+          // Description
+          Text(
+            'Your charging session will end now. You’ll only be charged for the energy consumed so far.',
+            style: TextStyle(
+              fontFamily: kFontFamily,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xFF64748B),
+              height: 1.4,
+            ),
+          ),
+
+          SizedBox(height: 20.h),
+
+          // Dynamic Live Energy & Amount Sub-Cards
+          Obx(() {
+            final active = controller.activeSessionModel;
+            final status = controller.status_model.value;
+            final tariff = active.tariff > 0 ? active.tariff : 0.0;
+            final energyUsed = status.unitUsed;
+            final chargedAmount =
+                status.amount > 0 ? status.amount : (tariff * energyUsed);
+
+            return Row(
+              children: [
+                // Energy Consumed Sub-Card
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(14.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            SvgPicture.asset(
+                              'assets/svg/charging_energy.svg',
+                              width: 14.w,
+                              height: 14.w,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF10B981),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            SizedBox(width: 6.w),
+                            Expanded(
+                              child: Text(
+                                'Energy Consumed',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: kFontFamily,
+                                  fontSize: 11.5.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          '${energyUsed.toStringAsFixed(2)} kWh',
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0049C2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(width: 12.w),
+
+                // Charged Amount Sub-Card
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(14.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            SvgPicture.asset(
+                              'assets/svg/charging_coins.svg',
+                              width: 14.w,
+                              height: 14.w,
+                            ),
+                            SizedBox(width: 6.w),
+                            Expanded(
+                              child: Text(
+                                'Charged Amount',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: kFontFamily,
+                                  fontSize: 11.5.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          '$kCurrency ${chargedAmount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0049C2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
+
+          SizedBox(height: 24.h),
+
+          // Primary Button: Yes, Stop Charging
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+              if (controller.chargingStatus.value == 'progress' ||
+                  controller.chargingStatus.value.isEmpty) {
+                controller.chargingStatus.value = 'finishing';
+              }
+              if (Get.isDialogOpen == false) {
+                Dialogs().gunStatusAlert(
+                  'Finishing up',
+                  'Please wait till Charging session is finished to unplug the charger',
+                );
+              }
+              controller.stopCharging();
+            },
+            child: Container(
+              height: 52.h,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFF0049C2),
+                borderRadius: BorderRadius.circular(100.r),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Yes, Stop Charging',
+                style: TextStyle(
+                  fontFamily: kFontFamily,
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+
+          SizedBox(height: 12.h),
+
+          // Secondary Button: Continue Charging
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              height: 52.h,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(100.r),
+                border: Border.all(
+                  color: const Color(0xFF0049C2),
+                  width: 1.5,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Continue Charging',
+                style: TextStyle(
+                  fontFamily: kFontFamily,
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0049C2),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

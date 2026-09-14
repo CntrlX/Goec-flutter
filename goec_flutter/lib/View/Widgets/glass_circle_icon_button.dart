@@ -66,10 +66,13 @@ class GlassBackButton extends StatelessWidget {
     return GlassCircleIconButton(
       onTap: onTap ?? Get.back,
       size: s,
-      child: Icon(
-        Icons.chevron_left_rounded,
-        color: Colors.white,
-        size: (s * 0.64).clamp(28.0, 34.0),
+      child: Transform.translate(
+        offset: Offset(-1.w, 0),
+        child: Icon(
+          Icons.chevron_left_rounded,
+          color: Colors.white,
+          size: s * 0.82,
+        ),
       ),
     );
   }
