@@ -155,8 +155,9 @@ class _MapScreenState extends State<MapScreen>
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontFamily: kFontFamily,
-                                      fontSize: 13.5.sp,
-                                      fontWeight: FontWeight.w400,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w500,
+                                      height: 16 / 14,
                                       color: const Color(0xFF68768E),
                                     ),
                                   ),
@@ -230,8 +231,9 @@ class _MapScreenState extends State<MapScreen>
                                       fontFamily: kFontFamily,
                                       fontSize: 9.sp,
                                       fontWeight: FontWeight.w700,
+                                      height: 11.25 / 9,
                                       color: const Color(0xFFA0AABD),
-                                      letterSpacing: 0.5,
+                                      letterSpacing: 0.45,
                                     ),
                                   ),
                                   Obx(
@@ -239,8 +241,9 @@ class _MapScreenState extends State<MapScreen>
                                       '₹${appData.userModel.value.balanceAmount.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontFamily: kFontFamily,
-                                        fontSize: 13.5.sp,
+                                        fontSize: 12.sp,
                                         fontWeight: FontWeight.w700,
+                                        height: 16 / 12,
                                         color: const Color(0xFF121D31),
                                       ),
                                     ),
@@ -457,6 +460,7 @@ class _MapScreenState extends State<MapScreen>
                 fontFamily: kFontFamily,
                 fontSize: 12.sp,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                height: 16.5 / 12,
                 color: isSelected ? Colors.white : const Color(0xFF121D31),
               ),
             ),
@@ -525,61 +529,69 @@ class _MapScreenState extends State<MapScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8.w,
+                                  runSpacing: 4.h,
                                   children: [
-                                    Flexible(
-                                      child: Obx(
-                                        () => Text(
-                                          '${controller.displayStations.length} stations nearby',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontFamily: kFontFamily,
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w700,
-                                            color: const Color(0xFF0F172A),
-                                          ),
+                                    Obx(
+                                      () => Text(
+                                        '${controller.displayStations.length} stations nearby',
+                                        style: TextStyle(
+                                          fontFamily: kFontFamily,
+                                          fontSize: 18.sp,
+                                          fontWeight: FontWeight.w700,
+                                          height: 24 / 18,
+                                          color: const Color(0xFF0F172A),
                                         ),
                                       ),
                                     ),
-                                    SizedBox(width: 8.w),
-                                    // Dynamic Location / City Pill
-                                    Obx(() {
-                                      final city = MapFunctions()
-                                              .curPosName
-                                              .value
-                                              .isNotEmpty
-                                          ? MapFunctions().curPosName.value
-                                          : (controller.displayStations.isNotEmpty &&
-                                                  controller.displayStations.first
-                                                      .address.isNotEmpty
-                                              ? controller
-                                                  .displayStations.first.address
-                                                  .split(',')
-                                                  .first
-                                                  .trim()
-                                              : 'Kochi');
-                                      return Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 8.w,
-                                          vertical: 3.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFDBEAFE),
-                                          borderRadius:
-                                              BorderRadius.circular(100.r),
-                                        ),
-                                        child: Text(
-                                          city,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontFamily: kFontFamily,
-                                            fontSize: 11.sp,
-                                            fontWeight: FontWeight.w700,
-                                            color: const Color(0xFF1D4ED8),
-                                          ),
-                                        ),
-                                      );
-                                    }),
+                                    // Obx(() {
+                                    //   final city = MapFunctions()
+                                    //           .curPosName
+                                    //           .value
+                                    //           .isNotEmpty
+                                    //       ? MapFunctions().curPosName.value
+                                    //       : (controller.displayStations
+                                    //                   .isNotEmpty &&
+                                    //               controller
+                                    //                   .displayStations
+                                    //                   .first
+                                    //                   .address
+                                    //                   .isNotEmpty
+                                    //           ? controller
+                                    //               .displayStations.first.address
+                                    //               .split(',')
+                                    //               .first
+                                    //               .trim()
+                                    //           : 'Kochi');
+                                    //   return Container(
+                                    //     constraints: BoxConstraints(
+                                    //       maxWidth: 120.w,
+                                    //     ),
+                                    //     padding: EdgeInsets.symmetric(
+                                    //       horizontal: 8.w,
+                                    //       vertical: 3.h,
+                                    //     ),
+                                    //     decoration: BoxDecoration(
+                                    //       color: const Color(0xFFDBEAFE),
+                                    //       borderRadius:
+                                    //           BorderRadius.circular(100.r),
+                                    //     ),
+                                    //     child: Text(
+                                    //       city,
+                                    //       maxLines: 1,
+                                    //       overflow: TextOverflow.ellipsis,
+                                    //       style: TextStyle(
+                                    //         fontFamily: kFontFamily,
+                                    //         fontSize: 12.sp,
+                                    //         fontWeight: FontWeight.w700,
+                                    //         height: 15 / 12,
+                                    //         color: const Color(0xFF1D4ED8),
+                                    //       ),
+                                    //     ),
+                                    //   );
+                                    // }),
                                   ],
                                 ),
                                 SizedBox(height: 2.h),
@@ -590,6 +602,7 @@ class _MapScreenState extends State<MapScreen>
                                     fontFamily: kFontFamily,
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.w500,
+                                    height: 16.5 / 12,
                                     color: const Color(0xFF64748B),
                                   ),
                                 ),

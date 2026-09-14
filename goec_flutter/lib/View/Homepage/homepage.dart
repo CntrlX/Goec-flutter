@@ -265,9 +265,10 @@ class _HomePageScreenState extends State<HomePageScreen> {
                             : NavBarIcon.labels[index],
                         style: TextStyle(
                           fontFamily: kFontFamily,
-                          fontSize: 10.5.sp,
+                          fontSize: isActive ? 12.sp : 10.5.sp,
                           fontWeight:
                               isActive ? FontWeight.w600 : FontWeight.w400,
+                          height: 15.75 / (isActive ? 12 : 10.5),
                           color: (index == 2 && SocketRepo().isCharging.value)
                               ? Colors.green
                               : itemColor,
