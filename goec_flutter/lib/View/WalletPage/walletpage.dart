@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,6 +12,7 @@ import '../../Model/orderModel.dart';
 import '../../Singletones/app_data.dart';
 import '../../Singletones/dialogs.dart';
 import '../../constants.dart';
+import '../Widgets/cached_svg_badge.dart';
 import 'topup_page.dart';
 import 'wallet_filter_sheet.dart';
 
@@ -24,8 +27,65 @@ class _WalletScreenState extends State<WalletScreen>
     with AutomaticKeepAliveClientMixin {
   final WalletPageController controller = Get.find<WalletPageController>();
 
+  static final NumberFormat _balanceFormat =
+      NumberFormat("#,##,##0.00", "en_IN");
+  static final DateFormat _displayDateFormat =
+      DateFormat('dd MMM yyyy, hh:mm a');
+  static const List<String> _dateParseFormats = [
+    'dd-MM-yyyy hh:mma',
+    'dd-MM-yyyy HH:mm:ss',
+    'dd-MM-yyyy hh:mm a',
+    'dd/MM/yyyy HH:mm:ss',
+    'dd/MM/yyyy hh:mm a',
+    'dd/MM/yyyy',
+    'dd-MM-yyyy',
+    'yyyy-MM-dd HH:mm:ss',
+    'yyyy-MM-ddTHH:mm:ss.SSSZ',
+    'yyyy-MM-ddTHH:mm:ss',
+  ];
+
+  static const String _chargingBadgeAsset =
+      'assets/svg/wallet_charging_badge.svg';
+  static const String _topupBadgeAsset = 'assets/svg/wallet_topup_badge.svg';
+
+  final Map<String, String> _dateCache = {};
+
+  ui.Image? _chargingBadgeImage;
+  ui.Image? _topupBadgeImage;
+  double _badgeSize = 44;
+
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _precacheBadges());
+  }
+
+  Future<void> _precacheBadges() async {
+    if (!mounted) return;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    _badgeSize = 44.w;
+    await SvgRasterCache.precacheAll(
+      [_chargingBadgeAsset, _topupBadgeAsset],
+      logicalPx: _badgeSize,
+      devicePixelRatio: dpr,
+    );
+    if (!mounted) return;
+    setState(() {
+      _chargingBadgeImage = SvgRasterCache.getSync(
+        _chargingBadgeAsset,
+        logicalPx: _badgeSize,
+        devicePixelRatio: dpr,
+      );
+      _topupBadgeImage = SvgRasterCache.getSync(
+        _topupBadgeAsset,
+        logicalPx: _badgeSize,
+        devicePixelRatio: dpr,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,25 +104,26 @@ class _WalletScreenState extends State<WalletScreen>
               onRefresh: () async => await controller.onReload(),
               child: CustomScrollView(
                 controller: controller.scrollController,
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
+                physics: const AlwaysScrollableScrollPhysics(),
+                cacheExtent: 400,
                 slivers: [
                   // Top Summary Section
                   SliverToBoxAdapter(
-                    child: Container(
-                      width: double.infinity,
-                      color: const Color(0xFFF6F8FA),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 16.h,
-                      ),
-                      child: Column(
-                        children: [
-                          _buildBalanceCard(),
-                          SizedBox(height: 14.h),
-                          _buildTopUpButton(),
-                        ],
+                    child: RepaintBoundary(
+                      child: Container(
+                        width: double.infinity,
+                        color: const Color(0xFFF6F8FA),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 16.h,
+                        ),
+                        child: Column(
+                          children: [
+                            _buildBalanceCard(),
+                            SizedBox(height: 14.h),
+                            _buildTopUpButton(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -152,11 +213,11 @@ class _WalletScreenState extends State<WalletScreen>
 
                   // Transactions List / Empty State
                   Obx(() {
-                    final items = controller.modelList;
-                    final loadingMore = controller.isLoadingMore.value;
-                    final hasMore = controller.hasMore.value;
+                    final itemCount = controller.modelList.length;
+                    final isEmpty = itemCount == 0 &&
+                        !controller.isInitialLoading.value;
 
-                    if (items.isEmpty && !controller.isInitialLoading.value) {
+                    if (isEmpty) {
                       return SliverToBoxAdapter(
                         child: _buildEmptyState(),
                       );
@@ -165,64 +226,67 @@ class _WalletScreenState extends State<WalletScreen>
                     return SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          if (index >= items.length) {
-                            return Container(
-                              color: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 16.h),
-                              alignment: Alignment.center,
-                              child: loadingMore
-                                  ? SizedBox(
-                                      width: 24.w,
-                                      height: 24.w,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: kBrandPrimaryBlue,
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            );
-                          }
+                          final model = controller.modelList[index];
+                          final isLast = index == itemCount - 1;
 
-                          final model = items[index];
-                          final isLast = index == items.length - 1;
-
-                          return Container(
+                          return ColoredBox(
+                            key: ValueKey(model.transactionId),
                             color: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 16.w),
-                            child: Column(
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    Dialogs().wallet_transaction_popup(
-                                      model: model,
-                                      index: index,
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  child: _buildTransactionItem(model),
-                                ),
-                                if (!isLast)
-                                  const Divider(
-                                    color: Color(0xFFF1F5F9),
-                                    height: 1,
-                                    thickness: 1,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16.w),
+                              child: Column(
+                                children: [
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      Dialogs().wallet_transaction_popup(
+                                        model: model,
+                                        index: index,
+                                      );
+                                    },
+                                    child: _buildTransactionItem(model),
                                   ),
-                              ],
+                                  if (!isLast)
+                                    const Divider(
+                                      color: Color(0xFFF1F5F9),
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                ],
+                              ),
                             ),
                           );
                         },
-                        childCount:
-                            items.length + ((hasMore || loadingMore) ? 1 : 0),
+                        childCount: itemCount,
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
                       ),
                     );
                   }),
 
-                  SliverToBoxAdapter(
-                    child: Container(
-                      color: Colors.white,
-                      height: 32.h,
-                    ),
-                  ),
+                  // Load-more footer isolated so spinner toggles don't rebuild rows
+                  Obx(() {
+                    if (!controller.isLoadingMore.value) {
+                      return SliverToBoxAdapter(
+                        child: SizedBox(height: 32.h),
+                      );
+                    }
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24.w,
+                            height: 24.w,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: kBrandPrimaryBlue,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -290,50 +354,38 @@ class _WalletScreenState extends State<WalletScreen>
     return Container(
       width: double.infinity,
       height: 138.h,
-      clipBehavior: Clip.antiAlias,
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Stack(
         children: [
-          // Background Circle 1 (Outer soft blue ellipse touching edges)
           Positioned(
             right: -24.w,
             top: -24.h,
             bottom: -24.h,
             width: 190.w,
-            child: Container(
-              decoration: const BoxDecoration(
+            child: const DecoratedBox(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Color(0xFFF1F6FE),
               ),
             ),
           ),
-
-          // Background Circle 2 (Inner soft blue circle)
           Positioned(
             right: -6.w,
             top: -6.h,
             bottom: -6.h,
             width: 152.w,
-            child: Container(
-              decoration: const BoxDecoration(
+            child: const DecoratedBox(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Color(0xFFE4EFFF),
               ),
             ),
           ),
-
-          // Right 3D Wallet Illustration
           Positioned(
             right: 0,
             top: 0,
@@ -342,10 +394,10 @@ class _WalletScreenState extends State<WalletScreen>
               'assets/images/wallet_card_3d.png',
               width: 162.w,
               fit: BoxFit.contain,
+              filterQuality: FilterQuality.low,
+              cacheWidth: 324,
             ),
           ),
-
-          // Left Content
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
             child: Column(
@@ -370,6 +422,9 @@ class _WalletScreenState extends State<WalletScreen>
                       width: 24.w,
                       height: 24.w,
                       fit: BoxFit.contain,
+                      filterQuality: FilterQuality.low,
+                      cacheWidth: 48,
+                      cacheHeight: 48,
                       errorBuilder: (context, error, stackTrace) => Container(
                         width: 22.w,
                         height: 22.w,
@@ -474,6 +529,8 @@ class _WalletScreenState extends State<WalletScreen>
             'assets/images/wallet_empty_transactions.png',
             width: 220.w,
             fit: BoxFit.contain,
+            filterQuality: FilterQuality.low,
+            cacheWidth: 440,
           ),
           SizedBox(height: 16.h),
           Text(
@@ -520,47 +577,30 @@ class _WalletScreenState extends State<WalletScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Icon badge - 44x44 rounded squircle
           SizedBox(
-            width: 44.w,
-            height: 44.w,
-            child: isDebit
-                ? SvgPicture.asset(
-                    'assets/svg/wallet_charging_badge.svg',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.bolt_rounded,
-                        color: kBrandPrimaryBlue,
-                        size: 24.sp,
-                      ),
-                    ),
-                  )
-                : SvgPicture.asset(
-                    'assets/svg/wallet_topup_badge.svg',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.add_rounded,
-                        color: Color(0xFF03E8BE),
-                        size: 24,
-                      ),
-                    ),
-                  ),
+            width: _badgeSize,
+            height: _badgeSize,
+            child: CachedSvgBadge(
+              image: isDebit ? _chargingBadgeImage : _topupBadgeImage,
+              size: _badgeSize,
+              placeholder: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: isDebit
+                      ? const Color(0xFFEFF6FF)
+                      : const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isDebit ? Icons.bolt_rounded : Icons.add_rounded,
+                  color: isDebit
+                      ? kBrandPrimaryBlue
+                      : const Color(0xFF03E8BE),
+                  size: 24,
+                ),
+              ),
+            ),
           ),
           SizedBox(width: 14.w),
-
-          // Details Column
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,10 +639,7 @@ class _WalletScreenState extends State<WalletScreen>
               ],
             ),
           ),
-
           SizedBox(width: 8.w),
-
-          // Amount Column
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -640,44 +677,31 @@ class _WalletScreenState extends State<WalletScreen>
     );
   }
 
-  String _formatBalance(double amount) {
-    final formatter = NumberFormat("#,##,##0.00", "en_IN");
-    return formatter.format(amount);
-  }
+  String _formatBalance(double amount) => _balanceFormat.format(amount);
 
   String _formatDate(String rawDate) {
-    if (rawDate.trim().isEmpty) return '';
-    try {
-      DateTime? dt;
-      // Try standard ISO 8601
-      dt = DateTime.tryParse(rawDate)?.toLocal();
+    final trimmed = rawDate.trim();
+    if (trimmed.isEmpty) return '';
+    final cached = _dateCache[trimmed];
+    if (cached != null) return cached;
 
-      // Try other common formats if tryParse failed
+    String result = trimmed;
+    try {
+      DateTime? dt = DateTime.tryParse(trimmed)?.toLocal();
       if (dt == null) {
-        final formats = [
-          'dd-MM-yyyy hh:mma',
-          'dd-MM-yyyy HH:mm:ss',
-          'dd-MM-yyyy hh:mm a',
-          'dd/MM/yyyy HH:mm:ss',
-          'dd/MM/yyyy hh:mm a',
-          'dd/MM/yyyy',
-          'dd-MM-yyyy',
-          'yyyy-MM-dd HH:mm:ss',
-          'yyyy-MM-ddTHH:mm:ss.SSSZ',
-          'yyyy-MM-ddTHH:mm:ss',
-        ];
-        for (final f in formats) {
+        for (final f in _dateParseFormats) {
           try {
-            dt = DateFormat(f).parseLoose(rawDate).toLocal();
+            dt = DateFormat(f).parseLoose(trimmed).toLocal();
             break;
           } catch (_) {}
         }
       }
-
       if (dt != null) {
-        return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
+        result = _displayDateFormat.format(dt);
       }
     } catch (_) {}
-    return rawDate;
+
+    _dateCache[trimmed] = result;
+    return result;
   }
 }

@@ -1,9 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:get/get.dart';
 import '../../Singletones/socketRepo.dart';
 import '../../constants.dart';
 import 'help_page_alive.dart';
 import '../../Utils/routes.dart';
-// import '../Trips/trips_page.dart';
 import 'notification_page_alive.dart';
 import 'package:flutter/material.dart';
 import '../../Singletones/app_data.dart';
@@ -23,10 +24,134 @@ import 'profile_page_alive.dart';
 import 'package:freelancer_app/Controller/homepage_controller.dart';
 import 'package:freelancer_app/Model/chargeStationDetailsModel.dart';
 import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
+import 'package:freelancer_app/View/Widgets/cached_svg_badge.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
-class HomePageScreen extends GetView<HomePageController> {
+class HomePageScreen extends StatefulWidget {
   HomePageScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomePageScreen> createState() => _HomePageScreenState();
+}
+
+class _HomePageScreenState extends State<HomePageScreen> {
+  final HomePageController controller = Get.find<HomePageController>();
+
+  static const _navIcons = [
+    'assets/svg/nav_support.svg',
+    'assets/svg/nav_notifications.svg',
+    '',
+    'assets/svg/nav_history.svg',
+    'assets/svg/nav_profile.svg',
+  ];
+
+  final Map<int, Widget> _tabCache = {};
+  final Map<String, ui.Image?> _navIconImages = {};
+  ui.Image? _fabBlue;
+  ui.Image? _fabGreen;
+  bool _navIconsReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Map tab is the initial page.
+    _tabCache[2] = const MapScreen();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _precacheNavArt());
+  }
+
+  Future<void> _precacheNavArt() async {
+    if (!mounted) return;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final iconSize = 24.sp;
+    final fabSize = 72.sp;
+
+    await Future.wait([
+      ..._navIcons.where((e) => e.isNotEmpty).map(
+            (asset) => SvgRasterCache.precache(
+              asset,
+              logicalPx: iconSize,
+              devicePixelRatio: dpr,
+            ),
+          ),
+      SvgRasterCache.precache(
+        'assets/svg/logo_blue.svg',
+        logicalPx: fabSize,
+        devicePixelRatio: dpr,
+      ),
+      SvgRasterCache.precache(
+        'assets/svg/logo_green.svg',
+        logicalPx: fabSize,
+        devicePixelRatio: dpr,
+      ),
+    ]);
+
+    if (!mounted) return;
+    setState(() {
+      for (final asset in _navIcons) {
+        if (asset.isEmpty) continue;
+        _navIconImages[asset] = SvgRasterCache.getSync(
+          asset,
+          logicalPx: iconSize,
+          devicePixelRatio: dpr,
+        );
+      }
+      _fabBlue = SvgRasterCache.getSync(
+        'assets/svg/logo_blue.svg',
+        logicalPx: fabSize,
+        devicePixelRatio: dpr,
+      );
+      _fabGreen = SvgRasterCache.getSync(
+        'assets/svg/logo_green.svg',
+        logicalPx: fabSize,
+        devicePixelRatio: dpr,
+      );
+      _navIconsReady = true;
+    });
+  }
+
+  Widget _tabFor(int index) {
+    return _tabCache.putIfAbsent(index, () {
+      switch (index) {
+        case 0:
+          return HelpPageAlive();
+        case 1:
+          return NotiPageAlive();
+        case 2:
+          return const MapScreen();
+        case 3:
+          return const ChargeScreen();
+        case 4:
+          return ProfilePageAlive();
+        default:
+          return const SizedBox.shrink();
+      }
+    });
+  }
+
+  void _onTabTap(int index) {
+    if (index == 2 && controller.activeIndex.value != 2) {
+      controller.onHomescreen();
+    }
+    controller.goToTab(index);
+  }
+
+  Widget _buildTabSlot(int index) {
+    return Obx(() {
+      final current = controller.activeIndex.value;
+      final shouldBuild =
+          controller.visitedTabs.contains(index) || current == index;
+      if (!shouldBuild) {
+        return const SizedBox.shrink();
+      }
+      // Freeze inactive tabs (esp. Google Map) so animated switches stay smooth.
+      return TickerMode(
+        enabled: current == index,
+        child: RepaintBoundary(
+          child: _tabFor(index),
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,20 +162,11 @@ class HomePageScreen extends GetView<HomePageController> {
             backgroundColor: kDefaultHomePageBackgroundColor,
             body: PageView(
               controller: controller.pageController,
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-                HelpPageAlive(),
-                NotiPageAlive(),
-                MapScreen(),
-                ChargeScreen(),
-                ProfilePageAlive(),
-
-                // TripsScreen(),
-              ],
+              physics: const NeverScrollableScrollPhysics(),
+              children: List.generate(5, _buildTabSlot),
             ),
             floatingActionButton: InkWell(
               onTap: () {
-                // Get.toNamed(Routes.chargingPageRoute);
                 if (controller.activeIndex.value != 2) {
                   controller.onHomescreen();
                 }
@@ -59,37 +175,45 @@ class HomePageScreen extends GetView<HomePageController> {
                   controller.getActiveBooking(true);
                   return;
                 }
-                controller.activeIndex.value = 2;
-                controller.pageController.animateToPage(
+                controller.goToTab(
                   2,
-                  curve: Curves.ease,
-                  duration: Duration(milliseconds: 600),
+                  duration: const Duration(milliseconds: 600),
                 );
               },
-              child: Obx(
-                () => Container(
+              child: Obx(() {
+                final charging = SocketRepo().isCharging.value;
+                final fabImage = charging ? _fabGreen : _fabBlue;
+                return Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    boxShadow: SocketRepo().isCharging.value
-                        ? [
+                    boxShadow: charging
+                        ? const [
                             BoxShadow(
                               color: Colors.green,
                               blurRadius: 20,
                               spreadRadius: -1,
                             ),
                           ]
-                        : [],
+                        : const [],
                   ),
-                  child: SvgPicture.asset(
-                    SocketRepo().isCharging.value
-                        ? 'assets/svg/logo_green.svg'
-                        : 'assets/svg/logo_blue.svg',
-                    fit: BoxFit.contain,
-                    width: 72.sp,
-                    height: 72.sp,
-                  ),
-                ),
-              ),
+                  child: fabImage != null
+                      ? RawImage(
+                          image: fabImage,
+                          width: 72.sp,
+                          height: 72.sp,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.low,
+                        )
+                      : SvgPicture.asset(
+                          charging
+                              ? 'assets/svg/logo_green.svg'
+                              : 'assets/svg/logo_blue.svg',
+                          fit: BoxFit.contain,
+                          width: 72.sp,
+                          height: 72.sp,
+                        ),
+                );
+              }),
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
@@ -98,25 +222,34 @@ class HomePageScreen extends GetView<HomePageController> {
                 notchMargin: -50,
                 itemCount: 5,
                 tabBuilder: (index, isActive) {
-                  const navIcons = [
-                    'assets/svg/nav_support.svg',
-                    'assets/svg/nav_notifications.svg',
-                    '',
-                    'assets/svg/nav_history.svg',
-                    'assets/svg/nav_profile.svg',
-                  ];
                   const activeColor = Color(0xFF0049C2);
                   const inactiveColor = Color(0xFFA0AABD);
                   final itemColor = isActive ? activeColor : inactiveColor;
+                  final asset = _navIcons[index];
+                  final cached = _navIconsReady ? _navIconImages[asset] : null;
 
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (index == 2)
                         SizedBox(height: 24.h)
+                      else if (cached != null)
+                        ColorFiltered(
+                          colorFilter: ColorFilter.mode(
+                            itemColor,
+                            BlendMode.srcIn,
+                          ),
+                          child: RawImage(
+                            image: cached,
+                            width: 24.sp,
+                            height: 24.sp,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.low,
+                          ),
+                        )
                       else
                         SvgPicture.asset(
-                          navIcons[index],
+                          asset,
                           width: 24.sp,
                           height: 24.sp,
                           colorFilter: ColorFilter.mode(
@@ -145,19 +278,9 @@ class HomePageScreen extends GetView<HomePageController> {
                 },
                 activeIndex: controller.activeIndex.value,
                 height: size.height * .085,
-                // activeColor: Color(0xff0047C3),
-                // inactiveColor: Color(0xffBDBDBD),
                 gapLocation: GapLocation.none,
                 notchSmoothness: NotchSmoothness.defaultEdge,
-                onTap: (index) {
-                  if (index == 2 && controller.activeIndex.value != 2) {
-                    controller.onHomescreen();
-                  }
-                  controller.activeIndex.value = index;
-                  controller.pageController.animateToPage(index,
-                      curve: Curves.ease,
-                      duration: Duration(milliseconds: 300));
-                },
+                onTap: _onTabTap,
               ),
             ),
           )
@@ -166,6 +289,7 @@ class HomePageScreen extends GetView<HomePageController> {
           );
   }
 }
+
 
 showBottomSheetWhenClickedOnMarker(
     ChargeStationDetailsModel model, HomePageController controller) async {

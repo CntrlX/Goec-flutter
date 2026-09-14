@@ -27,6 +27,7 @@ dependencies:
   country_picker: ^2.0.19
   geolocator: ^12.0.0
   animated_bottom_navigation_bar: ^1.1.0+1
+  flutter_displaymode: ^0.6.0
   flutter_svg:
   auto_size_text: ^3.0.0
   expandable: ^5.0.1

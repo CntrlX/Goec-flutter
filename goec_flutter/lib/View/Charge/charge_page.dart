@@ -1,7 +1,8 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -10,6 +11,7 @@ import '../../Model/chargeTransactionModel.dart';
 import '../../Singletones/app_data.dart';
 import '../../Utils/routes.dart';
 import '../../constants.dart';
+import '../Widgets/cached_svg_badge.dart';
 import '../Widgets/date_range_picker_sheet.dart';
 import 'charging_summary_modal_sheet.dart';
 
@@ -24,8 +26,41 @@ class _ChargeScreenState extends State<ChargeScreen>
     with AutomaticKeepAliveClientMixin {
   final ChargeScreenController controller = Get.find<ChargeScreenController>();
 
+  static const String _chargingBadgeAsset =
+      'assets/svg/wallet_charging_badge.svg';
+
+  final Map<String, String> _durationCache = {};
+
+  ui.Image? _chargingBadgeImage;
+  double _badgeSize = 44;
+
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _precacheBadge());
+  }
+
+  Future<void> _precacheBadge() async {
+    if (!mounted) return;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    _badgeSize = 44.w;
+    await SvgRasterCache.precache(
+      _chargingBadgeAsset,
+      logicalPx: _badgeSize,
+      devicePixelRatio: dpr,
+    );
+    if (!mounted) return;
+    setState(() {
+      _chargingBadgeImage = SvgRasterCache.getSync(
+        _chargingBadgeAsset,
+        logicalPx: _badgeSize,
+        devicePixelRatio: dpr,
+      );
+    });
+  }
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
@@ -39,10 +74,18 @@ class _ChargeScreenState extends State<ChargeScreen>
   }
 
   String _formatDuration(String startRaw, String stopRaw) {
-    if (startRaw.isEmpty || stopRaw.isEmpty) return '--';
+    final cacheKey = '$startRaw|$stopRaw';
+    final cached = _durationCache[cacheKey];
+    if (cached != null) return cached;
+
+    String result = '--';
+    if (startRaw.isEmpty || stopRaw.isEmpty) {
+      _durationCache[cacheKey] = result;
+      return result;
+    }
     try {
-      DateTime? start;
-      DateTime? stop;
+      DateTime? start = DateTime.tryParse(startRaw);
+      DateTime? stop = DateTime.tryParse(stopRaw);
       final formats = [
         'dd-MM-yyyy HH:mm:ss',
         'dd-MM-yyyy hh:mma',
@@ -52,29 +95,28 @@ class _ChargeScreenState extends State<ChargeScreen>
         'yyyy-MM-ddTHH:mm:ss.SSSZ',
         'yyyy-MM-ddTHH:mm:ss',
       ];
-      for (final f in formats) {
-        try {
-          start ??= DateFormat(f).parseLoose(startRaw);
-        } catch (_) {}
-        try {
-          stop ??= DateFormat(f).parseLoose(stopRaw);
-        } catch (_) {}
+      if (start == null || stop == null) {
+        for (final f in formats) {
+          try {
+            start ??= DateFormat(f).parseLoose(startRaw);
+          } catch (_) {}
+          try {
+            stop ??= DateFormat(f).parseLoose(stopRaw);
+          } catch (_) {}
+          if (start != null && stop != null) break;
+        }
       }
-      start ??= DateTime.tryParse(startRaw);
-      stop ??= DateTime.tryParse(stopRaw);
 
       if (start != null && stop != null) {
         final diff = stop.difference(start);
         final hours = diff.inHours;
         final mins = diff.inMinutes % 60;
-        if (hours > 0) {
-          return "${hours} H ${mins} MIN";
-        } else {
-          return "${mins} MIN";
-        }
+        result = hours > 0 ? "$hours H $mins MIN" : "$mins MIN";
       }
     } catch (_) {}
-    return '--';
+
+    _durationCache[cacheKey] = result;
+    return result;
   }
 
   Future<void> _pickDateRange(BuildContext context) async {
@@ -122,13 +164,14 @@ class _ChargeScreenState extends State<ChargeScreen>
               onRefresh: () async => await controller.onReload(),
               child: CustomScrollView(
                 controller: controller.scrollController,
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
+                physics: const AlwaysScrollableScrollPhysics(),
+                cacheExtent: 400,
                 slivers: [
                   // Top Hero Section & Floating Metric Card
                   SliverToBoxAdapter(
-                    child: _buildHeroAndMetricCard(context),
+                    child: RepaintBoundary(
+                      child: _buildHeroAndMetricCard(context),
+                    ),
                   ),
 
                   // Charging History Header & Sheet Handle
@@ -223,11 +266,11 @@ class _ChargeScreenState extends State<ChargeScreen>
 
                   // History List / Empty State
                   Obx(() {
-                    final items = controller.model_list;
-                    final loadingMore = controller.isLoadingMore.value;
-                    final hasMore = controller.hasMore.value;
+                    final itemCount = controller.model_list.length;
+                    final isEmpty = itemCount == 0 &&
+                        !controller.isInitialLoading.value;
 
-                    if (items.isEmpty && !controller.isInitialLoading.value) {
+                    if (isEmpty) {
                       return SliverToBoxAdapter(
                         child: _buildEmptyState(),
                       );
@@ -236,64 +279,66 @@ class _ChargeScreenState extends State<ChargeScreen>
                     return SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          if (index >= items.length) {
-                            return Container(
-                              color: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 16.h),
-                              alignment: Alignment.center,
-                              child: loadingMore
-                                  ? SizedBox(
-                                      width: 24.w,
-                                      height: 24.w,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: kBrandPrimaryBlue,
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            );
-                          }
+                          final model = controller.model_list[index];
+                          final isLast = index == itemCount - 1;
 
-                          final model = items[index];
-                          final isLast = index == items.length - 1;
-
-                          return Container(
+                          return ColoredBox(
+                            key: ValueKey(model.transactionId),
                             color: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 16.w),
-                            child: Column(
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    showChargingSummaryModalSheet(
-                                      context,
-                                      model: model,
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  child: _buildHistoryItem(model),
-                                ),
-                                if (!isLast)
-                                  const Divider(
-                                    color: Color(0xFFF1F5F9),
-                                    height: 1,
-                                    thickness: 1,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16.w),
+                              child: Column(
+                                children: [
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      showChargingSummaryModalSheet(
+                                        context,
+                                        model: model,
+                                      );
+                                    },
+                                    child: _buildHistoryItem(model),
                                   ),
-                              ],
+                                  if (!isLast)
+                                    const Divider(
+                                      color: Color(0xFFF1F5F9),
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                ],
+                              ),
                             ),
                           );
                         },
-                        childCount:
-                            items.length + ((hasMore || loadingMore) ? 1 : 0),
+                        childCount: itemCount,
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
                       ),
                     );
                   }),
 
-                  SliverToBoxAdapter(
-                    child: Container(
-                      color: Colors.white,
-                      height: 32.h,
-                    ),
-                  ),
+                  Obx(() {
+                    if (!controller.isLoadingMore.value) {
+                      return SliverToBoxAdapter(
+                        child: SizedBox(height: 32.h),
+                      );
+                    }
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24.w,
+                            height: 24.w,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: kBrandPrimaryBlue,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -364,6 +409,8 @@ class _ChargeScreenState extends State<ChargeScreen>
                     'assets/images/charge_hero_charger.png',
                     height: 185.h,
                     fit: BoxFit.contain,
+                    filterQuality: FilterQuality.low,
+                    cacheHeight: 370,
                     errorBuilder: (context, error, stackTrace) =>
                         const SizedBox.shrink(),
                   ),
@@ -426,13 +473,6 @@ class _ChargeScreenState extends State<ChargeScreen>
                   color: const Color(0xFFF1F5F9),
                   width: 1.2,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-                    blurRadius: 18,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: Column(
                 children: [
@@ -607,6 +647,8 @@ class _ChargeScreenState extends State<ChargeScreen>
             'assets/images/charge_empty_history.png',
             width: 216.w,
             fit: BoxFit.contain,
+            filterQuality: FilterQuality.low,
+            cacheWidth: 432,
             errorBuilder: (context, error, stackTrace) => Icon(
               Icons.receipt_long_rounded,
               size: 80.sp,
@@ -655,21 +697,20 @@ class _ChargeScreenState extends State<ChargeScreen>
         children: [
           // Left Icon badge - SVG from Figma
           SizedBox(
-            width: 44.w,
-            height: 44.w,
-            child: SvgPicture.asset(
-              'assets/svg/wallet_charging_badge.svg',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Container(
+            width: _badgeSize,
+            height: _badgeSize,
+            child: CachedSvgBadge(
+              image: _chargingBadgeImage,
+              size: _badgeSize,
+              placeholder: DecoratedBox(
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                alignment: Alignment.center,
                 child: Icon(
                   Icons.bolt_rounded,
                   color: kBrandPrimaryBlue,
-                  size: 24.sp,
+                  size: 24,
                 ),
               ),
             ),

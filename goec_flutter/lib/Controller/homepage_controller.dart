@@ -70,8 +70,35 @@ class HomePageController extends GetxController {
   //Ends
 
   final GlobalKey<ScaffoldState> drawerKey = GlobalKey();
+  /// Kept for compatibility; tab switching no longer animates a [PageView].
   PageController pageController = PageController(initialPage: 2);
   PanelController panelController = PanelController();
+
+  /// Tabs that have been opened at least once (preserves state without
+  /// building every tab up front).
+  final Set<int> visitedTabs = <int>{2};
+
+  Future<void> goToTab(
+    int index, {
+    bool animate = true,
+    Duration duration = const Duration(milliseconds: 300),
+    Curve curve = Curves.ease,
+  }) async {
+    if (index < 0 || index > 4) return;
+    visitedTabs.add(index);
+    activeIndex.value = index;
+    if (!pageController.hasClients) return;
+    if (animate) {
+      await pageController.animateToPage(
+        index,
+        duration: duration,
+        curve: curve,
+      );
+    } else {
+      pageController.jumpToPage(index);
+    }
+  }
+
   final ChargeScreenController chargeScreenController =
       Get.put(ChargeScreenController());
   final tripsScreenController = Get.put(TripsScreenController());

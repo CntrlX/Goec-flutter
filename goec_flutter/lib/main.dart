@@ -1,15 +1,20 @@
 import 'dart:async';
-import 'package:get/get.dart';
-import 'Utils/app_pages.dart';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:freelancer_app/constants.dart';
-import 'package:freelancer_app/Utils/routes.dart';
-import 'package:freelancer_app/Singletones/injector.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freelancer_app/Singletones/injector.dart';
+import 'package:freelancer_app/Utils/app_pages.dart';
 import 'package:freelancer_app/Utils/local_notifications.dart';
+import 'package:freelancer_app/Utils/routes.dart';
+import 'package:freelancer_app/constants.dart';
+import 'package:get/get.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,9 +39,35 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+/// Picks the highest refresh rate available for the current resolution
+/// (Android only; no-op on iOS / LTPO panels that ignore this API).
+Future<void> _setMaxRefreshRate() async {
+  if (kIsWeb || !Platform.isAndroid) return;
+  try {
+    await FlutterDisplayMode.setHighRefreshRate();
+    // Smoother input when the display runs above 60Hz.
+    GestureBinding.instance.resamplingEnabled = true;
+  } catch (_) {
+    // Devices / OEMs may reject preferred mode; keep default.
+  }
+}
+
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
-  // This widget is the root of your application.
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Per flutter_displaymode docs: set preferred mode from root initState
+    // (session-scoped; must be re-applied each launch).
+    _setMaxRefreshRate();
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
@@ -58,7 +89,6 @@ class MyApp extends StatelessWidget {
                 child: child!,
               ),
             ),
-            // builder: EasyLoading.init(),
             theme: ThemeData(
               fontFamily: kFontFamily,
               primarySwatch: Colors.grey,

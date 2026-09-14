@@ -502,9 +502,7 @@ class Dialogs {
                           Get.back();
                           Get.back();
                           HomePageController homeController = Get.find();
-                          homeController.pageController.animateToPage(0,
-                              curve: Curves.ease,
-                              duration: Duration(milliseconds: 200));
+                          homeController.goToTab(0);
                           // CommonFunctions().createBookingAndCheck(
                           //     appData.qr, appData.tempActiveSessionModel);
                         } else {
