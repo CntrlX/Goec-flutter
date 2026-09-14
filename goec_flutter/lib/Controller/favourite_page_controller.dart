@@ -7,17 +7,29 @@ import '../Utils/routes.dart';
 
 class FavouritePageController extends GetxController {
   RxList<FavoriteModel> model_list = RxList();
+  RxBool isLoading = false.obs;
+
   @override
   void onInit() {
-    // / implement onInit
     super.onInit();
     getFavorites();
   }
 
-  getFavorites() async {
-    showLoading(kLoading);
-    model_list.value = await CommonFunctions().getFavorites();
-    hideLoading();
+  Future<void> getFavorites({bool showLoader = true}) async {
+    if (showLoader) {
+      isLoading.value = true;
+      showLoading(kLoading);
+    }
+    try {
+      final list = await CommonFunctions().getFavorites();
+      model_list.value = list;
+    } catch (_) {
+    } finally {
+      if (showLoader) {
+        isLoading.value = false;
+        hideLoading();
+      }
+    }
   }
 
   gotoStationDetailsPage(String stationId) async {
@@ -29,7 +41,7 @@ class FavouritePageController extends GetxController {
     bool res = await CommonFunctions()
         .changeFavorite(stationId: stationId, makeFavorite: false);
     if (res) {
-      await getFavorites();
+      model_list.removeWhere((item) => item.id == stationId);
     }
     hideLoading();
   }

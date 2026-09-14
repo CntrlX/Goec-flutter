@@ -25,6 +25,29 @@ class WhiteStatusBar extends StatelessWidget {
   }
 }
 
+/// Blue status bar + light (white) status icons for screens with a blue header.
+const SystemUiOverlayStyle kBlueStatusBarStyle = SystemUiOverlayStyle(
+  statusBarColor: Color(0xFF0049C2),
+  statusBarIconBrightness: Brightness.light,
+  statusBarBrightness: Brightness.dark,
+  systemNavigationBarColor: Colors.transparent,
+  systemNavigationBarIconBrightness: Brightness.dark,
+);
+
+/// Wraps a page so the status bar is blue with white icons.
+class BlueStatusBar extends StatelessWidget {
+  final Widget child;
+  const BlueStatusBar({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: kBlueStatusBarStyle,
+      child: child,
+    );
+  }
+}
+
 /// Preferred size for [CustomAppBar], including status-bar inset.
 Size customAppBarPreferredSize(BuildContext context) {
   final contentHeight = MediaQuery.sizeOf(context).height * 0.09;

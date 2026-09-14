@@ -2,6 +2,7 @@ class FavoriteModel {
   final String id;
   final String rating;
   final String name;
+  final String address;
   final String image;
   final double latitude;
   final double longitude;
@@ -9,6 +10,7 @@ class FavoriteModel {
     required this.id,
     required this.rating,
     required this.name,
+    this.address = '',
     required this.image,
     required this.latitude,
     required this.longitude,
@@ -16,10 +18,12 @@ class FavoriteModel {
   factory FavoriteModel.fromJson(Map<String, dynamic> json) {
     return FavoriteModel(
       id: json['id'] ?? '-1',
-      rating: json['rating'].toString(),
+      rating: json['rating']?.toString() ?? '0',
       name: json['name'] ?? '',
-      image: json['image'] ??
-          'https://sternbergclinic.com.au/wp-content/uploads/2020/03/placeholder.png',
+      address: json['address'] ?? '',
+      image: json['image'] != null && json['image'].toString().isNotEmpty
+          ? json['image']
+          : 'https://sternbergclinic.com.au/wp-content/uploads/2020/03/placeholder.png',
       latitude: json['latitude'] == null ? 0 : json['latitude'].toDouble() ?? 0,
       longitude:
           json['longitude'] == null ? 0 : json['longitude'].toDouble() ?? 0,
@@ -29,6 +33,7 @@ class FavoriteModel {
         "id": id,
         "rating": rating,
         "name": name,
+        "address": address,
         "image": image,
         "latitude": latitude,
         "longitude": longitude
