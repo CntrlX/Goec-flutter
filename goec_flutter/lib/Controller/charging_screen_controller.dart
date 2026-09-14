@@ -207,8 +207,12 @@ class ChargingScreenController extends GetxController {
   }
 
   onClickFinished() {
-    Get.offNamed(Routes.shareExperiencePageRoute,
-        arguments: [activeSessionModel.chargingStationId, status_model.value]);
+    Get.offNamed(Routes.shareExperiencePageRoute, arguments: [
+      activeSessionModel.chargingStationId,
+      status_model.value,
+      activeSessionModel,
+      [time[0], time[1]],
+    ]);
   }
 
   downloadInvoice() async => await CommonFunctions().downloadBookingInvoice(
