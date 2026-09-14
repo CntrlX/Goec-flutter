@@ -8,6 +8,7 @@ import '../../Controller/walletPage_controller.dart';
 import '../../Singletones/app_data.dart';
 import '../../constants.dart';
 import '../Widgets/custom_input_field.dart';
+import '../Widgets/glass_circle_icon_button.dart';
 
 class PopUpPage extends StatefulWidget {
   const PopUpPage({super.key});
@@ -178,23 +179,7 @@ class _PopUpPageState extends State<PopUpPage> {
             ),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    width: 36.w,
-                    height: 36.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
+                const GlassBackButton(),
                 SizedBox(width: 14.w),
                 Text(
                   "Top-Up Wallet",

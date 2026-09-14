@@ -12,6 +12,7 @@ import '../../Model/orderModel.dart';
 import '../../Singletones/app_data.dart';
 import '../../constants.dart';
 import '../Widgets/cached_svg_badge.dart';
+import '../Widgets/glass_circle_icon_button.dart';
 import 'topup_page.dart';
 import 'wallet_filter_sheet.dart';
 import 'wallet_transaction_modal_sheet.dart';
@@ -315,23 +316,7 @@ class _WalletScreenState extends State<WalletScreen>
             ),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    width: 36.w,
-                    height: 36.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
+                const GlassBackButton(),
                 SizedBox(width: 14.w),
                 Text(
                   "Wallet",
