@@ -23,7 +23,6 @@ import 'package:freelancer_app/View/Widgets/customText.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
 // import 'package:freelancer_app/Controller/walletPage_controller.dart';
-import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
 import 'package:freelancer_app/View/Charge/charge_transaction_dialog.dart';
 
 class Dialogs {
@@ -34,292 +33,101 @@ class Dialogs {
   }
   Dialogs._internal();
 
-  tariffPopUp(ActiveSessionModel _charger, String? stationName) {
+  tariffPopUp(ActiveSessionModel charger, String? stationName) {
+    final context = Get.overlayContext ?? Get.context;
+    if (context == null) return;
+
     RxInt second = 60.obs;
-    Timer.periodic(Duration(seconds: 1), (timer) {
-      if (Get.isDialogOpen == false) {
-        timer.cancel();
+    Timer? timer;
+    bool isClosed = false;
+
+    void cleanupAndClose() {
+      if (isClosed) return;
+      isClosed = true;
+      timer?.cancel();
+      if (Get.currentRoute == Routes.qrScanPageRoute) {
+        try {
+          QrController qrController = Get.find();
+          qrController.cameraController.start();
+        } catch (_) {}
       }
-      second--;
-      if (second <= 0 && Get.isDialogOpen == true) {
-        Get.back();
-        timer.cancel();
+    }
+
+    timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (second.value > 0) {
+        second.value--;
+      }
+      if (second.value <= 0) {
+        t.cancel();
+        if (!isClosed) {
+          Navigator.of(context, rootNavigator: true).maybePop();
+          cleanupAndClose();
+        }
       }
     });
-    Get.dialog(
-        AlertDialog(
-          backgroundColor: kscaffoldBackgroundColor,
-          contentPadding: EdgeInsets.all(0),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.w)),
-          content: Container(
-            padding: EdgeInsets.all(20.w),
-            height: stationName != null ? 650.h : 560.h,
-            width: 348.w,
-            decoration: BoxDecoration(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                        text: 'Initiate Charging',
-                        color: Color(0xff828282),
-                        size: 15,
-                        fontWeight: FontWeight.bold),
-                    InkWell(
-                      onTap: () {
-                        Get.back();
-                        if (Get.currentRoute == Routes.qrScanPageRoute) {
-                          QrController _controller = Get.find();
-                          _controller.cameraController.start();
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          Obx(() => Text(
-                                "${second.value}",
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                              )),
-                          Icon(Icons.close),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-                Divider(),
-                height(15.h),
-                Container(
-                  height: 80.h,
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 15.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Color(0xffEDF4FF),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomSmallText(
-                        text: 'User Name',
-                        size: 13,
-                      ),
-                      CustomText(
-                          text: appData.userModel.value.name,
-                          color: Color(0xff4f4f4f),
-                          size: 14.sp,
-                          fontWeight: FontWeight.bold),
-                    ],
-                  ),
-                ),
-                height(15.h),
-                Visibility(
-                  visible: stationName != null,
-                  child: Container(
-                    height: 80.h,
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 15.w),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Color(0xffEDF4FF),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomSmallText(
-                          text: 'Station Name',
-                          size: 13,
-                        ),
-                        CustomText(
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            text: stationName ?? '',
-                            color: Color(0xff4f4f4f),
-                            size: 14.sp,
-                            fontWeight: FontWeight.bold),
-                      ],
-                    ),
-                  ),
-                ),
-                Visibility(visible: stationName != null, child: height(15.h)),
-                Container(
-                  height: 80.h,
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 15.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Color(0xffEDF4FF),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomSmallText(
-                        text: 'Charger Name',
-                        size: 13,
-                      ),
-                      CustomText(
-                          text: '${_charger.chargerName}',
-                          color: Color(0xff4f4f4f),
-                          size: 14.sp,
-                          fontWeight: FontWeight.bold),
-                    ],
-                  ),
-                ),
 
-                height(20.h),
-                Container(
-                  height: 80.h,
-                  // width: 80.w,
-                  padding: EdgeInsets.symmetric(horizontal: 15.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Color(0xffEDF4FF),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomText(
-                              text:
-                                  '${_charger.outputType} ${_charger.capacity} kWh',
-                              color: Color(0xff4f4f4f),
-                              size: 14.sp,
-                              fontWeight: FontWeight.bold),
-                          Row(
-                            children: [
-                              CustomText(
-                                  text: '${_charger.connectorType}',
-                                  color: Color(0xff4f4f4f),
-                                  size: 14.sp,
-                                  fontWeight: FontWeight.bold),
-                              width(8.w),
-                              SvgPicture.asset(
-                                  //FIXME
-                                  // 'assets/svg/${_bookingModel.connectorType.toLowerCase()}.svg',
-                                  'assets/svg/css.svg',
-                                  colorFilter: ColorFilter.mode(
-                                      Color(0xff4f4f4f), BlendMode.srcIn)),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomSmallText(
-                            text: 'Tariff',
-                            size: 13,
-                          ),
-                          Text(
-                            '$kCurrency ${_charger.tariff.toStringAsFixed(2)} /KwH',
-                            style: kAppSmallTextStyle.copyWith(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                height(20.h),
-                Container(
-                  height: 80.h,
-                  // width: 80.w,
-                  padding: EdgeInsets.symmetric(horizontal: 15.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Color(0xffFFFFFF),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Obx(() => cachedNetworkImage(
-                                appData.userModel.value.defaultVehicle.icon,
-                                width: size.width * .18,
-                              )),
-                          SizedBox(
-                            width: size.width * 0.04,
-                          ),
-                          Obx(
-                            () => Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CustomSmallText(
-                                  text: appData
-                                      .userModel.value.defaultVehicle.brand,
-                                  size: 14.sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                CustomBigText(
-                                  text: appData
-                                      .userModel.value.defaultVehicle.modelName,
-                                  size: 15.sp,
-                                  color: Color(0xff4F4F4F),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                      //refresh button
-                      InkWell(
-                        onTap: () {
-                          Get.toNamed(Routes.myvehicleRoute);
-                        },
-                        child: Image.asset(
-                          "assets/images/refresh.png",
-                          width: size.height * 0.025,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // height(15.h),
-                Spacer(),
-                InkWell(
-                  onTap: () async {
-                    bool sucess = await CommonFunctions().startCharging(
-                        connectorId: _charger.connectorId, cpid: _charger.cpid);
-                    if (sucess) {
-                      Get.offNamedUntil(
-                        Routes.chargingPageRoute,
-                        ModalRoute.withName(Routes.homePageRoute),
-                      );
-                    } else {
-                      showError(
-                          'Failed to connect with charger. Please try again later!');
-                    }
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Initiate Charging Modal',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (ctx, animation, secondaryAnimation) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (ctx, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: curved,
+                child: GestureDetector(
+                  onTap: () {
+                    cleanupAndClose();
+                    Navigator.of(ctx).maybePop();
                   },
-                  child: Container(
-                    height: 56.h,
-                    width: 156.w,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40.r),
-                      color: Color(0xff0047C3),
-                    ),
-                    child: Center(
-                      child: CustomBigText(
-                        text: "Start Charging",
-                        size: 15.sp,
-                        color: Color(0xffF2F2F2),
-                      ),
+                  behavior: HitTestBehavior.opaque,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.35),
                     ),
                   ),
-                )
-              ],
+                ),
+              ),
             ),
-          ),
-        ),
-        barrierDismissible: false);
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: Material(
+                  color: Colors.transparent,
+                  child: _InitiateChargingSheetContent(
+                    charger: charger,
+                    stationName: stationName,
+                    second: second,
+                    onClose: () {
+                      cleanupAndClose();
+                      Navigator.of(ctx).maybePop();
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    ).then((_) {
+      cleanupAndClose();
+    });
   }
 
   notEnoughCreditPopUp({double? balance}) {
@@ -752,7 +560,7 @@ class Dialogs {
                                   vertical: size.width * 0.01),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
-                                  color: color.withOpacity(.3)),
+                                  color: color.withValues(alpha: 0.3)),
                               child: CustomSmallText(
                                 text: title,
                                 color: color,
@@ -895,7 +703,7 @@ class Dialogs {
                 BoxShadow(
                   offset: Offset(0, 4),
                   blurRadius: 32,
-                  color: Color(0xff000000).withOpacity(0.06),
+                  color: Color(0xff000000).withValues(alpha: 0.06),
                 )
               ]),
           child: Column(
@@ -1285,3 +1093,388 @@ saveSnack(String message) {
               ))),
       backgroundColor: Color(0xff6fcf97));
 }
+
+class _InitiateChargingSheetContent extends StatelessWidget {
+  final ActiveSessionModel charger;
+  final String? stationName;
+  final RxInt second;
+  final VoidCallback onClose;
+
+  const _InitiateChargingSheetContent({
+    required this.charger,
+    required this.stationName,
+    required this.second,
+    required this.onClose,
+  });
+
+  String _vehicleLabel() {
+    final v = appData.userModel.value.defaultVehicle;
+    final brand = v.brand.trim();
+    final model = v.modelName.trim();
+    if (brand.isEmpty && model.isEmpty) return 'Add vehicle';
+    if (brand.isEmpty) return model;
+    if (model.isEmpty) return brand;
+    return '$brand $model';
+  }
+
+  Widget _infoRow({
+    required String label,
+    required String value,
+    bool showChevron = false,
+    VoidCallback? onTap,
+    Widget? leading,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 6.h),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (leading != null) ...[
+              leading,
+              width(8.w),
+            ],
+            Expanded(
+              child: CustomText(
+                text: label,
+                size: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF64748B),
+                height: 20 / 14,
+              ),
+            ),
+            width(12.w),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  text: value,
+                  size: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                  height: 20 / 14,
+                ),
+                if (showChevron) ...[
+                  width(4.w),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 18.sp,
+                    color: const Color(0xFF94A3B8),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = systemBottomInset(context);
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(32.r),
+          topRight: Radius.circular(32.r),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF011631).withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle bar
+          Padding(
+            padding: EdgeInsets.only(top: 12.h, bottom: 4.h),
+            child: Container(
+              width: 36.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: EdgeInsets.fromLTRB(24.w, 12.h, 20.w, 16.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomText(
+                    text: 'Initiate Charging',
+                    size: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                    height: 28 / 18,
+                  ),
+                ),
+                Obx(
+                  () => Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.timer_outlined,
+                          size: 14.sp,
+                          color: const Color(0xFF0049C2),
+                        ),
+                        width(4.w),
+                        Text(
+                          '${second.value}s',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0049C2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                width(10.w),
+                Material(
+                  color: const Color(0xFFF1F5F9),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onClose,
+                    child: SizedBox(
+                      width: 32.w,
+                      height: 32.w,
+                      child: Icon(
+                        Icons.close,
+                        size: 18.sp,
+                        color: const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Body Content
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Column(
+              children: [
+                // Highlight Card: Connector & Rate
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              text: 'CONNECTOR & POWER',
+                              size: 11.sp,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                              letterSpacing: 0.5,
+                            ),
+                            height(4.h),
+                            Row(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/svg/css.svg',
+                                  width: 14.w,
+                                  height: 14.w,
+                                  colorFilter: const ColorFilter.mode(
+                                    Color(0xFF0049C2),
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                width(6.w),
+                                Expanded(
+                                  child: CustomText(
+                                    text: charger.connectorType.isNotEmpty
+                                        ? charger.connectorType
+                                        : 'Connector',
+                                    size: 15.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            height(2.h),
+                            CustomText(
+                              text:
+                                  '${charger.outputType.isNotEmpty ? charger.outputType : "DC"} · ${charger.capacity} kW',
+                              size: 12.sp,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ],
+                        ),
+                      ),
+                      width(12.w),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CustomText(
+                            text: 'TARIFF',
+                            size: 11.sp,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF64748B),
+                            letterSpacing: 0.5,
+                          ),
+                          height(4.h),
+                          CustomText(
+                            text:
+                                '$kCurrency ${charger.tariff.toStringAsFixed(2)} /kWh',
+                            size: 15.sp,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0049C2),
+                          ),
+                          height(2.h),
+                          CustomText(
+                            text: 'Base rate',
+                            size: 12.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                height(16.h),
+
+                // Station name (if provided)
+                if (stationName != null && stationName!.trim().isNotEmpty) ...[
+                  _infoRow(
+                    label: 'Station',
+                    value: stationName!.trim(),
+                  ),
+                  height(4.h),
+                ],
+
+                // Charger Name
+                _infoRow(
+                  label: 'Charger',
+                  value: charger.chargerName,
+                ),
+                height(4.h),
+
+                // Vehicle
+                Obx(
+                  () => _infoRow(
+                    label: 'Vehicle',
+                    value: _vehicleLabel(),
+                    showChevron: true,
+                    onTap: () {
+                      onClose();
+                      Get.toNamed(Routes.myvehicleRoute);
+                    },
+                  ),
+                ),
+                height(4.h),
+
+                // Payment / Wallet
+                Obx(
+                  () => _infoRow(
+                    label: 'Wallet Balance',
+                    value:
+                        '$kCurrency${appData.userModel.value.balanceAmount.toStringAsFixed(0)}',
+                    showChevron: true,
+                    onTap: () {
+                      onClose();
+                      Get.toNamed(Routes.walletPageRoute);
+                    },
+                  ),
+                ),
+
+                height(20.h),
+              ],
+            ),
+          ),
+
+          // Bottom Button Container
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(24.w, 14.h, 24.w, 14.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: const Border(
+                top: BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+            ),
+            child: SizedBox(
+              height: 54.h,
+              child: ElevatedButton(
+                onPressed: () async {
+                  onClose();
+                  showLoading('Connecting to charger...');
+                  bool success = await CommonFunctions().startCharging(
+                    connectorId: charger.connectorId,
+                    cpid: charger.cpid,
+                  );
+                  hideLoading();
+                  if (success) {
+                    Get.offNamedUntil(
+                      Routes.chargingPageRoute,
+                      ModalRoute.withName(Routes.homePageRoute),
+                    );
+                  } else {
+                    showError(
+                      'Failed to connect with charger. Please try again later!',
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0049C2),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100.r),
+                  ),
+                ),
+                child: CustomText(
+                  text: 'Start Charging',
+                  size: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
