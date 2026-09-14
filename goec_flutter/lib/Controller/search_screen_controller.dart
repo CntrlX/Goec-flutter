@@ -1,26 +1,80 @@
 import 'package:flutter/material.dart';
-import 'package:freelancer_app/Model/searchStationModel.dart';
-import 'package:freelancer_app/Singletones/common_functions.dart';
 import 'package:get/get.dart';
-import '../Utils/debouncer.dart';
+import '../Model/stationMarkerModel.dart';
+import 'homepage_controller.dart';
 
 class SearchScreenController extends GetxController {
   final TextEditingController searchTextController = TextEditingController();
-  RxBool isShowCross = false.obs;
-  final Debouncer debouncer = Debouncer(milliseconds: 1000);
+  final FocusNode searchFocusNode = FocusNode();
+  final RxString searchQuery = ''.obs;
+  final RxList<StationMarkerModel> searchResults = <StationMarkerModel>[].obs;
 
-  List<String> suggestions = [
-    // 'Cafe with charge point',
-    // 'Charge point near me',
-    // 'Show near by charging station',
-    // 'Cafe with charge point',
-  ];
-  // RxList<ChargeStationDetailsModel> chargingCafeModelList = RxList();
-  RxList<SearchStationrModel> search_list = RxList();
+  @override
+  void onInit() {
+    super.onInit();
+    searchTextController.addListener(_onSearchChanged);
+    if (Get.isRegistered<HomePageController>()) {
+      final home = Get.find<HomePageController>();
+      if (home.station_marker_list.isEmpty) {
+        home.onReload();
+      }
+    }
+  }
 
-  getSearchedChargeStationList(String name) async {
-    if (name.isEmpty) return;
+  @override
+  void onReady() {
+    super.onReady();
+    // Smoothly focus text field after hero page transition completes
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!isClosed && !searchFocusNode.hasFocus) {
+        searchFocusNode.requestFocus();
+      }
+    });
+  }
 
-    search_list.value = await CommonFunctions().getSearchedChargeStations(name);
+  void _onSearchChanged() {
+    final text = searchTextController.text;
+    searchQuery.value = text;
+    filterStations(text);
+  }
+
+  void filterStations(String query) {
+    final cleanQuery = query.trim().toLowerCase();
+    if (cleanQuery.isEmpty) {
+      searchResults.clear();
+      return;
+    }
+
+    if (Get.isRegistered<HomePageController>()) {
+      final homeController = Get.find<HomePageController>();
+      final allStations = homeController.station_marker_list;
+
+      final matched = allStations.where((s) {
+        final name = s.name.toLowerCase();
+        final addr = s.address.toLowerCase();
+        final connectorTypes =
+            s.charger_type.map((e) => e.toString().toLowerCase()).join(' ');
+
+        return name.contains(cleanQuery) ||
+            addr.contains(cleanQuery) ||
+            connectorTypes.contains(cleanQuery);
+      }).toList();
+
+      searchResults.assignAll(matched);
+    }
+  }
+
+  void clearSearch() {
+    searchTextController.clear();
+    searchQuery.value = '';
+    searchResults.clear();
+  }
+
+  @override
+  void onClose() {
+    searchTextController.removeListener(_onSearchChanged);
+    searchFocusNode.dispose();
+    searchTextController.dispose();
+    super.onClose();
   }
 }

@@ -124,55 +124,61 @@ class _MapScreenState extends State<MapScreen>
                     children: [
                       // Search Capsule
                       Expanded(
-                        child: GestureDetector(
-                          onTap: () => Get.toNamed(Routes.searchPageRoute),
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            height: 48.h,
-                            padding: EdgeInsets.symmetric(horizontal: 14.w),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16.r),
-                              border: Border.all(
-                                color: const Color(0xFFF1F5F9),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF0F172A)
-                                      .withValues(alpha: 0.06),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/svg/search-zoom-in.svg',
-                                  width: 18.w,
-                                  height: 18.w,
-                                  colorFilter: const ColorFilter.mode(
-                                    Color(0xFF68768E),
-                                    BlendMode.srcIn,
+                        child: Hero(
+                          tag: 'search_bar_hero',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: GestureDetector(
+                              onTap: () => Get.toNamed(Routes.searchPageRoute),
+                              behavior: HitTestBehavior.opaque,
+                              child: Container(
+                                height: 48.h,
+                                padding: EdgeInsets.symmetric(horizontal: 14.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  border: Border.all(
+                                    color: const Color(0xFFF1F5F9),
+                                    width: 1.2,
                                   ),
-                                ),
-                                SizedBox(width: 10.w),
-                                Expanded(
-                                  child: Text(
-                                    'Search for stations..',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontFamily: kFontFamily,
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w500,
-                                      height: 16 / 14,
-                                      color: const Color(0xFF68768E),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF0F172A)
+                                          .withValues(alpha: 0.06),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 4),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/svg/search-zoom-in.svg',
+                                      width: 18.w,
+                                      height: 18.w,
+                                      colorFilter: const ColorFilter.mode(
+                                        Color(0xFF68768E),
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10.w),
+                                    Expanded(
+                                      child: Text(
+                                        'Search for stations..',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontFamily: kFontFamily,
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w500,
+                                          height: 16 / 14,
+                                          color: const Color(0xFF68768E),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
