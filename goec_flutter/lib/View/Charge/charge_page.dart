@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../Controller/chargePage_controller.dart';
 import '../../Model/chargeTransactionModel.dart';
 import '../../Singletones/app_data.dart';
 import '../../Utils/routes.dart';
+import '../../Utils/utils.dart';
 import '../../constants.dart';
 import '../Widgets/cached_svg_badge.dart';
 import '../Widgets/date_range_picker_sheet.dart';
@@ -84,34 +84,15 @@ class _ChargeScreenState extends State<ChargeScreen>
       return result;
     }
     try {
-      DateTime? start = DateTime.tryParse(startRaw);
-      DateTime? stop = DateTime.tryParse(stopRaw);
-      final formats = [
-        'dd-MM-yyyy HH:mm:ss',
-        'dd-MM-yyyy hh:mma',
-        'dd/MM/yyyy HH:mm:ss',
-        'dd/MM/yyyy hh:mm a',
-        'yyyy-MM-dd HH:mm:ss',
-        'yyyy-MM-ddTHH:mm:ss.SSSZ',
-        'yyyy-MM-ddTHH:mm:ss',
-      ];
-      if (start == null || stop == null) {
-        for (final f in formats) {
-          try {
-            start ??= DateFormat(f).parseLoose(startRaw);
-          } catch (_) {}
-          try {
-            stop ??= DateFormat(f).parseLoose(stopRaw);
-          } catch (_) {}
-          if (start != null && stop != null) break;
-        }
-      }
-
-      if (start != null && stop != null) {
-        final diff = stop.difference(start);
-        final hours = diff.inHours;
-        final mins = diff.inMinutes % 60;
-        result = hours > 0 ? "$hours H $mins MIN" : "$mins MIN";
+      // Same parser as charging_summary_modal_sheet (API uses dd-MM-yyyy …).
+      final time = getTimeDifferenceforHistory(
+        startTime: startRaw,
+        endTime: stopRaw,
+      );
+      if (time.length >= 2) {
+        final hours = time[0];
+        final mins = time[1];
+        result = hours > 0 ? '$hours H $mins MIN' : '$mins MIN';
       }
     } catch (_) {}
 
