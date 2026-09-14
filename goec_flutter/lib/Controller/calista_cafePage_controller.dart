@@ -192,10 +192,12 @@ class CalistaCafePageController extends GetxController {
 
   changeFavoriteStatus() async {
     showLoading(kLoading);
+    final targetState = !model.value.isFavorite;
     bool res = await CommonFunctions().changeFavorite(
-        stationId: model.value.id, makeFavorite: !model.value.isFavorite);
+        stationId: model.value.id, makeFavorite: targetState);
     if (res) {
-      await getChargeStationDetails(model.value.id.toString());
+      model.value.isFavorite = targetState;
+      model.refresh();
     }
     hideLoading();
   }
