@@ -1,16 +1,14 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../constants.dart';
 import '../../Utils/routes.dart';
-import '../Widgets/appbar.dart';
-import '../Widgets/appbutton.dart';
-import 'package:flutter/material.dart';
 import '../../Singletones/app_data.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../Singletones/map_functions.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:freelancer_app/Controller/homepage_controller.dart';
+import '../../Controller/homepage_controller.dart';
+import 'Widgets/station_card_item.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -22,508 +20,756 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   @override
+  bool get wantKeepAlive => true;
+
+  final HomePageController controller = Get.find<HomePageController>();
+  final DraggableScrollableController sheetController =
+      DraggableScrollableController();
+  final RxDouble sheetExtent = 0.44.obs;
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    sheetController.addListener(_onSheetScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (controller.station_marker_list.isEmpty) {
+        controller.onReload();
+      }
+    });
   }
 
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   print(state);
-  //  MapFunctions(). checkAppCycleAndStopStreamStartStream(state);
-  // }
+  void _onSheetScroll() {
+    if (sheetController.isAttached) {
+      sheetExtent.value = sheetController.size;
+    }
+  }
 
   @override
-  bool get wantKeepAlive => true;
-
-  HomePageController controller = Get.find();
+  void dispose() {
+    sheetController.removeListener(_onSheetScroll);
+    sheetController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return WhiteStatusBar(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Container(
-              alignment: Alignment.center,
-              child: Stack(
-                children: [
-              Container(
-                child: Obx(
-                  () => Container(
-                    padding: EdgeInsets.all(controller.reload.value * 0 +
-                        MapFunctions().reload.value * 0),
-                    child: GoogleMap(
-                      // liteModeEnabled: true,
-                      compassEnabled: false,
-                      mapToolbarEnabled: false,
-                      onCameraMoveStarted: () {
-                        if (MapFunctions().isIdle)
-                          MapFunctions().isFocused = false;
-                      },
-                      onCameraIdle: () {
-                        if (!MapFunctions().isIdle) {
-                          controller.debouncer.run(() {
-                            kLog('camera idle');
-                            MapFunctions().isIdle = true;
-                          });
-                        }
-                      },
-                      initialCameraPosition:
-                          MapFunctions().initialPosition.value,
-                      trafficEnabled: false,
-                      myLocationEnabled: false,
-                      myLocationButtonEnabled: false,
-                      zoomControlsEnabled: false,
-                      markers: MapFunctions().markers_homepage,
-                      onMapCreated: (controller) {
-                        MapFunctions().controller = controller;
-                        // MapFunctions().setMapStyle(controller);
-                        kLog('loading map');
-                        // MapFunctions().getCurrentPosition();
-                      },
-                      onTap: (value) {
-                        // controller.getNearestChargestations(Position(
-                        //     headingAccuracy: 0,
-                        //     altitudeAccuracy: 0,
-                        //     longitude: value.longitude,
-                        //     latitude: value.latitude,
-                        //     timestamp: DateTime.now(),
-                        //     accuracy: 0,
-                        //     altitude: 0,
-                        //     heading: 0,
-                        //     speed: 0,
-                        //     speedAccuracy: 0));
-                        // // MapFunctions().addMyPositionMarker(MapFunctions().curPos,
-                        // //     MapFunctions().markers_homepage);
-                        // // MapFunctions().addMarkerHomePage(
-                        // //     id: value.latitude.toString(),
-                        // //     latLng: value,
-                        // //     isBusy: false,
-                        // //     controller: controller);
-                        // controller.reload++;
-                      },
-                    ),
-                  ),
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // 1. Google Map
+          Positioned.fill(
+            child: Obx(
+              () => Container(
+                padding: EdgeInsets.all(controller.reload.value * 0 +
+                    MapFunctions().reload.value * 0),
+                child: GoogleMap(
+                  compassEnabled: false,
+                  mapToolbarEnabled: false,
+                  myLocationEnabled: false,
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                  trafficEnabled: false,
+                  initialCameraPosition: MapFunctions().initialPosition.value,
+                  markers: MapFunctions().markers_homepage,
+                  onCameraMoveStarted: () {
+                    if (MapFunctions().isIdle) {
+                      MapFunctions().isFocused = false;
+                    }
+                  },
+                  onCameraIdle: () {
+                    if (!MapFunctions().isIdle) {
+                      controller.debouncer.run(() {
+                        MapFunctions().isIdle = true;
+                      });
+                    }
+                  },
+                  onMapCreated: (mapCtrl) {
+                    MapFunctions().controller = mapCtrl;
+                    if (controller.station_marker_list.isNotEmpty) {
+                      controller.focusOnNearestStation();
+                    }
+                  },
                 ),
               ),
-              _SearchBar(),
-              // Positioned(
-              //     top: 15,
-              //     left: 0,
-              //     right: 0,
-              //     child: Container(
-              //       color: Colors.white,
-              //       child: Align(
-              //         child: Row(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           children: [
-              //             InkWell(
-              //               onTap: () {
-              //                 controller.drawerKey.currentState!.openDrawer();
-              //               },
-              //               child: Container(
-              //                 padding: EdgeInsets.only(
-              //                   bottom: size.height * .024,
-              //                   top: size.height * .024,
-              //                 ),
-              //                 // decoration: BoxDecoration(boxShadow: [
-              //                 //   BoxShadow(
-              //                 //       color: Colors.grey.shade400, blurRadius: 8)
-              //                 // ], shape: BoxShape.circle, color: Colors.white),
-              //                 child: SvgPicture.asset(
-              //                     'assets/svg/drawer_icon.svg'),
-              //               ),
-              //             ),
-              //             width(size.width * .035),
-              //             Container(
-              //               height: size.height * .057,
-              //               width: size.width * .75,
-              //               // decoration: BoxDecoration(
-              //               //     borderRadius: BorderRadius.circular(30),
-              //               //     boxShadow: [
-              //               //       BoxShadow(
-              //               //           color: Colors.grey.shade400,
-              //               //           blurRadius: 8)
-              //               //     ],
-              //               //     color: Colors.white),
-              //               child: Row(
-              //                 mainAxisAlignment: MainAxisAlignment.start,
-              //                 children: [
-              //                   InkWell(
-              //                     onTap: () {
-              //                       Get.toNamed(Routes.searchPageRoute);
-              //                     },
-              //                     child: Row(
-              //                         mainAxisAlignment:
-              //                             MainAxisAlignment.start,
-              //                         children: [
-              //                           Padding(
-              //                             padding: EdgeInsets.only(left: 5),
-              //                             child: CustomBigText(
-              //                                 text: 'Stations',
-              //                                 color: Color.fromARGB(
-              //                                     255, 133, 133, 133),
-              //                                 fontWeight: FontWeight.w500),
-              //                           ),
-              //                           width(size.width * 0.35),
-              //                           Padding(
-              //                             padding: EdgeInsets.only(right: 16.0),
-              //                             child: SvgPicture.asset(
-              //                                 'assets/svg/search-zoom-in.svg'),
-              //                           ),
-              //                         ]),
-              //                   ),
-              //                   InkWell(
-              //                     onTap: () {
-              //                       Get.toNamed(Routes.favouritePageRoute);
-              //                     },
-              //                     child: Padding(
-              //                       padding: EdgeInsets.only(left: 5.0),
-              //                       child: SvgPicture.asset(
-              //                           'assets/svg/favourite_icon.svg'),
-              //                     ),
-              //                   )
-              //                 ],
-              //               ),
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     )),
-              // Positioned(
-              //     bottom: size.height * .19,
-              //     right: size.width * .03,
-              //     child: InkWell(
-              //       onTap: () {
-              //         Get.toNamed(Routes.filterPageRoute,
-              //             arguments: controller.station_marker_list);
-              //       },
-              //       child: Container(
-              //           padding: EdgeInsets.all(size.width * .037),
-              //           decoration: BoxDecoration(
-              //               shape: BoxShape.circle,
-              //               color: Colors.white,
-              //               boxShadow: [
-              //                 BoxShadow(
-              //                     blurRadius: 10, color: Colors.grey.shade400)
-              //               ]),
-              //           child: Stack(
-              //             alignment: Alignment.topRight,
-              //             children: [
-              //               SvgPicture.asset('assets/svg/tune.svg'),
-              //               Obx(
-              //                 () => !appData.notificationAvailable.value
-              //                     ? Container()
-              //                     : Container(
-              //                         height: 10.h,
-              //                         width: 10.h,
-              //                         decoration: BoxDecoration(
-              //                             shape: BoxShape.circle,
-              //                             color: Colors.red),
-              //                       ),
-              //               )
-              //             ],
-              //           )),
-              //     )),
-              // Positioned(
-              //     bottom: size.height * .11,
-              //     right: size.width * .03,
-              //     child: InkWell(
-              //       onTap: () async {
-              //         var res = await MapFunctions().getCurrentPosition();
-              //         if (res != null) MapFunctions().curPos = res;
+            ),
+          ),
 
-              //         MapFunctions().animateToNewPosition(
-              //             LatLng(
-              //               MapFunctions().curPos.latitude,
-              //               MapFunctions().curPos.longitude,
-              //             ),
-              //             bearing: 0);
-              //       },
-              //       child: Container(
-              //           padding: EdgeInsets.all(size.width * .037),
-              //           decoration: BoxDecoration(
-              //               shape: BoxShape.circle,
-              //               color: Colors.white,
-              //               boxShadow: [
-              //                 BoxShadow(
-              //                     blurRadius: 10, color: Colors.grey.shade400)
-              //               ]),
-              //           child: SvgPicture.asset(
-              //               'assets/svg/location_searching.svg')),
-              //     )),
-              // Obx(
-              //   () => Visibility(
-              //     visible: SocketRepo().isCharging.value,
-              //     child: Positioned(
-              //         top: 80.h,
-              //         left: 10.w,
-              //         right: 10.w,
-              //         child: InkWell(
-              //           onTap: () {
-              // controller.getActiveBooking(true);
-              //           },
-              //           child: Container(
-              //             // width: MediaQuery.of(context).size.width * .9,
-              //             height: 60.h,
-              //             decoration: BoxDecoration(
-              //                 color: Color(0xff2D9CDB),
-              //                 borderRadius: BorderRadius.circular(8)),
-              //             child: Padding(
-              //               padding: EdgeInsets.symmetric(horizontal: 15.w),
-              //               child: Row(children: [
-              //                 SvgPicture.asset('assets/svg/bolt_small.svg'),
-              //                 width(20.w),
-              //                 Text(
-              //                   'Charging in Progress',
-              //                   style: GoogleFonts.montserrat().copyWith(
-              //                       fontSize: 15.sp,
-              //                       color: Colors.white,
-              //                       fontWeight: FontWeight.bold),
-              //                 ),
-              //                 Spacer(),
-              //                 Icon(
-              //                   (Icons.arrow_forward_ios),
-              //                   color: Colors.white,
-              //                 )
-              //               ]),
-              //             ),
-              //           ),
-              //         )),
-              //   ),
-              // ),
-              Positioned(
-                bottom: size.height * .05,
-                right: size.width * .00,
+          // 2. Top Floating Area (Search Capsule + Wallet Card + Quick Filter Pills)
+          SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 8.h),
+                // Row: Search Capsule & Wallet Balance Card
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Row(
+                    children: [
+                      // Search Capsule
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Get.toNamed(Routes.searchPageRoute),
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            height: 48.h,
+                            padding: EdgeInsets.symmetric(horizontal: 14.w),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16.r),
+                              border: Border.all(
+                                color: const Color(0xFFF1F5F9),
+                                width: 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF0F172A)
+                                      .withValues(alpha: 0.06),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/svg/search-zoom-in.svg',
+                                  width: 18.w,
+                                  height: 18.w,
+                                  colorFilter: const ColorFilter.mode(
+                                    Color(0xFF68768E),
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                SizedBox(width: 10.w),
+                                Expanded(
+                                  child: Text(
+                                    'Search for stations..',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: kFontFamily,
+                                      fontSize: 13.5.sp,
+                                      fontWeight: FontWeight.w400,
+                                      color: const Color(0xFF68768E),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+
+                      // Wallet Balance Card
+                      GestureDetector(
+                        onTap: () => Get.toNamed(Routes.walletPageRoute),
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          height: 48.h,
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(
+                              color: const Color(0xFFDBEAFE),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0F172A)
+                                    .withValues(alpha: 0.06),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 32.w,
+                                height: 32.w,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0049C2),
+                                  borderRadius: BorderRadius.circular(8.r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                alignment: Alignment.center,
+                                child: SvgPicture.asset(
+                                  'assets/svg/figma_wallet.svg',
+                                  width: 16.w,
+                                  height: 16.w,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'BALANCE',
+                                    style: TextStyle(
+                                      fontFamily: kFontFamily,
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFFA0AABD),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  Obx(
+                                    () => Text(
+                                      '₹${appData.userModel.value.balanceAmount.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontFamily: kFontFamily,
+                                        fontSize: 13.5.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF121D31),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10.h),
+
+                // Horizontal Quick Filter Pills
+                _buildQuickFilterPills(),
+              ],
+            ),
+          ),
+
+          // 3. Floating Action Buttons (Attached directly above the bottom sheet top edge)
+          Obx(() {
+            final bottomOffset = (sheetExtent.value * screenHeight) + 14.h;
+            return Positioned(
+              right: 16.w,
+              bottom: bottomOffset,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // GPS Recenter Button
+                  GestureDetector(
+                    onTap: controller.onLocationTap,
+                    child: Container(
+                      width: 44.w,
+                      height: 44.w,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFF3F4F6),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: SvgPicture.asset(
+                        'assets/svg/location_searching.svg',
+                        width: 20.w,
+                        height: 20.w,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF121D31),
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+
+                  // QR Scanner Blue FAB
+                  GestureDetector(
+                    onTap: controller.onQrScan,
+                    child: Container(
+                      width: 48.w,
+                      height: 48.w,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0049C2),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: SvgPicture.asset(
+                        'assets/svg/qr_scan.svg',
+                        width: 22.w,
+                        height: 22.w,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          // 4. Draggable Bottom Sheet with Full Header Draggability
+          _buildDraggableBottomSheet(),
+        ],
+      ),
+    );
+  }
+
+  // Quick Filter Horizontal Scroll Row matching Figma
+  Widget _buildQuickFilterPills() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Obx(() {
+        final currentFilter = controller.selectedQuickFilter.value;
+
+        return Row(
+          children: [
+            // Filter 0: Fast Chargers (>50kW)
+            _buildFilterPill(
+              index: 0,
+              label: 'Fast Chargers (>50kW)',
+              isSelected: currentFilter == 0,
+              prefixWidget: Container(
+                width: 6.w,
+                height: 6.w,
+                decoration: BoxDecoration(
+                  color: currentFilter == 0 ? Colors.white : const Color(0xFF03E8BE),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
+
+            // Filter 1: Available Now (with exact 4-point Sparkle SVG)
+            _buildFilterPill(
+              index: 1,
+              label: 'Available Now',
+              isSelected: currentFilter == 1,
+              prefixWidget: SvgPicture.asset(
+                'assets/svg/figma_sparkle.svg',
+                width: 12.w,
+                height: 12.w,
+                colorFilter: ColorFilter.mode(
+                  currentFilter == 1 ? Colors.white : const Color(0xFF01B1E1),
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
+
+            // Filter 2: CCS2 / Type 2
+            _buildFilterPill(
+              index: 2,
+              label: 'CCS2 / Type 2',
+              isSelected: currentFilter == 2,
+            ),
+            SizedBox(width: 8.w),
+
+            // Filter 3: 24/7 Open
+            _buildFilterPill(
+              index: 3,
+              label: '24/7 Open',
+              isSelected: currentFilter == 3,
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildFilterPill({
+    required int index,
+    required String label,
+    required bool isSelected,
+    Widget? prefixWidget,
+  }) {
+    return GestureDetector(
+      onTap: () => controller.toggleQuickFilter(index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF0049C2)
+              : Colors.white.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(100.r),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF0049C2)
+                : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? const Color(0xFF0049C2).withValues(alpha: 0.25)
+                  : const Color(0xFF0F172A).withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (prefixWidget != null) ...[
+              prefixWidget,
+              SizedBox(width: 6.w),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: kFontFamily,
+                fontSize: 12.sp,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? Colors.white : const Color(0xFF121D31),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Instagram Comment-Section Style Draggable Bottom Sheet with Full Header Draggability
+  Widget _buildDraggableBottomSheet() {
+    return DraggableScrollableSheet(
+      controller: sheetController,
+      initialChildSize: 0.44,
+      minChildSize: 0.18,
+      maxChildSize: 0.88,
+      snap: true,
+      snapSizes: const [0.18, 0.44, 0.88],
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(36.r),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF01B1E1).withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: CustomScrollView(
+            controller: scrollController,
+            physics: const ClampingScrollPhysics(),
+            slivers: [
+              // Pinned/Draggable Header area inside CustomScrollView
+              SliverToBoxAdapter(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    // Handle Bar
+                    Center(
+                      child: Container(
+                        width: 44.w,
+                        height: 4.5.h,
+                        margin: EdgeInsets.only(top: 10.h, bottom: 12.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(100.r),
+                        ),
+                      ),
+                    ),
+
+                    // Sheet Header
                     Padding(
-                      padding: EdgeInsets.only(right: 8.w),
-                      child: Column(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 4.h,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          PositionedButton(
-                            svgUrl: 'assets/svg/refresh-ccw.svg',
-                            svgColor: Colors.grey.shade700,
-                            bgColor: Colors.white,
-                            onTap: controller.onReload,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Obx(
+                                        () => Text(
+                                          '${controller.displayStations.length} stations nearby',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontFamily: kFontFamily,
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF0F172A),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    // Dynamic Location / City Pill
+                                    Obx(() {
+                                      final city = MapFunctions()
+                                              .curPosName
+                                              .value
+                                              .isNotEmpty
+                                          ? MapFunctions().curPosName.value
+                                          : (controller.displayStations.isNotEmpty &&
+                                                  controller.displayStations.first
+                                                      .address.isNotEmpty
+                                              ? controller
+                                                  .displayStations.first.address
+                                                  .split(',')
+                                                  .first
+                                                  .trim()
+                                              : 'Kochi');
+                                      return Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8.w,
+                                          vertical: 3.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFDBEAFE),
+                                          borderRadius:
+                                              BorderRadius.circular(100.r),
+                                        ),
+                                        child: Text(
+                                          city,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontFamily: kFontFamily,
+                                            fontSize: 11.sp,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF1D4ED8),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                                SizedBox(height: 2.h),
+                                Text(
+                                  'Sorted by fastest charging & distance',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontFamily: kFontFamily,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          PositionedButton(
-                            svgUrl: 'assets/svg/tune.svg',
-                            svgColor: Colors.grey.shade700,
-                            bgColor: Colors.white,
-                            onTap: controller.onFilterTap,
-                          ),
-                          PositionedButton(
-                              svgUrl: 'assets/svg/location_searching.svg',
-                              svgColor: Colors.grey.shade700,
-                              bgColor: Colors.white,
-                              onTap: controller.onLocationTap),
-                          PositionedButton(
-                            svgUrl: 'assets/svg/qr_scan.svg',
-                            svgColor: Colors.white,
-                            bgColor: kOnboardingColors,
-                            onTap: controller.onQrScan,
+                          SizedBox(width: 8.w),
+
+                          // Filter & Refresh Action Circle Buttons (matching Figma)
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: controller.onFilterTap,
+                                child: Container(
+                                  width: 40.w,
+                                  height: 40.w,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.04),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: SvgPicture.asset(
+                                    'assets/svg/tune.svg',
+                                    width: 16.w,
+                                    height: 16.w,
+                                    colorFilter: const ColorFilter.mode(
+                                      Color(0xFF334155),
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              GestureDetector(
+                                onTap: controller.onReload,
+                                child: Container(
+                                  width: 40.w,
+                                  height: 40.w,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.04),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: SvgPicture.asset(
+                                    'assets/svg/refresh-ccw.svg',
+                                    width: 16.w,
+                                    height: 16.w,
+                                    colorFilter: const ColorFilter.mode(
+                                      Color(0xFF334155),
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      width: size.width,
-                      padding: EdgeInsets.symmetric(vertical: 10.h),
-                      child: Obx(
-                        () => CarouselSlider(
-                          carouselController: controller.carouselController
-                              .value as CarouselSliderController?,
-                          items: controller.cards,
-                          options: CarouselOptions(
-                            height: 160.h,
-                            enlargeCenterPage: true,
-                            padEnds: true,
-                            onPageChanged: (index, reason) {
-                              LatLng latlng = MapFunctions()
-                                  .markers_homepage
-                                  .toList()[index]
-                                  .position;
-                              MapFunctions().animateToNewPosition(
-                                LatLng(latlng.latitude, latlng.longitude),
-                              );
-                            },
-                          ),
-                        ),
+
+                    Padding(
+                      padding: EdgeInsets.only(top: 8.h),
+                      child: const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Color(0xFFF1F5F9),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
-              // Positioned(
-              //     bottom: size.height * .03,
-              //     right: size.width * .03,
-              //     child: Padding(
-              //       padding: const EdgeInsets.all(8.0),
-              //       child: PageView(
-              //           controller: controller.pageController,
-              //           children: [
-              //             Container(
-              //               height: size.height * 0.2,
-              //               width: size.width * 0.85,
-              //               decoration: BoxDecoration(
-              //                 borderRadius: BorderRadius.circular(20),
-              //                 color: Colors.white,
-              //               ),
-              //             ),
-              //             Container(
-              //               height: size.height * 0.2,
-              //               width: size.width * 0.85,
-              //               decoration: BoxDecoration(
-              //                 borderRadius: BorderRadius.circular(20),
-              //                 color: Colors.white,
-              //               ),
-              //             ),
-              //           ]),
-              //     ))
-              // Positioned(
-              //     bottom: size.height * .03,
-              //     right: size.width * .03,
-              //     child: Container(
-              //         padding: EdgeInsets.all(size.width * .037),
-              //         decoration: BoxDecoration(
-              //             shape: BoxShape.circle,
-              //             color: kOnboardingColors,
-              //             boxShadow: [
-              //               BoxShadow(
-              //                   blurRadius: 10, color: Colors.grey.shade400)
-              //             ]),
-              //         child: InkWell(
-              //           onTap: () {
-              //             Get.toNamed(Routes.qrScanPageRoute);
-              //           },
-              //           child: SvgPicture.asset(
-              //             'assets/svg/qr_scan.svg',
-              //             height: 22,
-              //             width: 22,
-              //             color: Colors.white,
-              //           ),
-              //         ))),
-            ],
-          ),
-        ),
-      ),
-    ),
-    );
-  }
-}
 
-class _SearchBar extends StatelessWidget {
-  const _SearchBar();
-
-  @override
-  Widget build(BuildContext context) => Positioned(
-        top: 20.h,
-        left: 0,
-        right: 0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            GestureDetector(
-              onTap: () => Get.toNamed(Routes.searchPageRoute),
-              child: Container(
-                height: 48.w,
-                margin: EdgeInsets.symmetric(horizontal: 20.w),
-                padding: EdgeInsets.only(left: 16.w),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(83),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      height: 22.sp,
-                      'assets/svg/search-zoom-in.svg',
-                    ),
-                    SizedBox(width: 15.w),
-                    Text(
-                      'Search for stations',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: Color(0xffBDBDBD),
+              // Station Card List (SliverList so drag gestures work everywhere)
+              Obx(() {
+                final stations = controller.displayStations;
+                if (stations.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24.w,
+                        vertical: 40.h,
                       ),
-                    ),
-                    Spacer(),
-                    GestureDetector(
-                      onTap: () => Get.toNamed(Routes.directionsPageRoute),
-                      child: Container(
-                        width: 60.w,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.horizontal(
-                            right: Radius.circular(83),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.ev_station_rounded,
+                            size: 48.sp,
+                            color: const Color(0xFFCBD5E1),
                           ),
-                          color: Color(0xffC7C7C7),
-                        ),
-                        alignment: Alignment.center,
-                        child: Image.asset(
-                          kaGisRoute,
-                          height: 27.sp,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 10.h),
-            GestureDetector(
-              onTap: () => Get.toNamed(Routes.walletPageRoute),
-              child: Container(
-                height: 46.h,
-                margin: EdgeInsets.symmetric(horizontal: 20.w),
-                padding: EdgeInsets.symmetric(horizontal: 15.w),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      kaWalletBlue,
-                      height: 28.sp,
-                      fit: BoxFit.contain,
-                    ),
-                    SizedBox(width: 10.w),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Wallet Balance',
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            color: Color(0xffBDBDBD),
-                          ),
-                        ),
-                        Obx(
-                          () => Text(
-                            appData.userModel.value.balanceAmount
-                                .toStringAsFixed(2),
+                          SizedBox(height: 12.h),
+                          Text(
+                            'No stations found',
                             style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
+                              fontFamily: kFontFamily,
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF121D31),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            )
-          ],
-        ),
-      );
+                          SizedBox(height: 4.h),
+                          Text(
+                            'Try clearing quick filters or refresh location',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: kFontFamily,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF94A3B8),
+                            ),
+                          ),
+                          if (controller.selectedQuickFilter.value != -1) ...[
+                            SizedBox(height: 12.h),
+                            TextButton(
+                              onPressed: () {
+                                controller.selectedQuickFilter.value = -1;
+                                controller.reload++;
+                              },
+                              child: Text(
+                                'Clear Filter',
+                                style: TextStyle(
+                                  fontFamily: kFontFamily,
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF0049C2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 24.h),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final station = stations[index];
+                        return StationCardItem(
+                          station: station,
+                          onTap: () {
+                            controller.getChargeStationDetails(
+                              station.id,
+                              isCardTap: true,
+                            );
+                          },
+                        );
+                      },
+                      childCount: stations.length,
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

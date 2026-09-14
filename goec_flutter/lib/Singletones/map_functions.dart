@@ -15,7 +15,7 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:google_place_plus/google_place_plus.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_directions_api/google_directions_api.dart';
-import 'package:freelancer_app/Controller/homepage_controller.dart';
+import '../Controller/homepage_controller.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class MapFunctions {
@@ -190,16 +190,51 @@ class MapFunctions {
   }
 
   Future<Position?> getLastLocation() async {
-    return await Geolocator.getLastKnownPosition();
+    try {
+      if (await isLocationPermissionGranted()) {
+        final pos = await Geolocator.getLastKnownPosition();
+        if (pos != null) {
+          curPos = pos;
+          initCameraPosition(LatLng(pos.latitude, pos.longitude));
+          getMyLocationNameAndPlaceId();
+        }
+        return pos;
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<Position?> getCurrentPosition() async {
     isFocused = true;
     if (await checkLocationPermission()) {
       try {
-        return await Geolocator.getCurrentPosition(
-            timeLimit: Duration(seconds: 15));
+        // Fast path 1: Instant cached last-known position
+        Position? lastKnown = await Geolocator.getLastKnownPosition();
+        if (lastKnown != null) {
+          curPos = lastKnown;
+          initCameraPosition(LatLng(lastKnown.latitude, lastKnown.longitude));
+          getMyLocationNameAndPlaceId();
+        }
+
+        // Fast path 2: High-accuracy position with 5s timeout
+        Position? current = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 5),
+        );
+        if (current != null) {
+          curPos = current;
+          initCameraPosition(LatLng(current.latitude, current.longitude));
+          getMyLocationNameAndPlaceId();
+          return current;
+        }
+        return lastKnown ?? (curPos != kPosition ? curPos : null);
       } catch (e) {
+        if (curPos != kPosition) return curPos;
+        final fallback = await Geolocator.getLastKnownPosition();
+        if (fallback != null) {
+          curPos = fallback;
+          return fallback;
+        }
         return null;
       }
     }
@@ -211,7 +246,13 @@ class MapFunctions {
       if ((await checkLocationPermission())) {
         startMapTimer();
         getHeading();
-        mapStream = await Geolocator.getPositionStream().listen((event) async {
+        mapStream?.cancel();
+        mapStream = Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen((event) async {
           curPos = event;
           updateMarkers(event);
         });

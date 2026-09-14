@@ -8,7 +8,6 @@ import '../Utils/utils.dart';
 import 'chargePage_controller.dart';
 import 'package:flutter_svg/svg.dart';
 import '../Singletones/app_data.dart';
-import 'package:flutter/material.dart';
 import '../View/Homepage/homepage.dart';
 // ignore_for_file: deprecated_member_use
 import '../Model/activeSessionModel.dart';
@@ -166,7 +165,7 @@ class HomePageController extends GetxController {
       Get.put(WalletPageController());
   final NotificationScreenController notificationController =
       Get.put(NotificationScreenController());
-  List<StationMarkerModel> station_marker_list = [];
+  RxList<StationMarkerModel> station_marker_list = <StationMarkerModel>[].obs;
   Debouncer debouncer = Debouncer(milliseconds: 3000);
   RxList<Widget> cards = RxList();
 
@@ -194,14 +193,34 @@ class HomePageController extends GetxController {
   }
 
   Future<void> _bootstrapLocation() async {
-    Position? pos = await MapFunctions().getCurrentPosition();
+    // 1. Instantly use cached last location (0ms) if available
+    Position? pos = await MapFunctions().getLastLocation();
     if (pos != null) {
-      getNearestChargestations(pos);
+      MapFunctions().curPos = pos;
+      MapFunctions().initCameraPosition(LatLng(pos.latitude, pos.longitude));
+      await getNearestChargestations(pos);
       MapFunctions().addMyPositionMarker(pos, MapFunctions().markers_homepage);
     }
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      MapFunctions().myPositionListener();
-    });
+
+    // 2. Fetch fresh high-accuracy position
+    Position? freshPos = await MapFunctions().getCurrentPosition();
+    if (freshPos != null) {
+      MapFunctions().curPos = freshPos;
+      MapFunctions().initCameraPosition(LatLng(freshPos.latitude, freshPos.longitude));
+      if (pos == null ||
+          Geolocator.distanceBetween(
+                pos.latitude,
+                pos.longitude,
+                freshPos.latitude,
+                freshPos.longitude,
+              ) >
+              500) {
+        await getNearestChargestations(freshPos);
+      }
+      MapFunctions().addMyPositionMarker(freshPos, MapFunctions().markers_homepage);
+    }
+
+    MapFunctions().myPositionListener();
   }
 
   @override
@@ -216,53 +235,34 @@ class HomePageController extends GetxController {
 
   onReload() async {
     CommonFunctions().getUserProfile();
-    if (MapFunctions().curPos == kPosition) {
-      Position? res = await MapFunctions().getCurrentPosition();
-      if (res != null) {
-        getNearestChargestations(res);
-      } else {
-        getNearestChargestations(Position(
-            headingAccuracy: 0,
-            altitudeAccuracy: 0,
-            longitude: MapFunctions().curPos.longitude,
-            latitude: MapFunctions().curPos.latitude,
-            timestamp: DateTime.now(),
-            accuracy: 0,
-            altitude: 0,
-            heading: 0,
-            speed: 0,
-            speedAccuracy: 0));
-      }
+    Position? pos = MapFunctions().curPos != kPosition
+        ? MapFunctions().curPos
+        : (await MapFunctions().getLastLocation() ??
+            await MapFunctions().getCurrentPosition());
+
+    if (pos != null) {
+      MapFunctions().curPos = pos;
+      await getNearestChargestations(pos);
     } else {
-      getNearestChargestations(Position(
-          headingAccuracy: 0,
-          altitudeAccuracy: 0,
-          longitude: MapFunctions().curPos.longitude,
-          latitude: MapFunctions().curPos.latitude,
-          timestamp: DateTime.now(),
-          accuracy: 0,
-          altitude: 0,
-          heading: 0,
-          speed: 0,
-          speedAccuracy: 0));
+      await getNearestChargestations(MapFunctions().curPos);
     }
 
     reload++;
   }
 
   onHomescreen() async {
-    station_marker_list = await CommonFunctions().getNearestChargstations(
-        Position(
-            headingAccuracy: 0,
-            altitudeAccuracy: 0,
-            longitude: MapFunctions().curPos.longitude,
-            latitude: MapFunctions().curPos.latitude,
-            timestamp: DateTime.now(),
-            accuracy: 0,
-            altitude: 0,
-            heading: 0,
-            speed: 0,
-            speedAccuracy: 0));
+    final list = await CommonFunctions().getNearestChargstations(Position(
+        headingAccuracy: 0,
+        altitudeAccuracy: 0,
+        longitude: MapFunctions().curPos.longitude,
+        latitude: MapFunctions().curPos.latitude,
+        timestamp: DateTime.now(),
+        accuracy: 0,
+        altitude: 0,
+        heading: 0,
+        speed: 0,
+        speedAccuracy: 0));
+    station_marker_list.assignAll(list);
     var _filterController = await Get.put(FilterScreenController());
     _filterController.station_marker_List = station_marker_list.toList();
     _filterController.applyFilter();
@@ -286,34 +286,160 @@ class HomePageController extends GetxController {
   }
 
   getNearestChargestations(Position pos) async {
+    MapFunctions().curPos = pos;
     showLoading('Fetching nearby charge stations.\nPlease wait...');
     await getActiveBooking(false, refresh: true);
-    station_marker_list = await CommonFunctions().getNearestChargstations(pos);
+    final fetched = await CommonFunctions().getNearestChargstations(pos);
     hideLoading();
+    station_marker_list.assignAll(fetched);
+
     /*Apply filter if applicable and use filterpage station_marker_list*/
     var _filterController = await Get.put(FilterScreenController());
     _filterController.station_marker_List = station_marker_list.toList();
     _filterController.applyFilter();
     _filterController.onClose();
 
-    // assignCardsToMapScreen(_filterController.station_marker_List);
-    // MapFunctions().markers_homepage.clear();
-    // int index = 0;
-    // _filterController.station_marker_List.forEach((element) {
-    //   MapFunctions().addMarkerHomePage(
-    //     id: element.id.toString(),
-    //     latLng: LatLng(element.lattitude, element.longitude),
-    //     isBusy: element.isBusy,
-    //     status: element.charger_status.trim(),
-    //     // element.charger_status.trim() != 'Connected' || element.isBusy,
-    //     controller: this,
-    //     carouselIndex: index,
-    //   );
-    //   index++;
-    // });
+    updateMapMarkers();
+    focusOnNearestStation();
+    reload++;
+  }
+
+  RxInt selectedQuickFilter = (-1).obs;
+
+  double calculateDistanceToStation(StationMarkerModel station) {
+    try {
+      final userLat = MapFunctions().curPos.latitude;
+      final userLng = MapFunctions().curPos.longitude;
+      if (userLat != 0 &&
+          userLng != 0 &&
+          station.latitude != 0 &&
+          station.longitude != 0) {
+        final dist = Geolocator.distanceBetween(
+              userLat,
+              userLng,
+              station.latitude,
+              station.longitude,
+            ) /
+            1000.0;
+        if (!dist.isNaN && !dist.isInfinite) {
+          return dist;
+        }
+      }
+    } catch (_) {}
+    return 999999.0;
+  }
+
+  List<StationMarkerModel> get displayStations {
+    reload.value;
+    List<StationMarkerModel> list = List.from(station_marker_list);
+
+    if (selectedQuickFilter.value == 0) {
+      // Fast Chargers (>50kW)
+      list = list.where((s) {
+        final cap = s.charger_capacity.toLowerCase();
+        final acDc = s.ac_dc.toLowerCase();
+        return acDc.contains('dc') ||
+            cap.contains('50') ||
+            cap.contains('60') ||
+            cap.contains('120') ||
+            cap.contains('150') ||
+            cap.contains('240') ||
+            cap.contains('kw') ||
+            s.ac_dc.isNotEmpty;
+      }).toList();
+    } else if (selectedQuickFilter.value == 1) {
+      // Available Now
+      list = list.where((s) {
+        final status = s.charger_status.toLowerCase();
+        return status == 'online' || status == 'available';
+      }).toList();
+    } else if (selectedQuickFilter.value == 2) {
+      // CCS2 / Type 2
+      list = list.where((s) {
+        return s.charger_type.any((t) {
+          final str = t.toString().toLowerCase();
+          return str.contains('ccs') ||
+              str.contains('type 2') ||
+              str.contains('type2');
+        });
+      }).toList();
+    } else if (selectedQuickFilter.value == 3) {
+      // 24/7 Open
+      list = list.where((s) {
+        return s.startTime.isEmpty ||
+            (s.startTime == '00:00' && s.stopTime == '23:59') ||
+            s.startTime.toLowerCase().contains('24') ||
+            s.startTime == s.stopTime;
+      }).toList();
+    }
+
+    list.sort((a, b) {
+      double distA = calculateDistanceToStation(a);
+      double distB = calculateDistanceToStation(b);
+      return distA.compareTo(distB);
+    });
+
+    return list;
+  }
+
+  void toggleQuickFilter(int index) {
+    if (selectedQuickFilter.value == index) {
+      selectedQuickFilter.value = -1;
+    } else {
+      selectedQuickFilter.value = index;
+    }
+    reload++;
+  }
+
+  void focusOnNearestStation() {
+    if (station_marker_list.isEmpty) return;
+    StationMarkerModel? nearest;
+    double minDistance = double.infinity;
+    for (var station in station_marker_list) {
+      if (station.latitude != 0 && station.longitude != 0) {
+        double dist = calculateDistanceToStation(station);
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearest = station;
+        }
+      }
+    }
+    if (nearest != null) {
+      try {
+        MapFunctions().animateToNewPosition(
+          LatLng(nearest.latitude, nearest.longitude),
+          newZoom: 15.0,
+        );
+      } catch (_) {}
+    }
+  }
+
+  void updateMapMarkers() {
+    MapFunctions().markers_homepage.clear();
+    if (MapFunctions().curPos != kPosition) {
+      MapFunctions().addMyPositionMarker(
+          MapFunctions().curPos, MapFunctions().markers_homepage);
+    }
+    int index = 0;
+    for (var element in station_marker_list) {
+      if (element.latitude != 0 && element.longitude != 0) {
+        MapFunctions().addMarkerHomePage(
+          id: element.id.toString(),
+          latLng: LatLng(element.latitude, element.longitude),
+          controller: this,
+          status: element.charger_status.trim(),
+          carouselIndex: index,
+        );
+      }
+      index++;
+    }
+    reload++;
   }
 
   assignCardsToMapScreen(List<StationMarkerModel> list) {
+    if (list.isNotEmpty) {
+      station_marker_list.assignAll(list);
+    }
     cards.value = list.map((e) {
       double distance = 0;
       distance = (MapFunctions.distanceBetweenCoordinates(

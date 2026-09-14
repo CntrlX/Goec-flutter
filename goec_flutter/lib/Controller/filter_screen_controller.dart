@@ -1,4 +1,4 @@
-import 'package:freelancer_app/Controller/homepage_controller.dart';
+import 'homepage_controller.dart';
 import 'package:freelancer_app/Model/stationMarkerModel.dart';
 import 'package:freelancer_app/Singletones/app_data.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
