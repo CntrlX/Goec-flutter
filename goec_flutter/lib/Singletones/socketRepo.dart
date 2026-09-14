@@ -46,6 +46,10 @@ class SocketRepo {
 
   closeSocket() async {
     logger.e('called close socket');
-    channel?.sink.close(status.goingAway);
+    try {
+      await channel?.sink.close(status.normalClosure);
+    } catch (e) {
+      kLog('Error closing socket: $e');
+    }
   }
 }
