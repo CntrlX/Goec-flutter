@@ -7,8 +7,9 @@ const SystemUiOverlayStyle kWhiteStatusBarStyle = SystemUiOverlayStyle(
   statusBarColor: Colors.white,
   statusBarIconBrightness: Brightness.dark,
   statusBarBrightness: Brightness.light,
-  systemNavigationBarColor: Colors.transparent,
+  systemNavigationBarColor: Colors.white,
   systemNavigationBarIconBrightness: Brightness.dark,
+  systemNavigationBarDividerColor: Colors.transparent,
 );
 
 /// Wraps a page so the status bar is white with black icons.
@@ -30,8 +31,9 @@ const SystemUiOverlayStyle kBlueStatusBarStyle = SystemUiOverlayStyle(
   statusBarColor: Color(0xFF0049C2),
   statusBarIconBrightness: Brightness.light,
   statusBarBrightness: Brightness.dark,
-  systemNavigationBarColor: Colors.transparent,
+  systemNavigationBarColor: Colors.white,
   systemNavigationBarIconBrightness: Brightness.dark,
+  systemNavigationBarDividerColor: Colors.transparent,
 );
 
 /// Wraps a page so the status bar is blue with white icons.

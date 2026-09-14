@@ -38,6 +38,9 @@ class _ProfilePageAliveState extends State<ProfilePageAlive>
             child: AnnotatedRegion<SystemUiOverlayStyle>(
               value: SystemUiOverlayStyle.light.copyWith(
                 statusBarColor: Colors.transparent,
+                systemNavigationBarColor: Colors.white,
+                systemNavigationBarIconBrightness: Brightness.dark,
+                systemNavigationBarDividerColor: Colors.transparent,
               ),
               child: SafeArea(
               bottom: false,

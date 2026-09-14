@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -58,9 +59,18 @@ class _MapScreenState extends State<MapScreen>
     super.build(context);
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
         children: [
           // 1. Google Map
           Positioned.fill(
@@ -347,8 +357,9 @@ class _MapScreenState extends State<MapScreen>
           _buildDraggableBottomSheet(),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // Quick Filter Horizontal Scroll Row matching Figma
   Widget _buildQuickFilterPills() {

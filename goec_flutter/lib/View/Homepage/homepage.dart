@@ -7,6 +7,7 @@ import 'help_page_alive.dart';
 import '../../Utils/routes.dart';
 import 'notification_page_alive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../Singletones/app_data.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:freelancer_app/Utils/utils.dart';
@@ -62,8 +63,8 @@ class _HomePageScreenState extends State<HomePageScreen> {
   Future<void> _precacheNavArt() async {
     if (!mounted) return;
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final iconSize = 24.sp;
-    final fabSize = 72.sp;
+    final iconSize = 26.sp;
+    final fabSize = 76.sp;
 
     await Future.wait([
       ..._navIcons.where((e) => e.isNotEmpty).map(
@@ -158,9 +159,18 @@ class _HomePageScreenState extends State<HomePageScreen> {
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
     kContext = context;
-    return appData.userModel.value.username.isNotEmpty
-        ? Scaffold(
-            backgroundColor: kDefaultHomePageBackgroundColor,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: appData.userModel.value.username.isNotEmpty
+          ? Scaffold(
+            backgroundColor: Colors.white,
             body: PageView(
               controller: controller.pageController,
               physics: const NeverScrollableScrollPhysics(),
@@ -185,23 +195,36 @@ class _HomePageScreenState extends State<HomePageScreen> {
                 final charging = SocketRepo().isCharging.value;
                 final fabImage = charging ? _fabGreen : _fabBlue;
                 return Container(
+                  width: 76.sp,
+                  height: 76.sp,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2.7.w,
+                    ),
                     boxShadow: charging
                         ? const [
                             BoxShadow(
                               color: Colors.green,
-                              blurRadius: 20,
+                              blurRadius: 16,
                               spreadRadius: -1,
                             ),
                           ]
-                        : const [],
+                        : const [
+                            BoxShadow(
+                              color: Color(0x200049C2),
+                              offset: Offset(0, 4),
+                              blurRadius: 12,
+                              spreadRadius: 0,
+                            ),
+                          ],
                   ),
                   child: fabImage != null
                       ? RawImage(
                           image: fabImage,
-                          width: 72.sp,
-                          height: 72.sp,
+                          width: 76.sp,
+                          height: 76.sp,
                           fit: BoxFit.contain,
                           filterQuality: FilterQuality.low,
                         )
@@ -210,8 +233,8 @@ class _HomePageScreenState extends State<HomePageScreen> {
                               ? 'assets/svg/logo_green.svg'
                               : 'assets/svg/logo_blue.svg',
                           fit: BoxFit.contain,
-                          width: 72.sp,
-                          height: 72.sp,
+                          width: 76.sp,
+                          height: 76.sp,
                         ),
                 );
               }),
@@ -219,10 +242,32 @@ class _HomePageScreenState extends State<HomePageScreen> {
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
             bottomNavigationBar: Obx(
-              () => AnimatedBottomNavigationBar.builder(
-                notchMargin: -50,
-                itemCount: 5,
-                tabBuilder: (index, isActive) {
+              () => Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(28.r),
+                    topRight: Radius.circular(28.r),
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 16,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(28.r),
+                    topRight: Radius.circular(28.r),
+                  ),
+                  child: AnimatedBottomNavigationBar.builder(
+                    notchMargin: -50,
+                    itemCount: 5,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    tabBuilder: (index, isActive) {
                   const activeColor = Color(0xFF0049C2);
                   const inactiveColor = Color(0xFFA0AABD);
                   final itemColor = isActive ? activeColor : inactiveColor;
@@ -242,8 +287,8 @@ class _HomePageScreenState extends State<HomePageScreen> {
                           ),
                           child: RawImage(
                             image: cached,
-                            width: 24.sp,
-                            height: 24.sp,
+                            width: 26.sp,
+                            height: 26.sp,
                             fit: BoxFit.contain,
                             filterQuality: FilterQuality.low,
                           ),
@@ -251,8 +296,8 @@ class _HomePageScreenState extends State<HomePageScreen> {
                       else
                         SvgPicture.asset(
                           asset,
-                          width: 24.sp,
-                          height: 24.sp,
+                          width: 26.sp,
+                          height: 26.sp,
                           colorFilter: ColorFilter.mode(
                             itemColor,
                             BlendMode.srcIn,
@@ -279,16 +324,19 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   );
                 },
                 activeIndex: controller.activeIndex.value,
-                height: size.height * .085,
+                height: 80.h,
                 gapLocation: GapLocation.none,
                 notchSmoothness: NotchSmoothness.defaultEdge,
                 onTap: _onTabTap,
               ),
             ),
-          )
-        : Scaffold(
-            body: MapScreen(),
-          );
+          ),
+        ),
+      )
+      : const Scaffold(
+          body: MapScreen(),
+        ),
+    );
   }
 }
 
