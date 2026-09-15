@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:freelancer_app/Bindings/aboutpage_bindings.dart';
 import 'package:freelancer_app/Bindings/bookaslot_screen_binding.dart';
 import 'package:freelancer_app/Bindings/calista_cafePage_bindings.dart';
@@ -79,27 +80,40 @@ abstract class AppPages {
     GetPage(
       name: Routes.splashpageRoute,
       binding: SplashScreenBinding(),
-      page: () => SplashScreen(),
+      page: () => const SplashScreen(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 400),
     ),
     GetPage(
       name: Routes.loginpageRoute,
       binding: LoginPageBinding(),
-      page: () => LoginPage(),
+      page: () => const LoginPage(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 400),
     ),
     GetPage(
       name: Routes.enternumberpageRoute,
       binding: LoginPageBinding(),
-      page: () => EnterNumberPage(),
+      page: () => const EnterNumberPage(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
     ),
     GetPage(
       name: Routes.enterotppageRoute,
       binding: OtpScreenBindings(),
-      page: () => EnterOtpPage(),
+      page: () => const EnterOtpPage(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
     ),
     GetPage(
       name: Routes.addNameEmailPageRoute,
       binding: LoginPageBinding(),
       page: () => WelcomeToEvPage(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
     ),
 
     GetPage(

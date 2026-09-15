@@ -105,6 +105,7 @@ class _MyAppState extends State<MyApp> {
             ),
             initialRoute: Routes.splashpageRoute,
             getPages: AppPages.pages,
+            defaultTransition: Transition.rightToLeftWithFade,
           );
         }));
   }
