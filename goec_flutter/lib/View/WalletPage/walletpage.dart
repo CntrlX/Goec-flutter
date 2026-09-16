@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:freelancer_app/Utils/app_datetime.dart';
 
 import '../../Controller/walletPage_controller.dart';
 import '../../Model/orderModel.dart';
@@ -30,20 +31,6 @@ class _WalletScreenState extends State<WalletScreen>
 
   static final NumberFormat _balanceFormat =
       NumberFormat("#,##,##0.00", "en_IN");
-  static final DateFormat _displayDateFormat =
-      DateFormat('dd MMM yyyy, hh:mm a');
-  static const List<String> _dateParseFormats = [
-    'dd-MM-yyyy hh:mma',
-    'dd-MM-yyyy HH:mm:ss',
-    'dd-MM-yyyy hh:mm a',
-    'dd/MM/yyyy HH:mm:ss',
-    'dd/MM/yyyy hh:mm a',
-    'dd/MM/yyyy',
-    'dd-MM-yyyy',
-    'yyyy-MM-dd HH:mm:ss',
-    'yyyy-MM-ddTHH:mm:ss.SSSZ',
-    'yyyy-MM-ddTHH:mm:ss',
-  ];
 
   static const String _chargingBadgeAsset =
       'assets/svg/wallet_charging_badge.svg';
@@ -673,22 +660,11 @@ class _WalletScreenState extends State<WalletScreen>
     final cached = _dateCache[trimmed];
     if (cached != null) return cached;
 
-    String result = trimmed;
-    try {
-      DateTime? dt = DateTime.tryParse(trimmed)?.toLocal();
-      if (dt == null) {
-        for (final f in _dateParseFormats) {
-          try {
-            dt = DateFormat(f).parseLoose(trimmed).toLocal();
-            break;
-          } catch (_) {}
-        }
-      }
-      if (dt != null) {
-        result = _displayDateFormat.format(dt);
-      }
-    } catch (_) {}
-
+    final result = AppDateTime.format(
+      trimmed,
+      useRawIfUnparsed: true,
+      fallback: '',
+    );
     _dateCache[trimmed] = result;
     return result;
   }

@@ -1,9 +1,9 @@
 import 'package:freelancer_app/Model/reviewMode.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
+import 'package:freelancer_app/Utils/app_datetime.dart';
 import 'package:freelancer_app/Utils/toastUtils.dart';
 import 'package:freelancer_app/constants.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'calista_cafePage_controller.dart';
@@ -39,7 +39,7 @@ class ReviewPageController extends GetxController {
     if (modelList.isEmpty) return '';
     DateTime? newest;
     for (final r in modelList) {
-      final t = _tryParseCreatedAt(r.createdAt);
+      final t = AppDateTime.parse(r.createdAt);
       if (t == null) continue;
       if (newest == null || t.isAfter(newest)) newest = t;
     }
@@ -71,21 +71,8 @@ class ReviewPageController extends GetxController {
     ratingCounts.assignAll(counts);
   }
 
-  static DateTime? _tryParseCreatedAt(String raw) {
-    if (raw.trim().isEmpty) return null;
-    try {
-      return DateFormat('dd-MM-yyyy hh:mma').parseLoose(raw);
-    } catch (_) {
-      try {
-        return DateTime.parse(raw);
-      } catch (_) {
-        return null;
-      }
-    }
-  }
-
   String timeAgoFor(ReviewModel model) {
-    final t = _tryParseCreatedAt(model.createdAt);
+    final t = AppDateTime.parse(model.createdAt);
     if (t == null) return '';
     return timeago.format(t);
   }

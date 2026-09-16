@@ -11,6 +11,7 @@ import 'package:validators/validators.dart';
 import '../Singletones/app_data.dart';
 import '../constants.dart';
 import 'SharedPreferenceUtils.dart';
+import 'app_datetime.dart';
 
 /// Charger-type icon path used by [filter_screen] (`assets/svg/${title.toLowerCase()}.svg`).
 /// Maps common API variants (CCS, Type2, CHAdeMO, …) onto those same assets.
@@ -150,10 +151,12 @@ List<dynamic> calculateAvailabiliy(
 
 String getTimeFromTimeStamp(String timestamp, String format) {
   if (timestamp.isEmpty) return '00:00 AM';
-  DateTime dateTime = DateTime.parse(timestamp).toLocal();
-  String formattedString = DateFormat(format).format(dateTime);
-  //formattedString);
-  return formattedString;
+  return AppDateTime.format(
+    timestamp,
+    pattern: format,
+    fallback: '00:00 AM',
+    useRawIfUnparsed: true,
+  );
 }
 
 String convertToPmFormat(String time) {
@@ -204,66 +207,33 @@ Future<String> getDownloadFolderpath() async {
 }
 
 getTimeDifference({required String startTime, required String endtime}) {
-  if (startTime.isEmpty || endtime.isEmpty) return [0, 0];
-  DateTime apiTime = DateTime.parse(startTime).toLocal();
+  if (startTime.isEmpty) return [0, 0];
+  final start = AppDateTime.parse(startTime);
+  final end = endtime.isNotEmpty
+      ? AppDateTime.parse(endtime)
+      : DateTime.now().toLocal();
+  if (start == null || end == null) return [0, 0];
 
-// Get the current time
-  DateTime now = DateTime.now().toLocal();
-  if (endtime.isNotEmpty) now = DateTime.parse(endtime).toLocal();
-
-  print(apiTime);
-  print(now);
-
-// Calculate the time difference in milliseconds
-  int difference = now.difference(apiTime).inMilliseconds;
-
-// Calculate the hours and minutes difference
-  int hours = (difference / (1000 * 60 * 60)).floor();
-  int minutes = ((difference / (1000 * 60)) % 60).floor();
+  final difference = end.difference(start).inMilliseconds;
+  if (difference < 0) return [0, 0];
+  final hours = (difference / (1000 * 60 * 60)).floor();
+  final minutes = ((difference / (1000 * 60)) % 60).floor();
   return [hours, minutes];
 }
 
 String dateFromTimeStamp(String input) {
-  final parsedDate = DateFormat('dd-MM-yyyy hh:mm a').parseStrict(input);
-  return parsedDate.toLocal().toString();
+  final parsed = AppDateTime.parse(input);
+  return parsed?.toString() ?? input;
 }
 
 List<int> getTimeDifferenceforHistory(
     {required String startTime, required String endTime}) {
-  if (startTime.isEmpty || endTime.isEmpty) return [0, 0];
-  DateTime startDateTime = parseDateTime(startTime);
-  DateTime endDateTime = parseDateTime(endTime);
-
-  // Convert to local time
-  startDateTime = startDateTime.toLocal();
-  endDateTime = endDateTime.toLocal();
-
-  // Calculate the time difference in milliseconds
-  int difference = endDateTime.difference(startDateTime).inMilliseconds;
-
-  // Calculate the hours and minutes difference
-  int hours = (difference / (1000 * 60 * 60)).floor();
-  int minutes = ((difference / (1000 * 60)) % 60).floor();
-
-  return [hours, minutes];
+  return AppDateTime.differenceHoursMinutes(startTime, endTime);
 }
 
+/// Prefer [AppDateTime.parse]. Kept for older call sites.
 DateTime parseDateTime(String input) {
-  List<String> parts = input.split(' ');
-  List<String> dateParts = parts[0].split('-');
-  List<String> timeParts = parts[1].split(':');
-
-  int year = int.parse(dateParts[2]);
-  int month = int.parse(dateParts[1]);
-  int day = int.parse(dateParts[0]);
-  int hour = int.parse(timeParts[0]);
-  int minute = int.parse(timeParts[1]);
-
-  if (parts.length > 2 && parts[2] == 'PM' && hour != 12) {
-    hour += 12;
-  }
-
-  return DateTime(year, month, day, hour, minute);
+  return AppDateTime.parse(input) ?? DateTime.now().toLocal();
 }
 
 String extractPhoneNumber(String phoneNumber) {

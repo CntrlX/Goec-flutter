@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:freelancer_app/Utils/app_datetime.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../Controller/homepage_controller.dart';
 import '../../Controller/notification_screen_controller.dart';
@@ -26,12 +26,7 @@ class _NotiPageAliveState extends State<NotiPageAlive>
   final HomePageController controller = Get.find();
 
   String _formatDate(String dateStr) {
-    try {
-      final dt = DateTime.parse(dateStr).toLocal();
-      return DateFormat('hh:mm a').format(dt);
-    } catch (_) {
-      return dateStr.isNotEmpty ? dateStr : '11:37 AM';
-    }
+    return AppDateTime.formatTime(dateStr, fallback: dateStr.isNotEmpty ? dateStr : '--');
   }
 
   @override

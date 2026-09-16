@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
+import 'package:freelancer_app/Utils/app_datetime.dart';
 
 import '../../Model/orderModel.dart';
 import '../../constants.dart';
@@ -74,36 +74,6 @@ class WalletTransactionModalContent extends StatelessWidget {
     required this.model,
   });
 
-  static final DateFormat _dateFormat = DateFormat('dd MMM yyyy');
-  static final DateFormat _timeFormat = DateFormat('hh:mm a');
-  static final DateFormat _fullFormat = DateFormat('dd MMM yyyy, hh:mm a');
-  static const List<String> _dateParseFormats = [
-    'dd-MM-yyyy hh:mma',
-    'dd-MM-yyyy HH:mm:ss',
-    'dd-MM-yyyy hh:mm a',
-    'dd/MM/yyyy HH:mm:ss',
-    'dd/MM/yyyy hh:mm a',
-    'dd/MM/yyyy',
-    'dd-MM-yyyy',
-    'yyyy-MM-dd HH:mm:ss',
-    'yyyy-MM-ddTHH:mm:ss.SSSZ',
-    'yyyy-MM-ddTHH:mm:ss',
-  ];
-
-  DateTime? _parseDate(String raw) {
-    final trimmed = raw.trim();
-    if (trimmed.isEmpty) return null;
-    DateTime? dt = DateTime.tryParse(trimmed)?.toLocal();
-    if (dt != null) return dt;
-    for (final f in _dateParseFormats) {
-      try {
-        dt = DateFormat(f).parseLoose(trimmed).toLocal();
-        return dt;
-      } catch (_) {}
-    }
-    return null;
-  }
-
   bool get _isDebit {
     final t = model.type.toLowerCase();
     return t.contains('charging') ||
@@ -126,10 +96,9 @@ class WalletTransactionModalContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    final parsedDt = _parseDate(model.createdAt);
-    final dateStr = parsedDt != null ? _dateFormat.format(parsedDt) : (model.createdAt.isNotEmpty ? model.createdAt : '--');
-    final timeStr = parsedDt != null ? _timeFormat.format(parsedDt) : '--';
-    final fullDateStr = parsedDt != null ? _fullFormat.format(parsedDt) : (model.createdAt.isNotEmpty ? model.createdAt : '--');
+    final dateStr = AppDateTime.formatDate(model.createdAt);
+    final timeStr = AppDateTime.formatTime(model.createdAt);
+    final fullDateStr = AppDateTime.format(model.createdAt, useRawIfUnparsed: true);
 
     final statusLower = model.status.toLowerCase();
     final isSuccess = statusLower == 'success' || statusLower == 'completed';

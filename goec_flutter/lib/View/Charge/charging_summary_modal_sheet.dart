@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:freelancer_app/Utils/app_datetime.dart';
 
 import '../../Model/chargeTransactionModel.dart';
 import '../../Singletones/common_functions.dart';
@@ -76,30 +76,7 @@ class ChargingSummaryModalContent extends StatelessWidget {
   });
 
   String _formatDate(String dateRaw) {
-    if (dateRaw.isEmpty) return '--';
-    final formats = [
-      'dd-MM-yyyy HH:mm:ss',
-      'dd-MM-yyyy hh:mma',
-      'dd/MM/yyyy HH:mm:ss',
-      'dd/MM/yyyy hh:mm a',
-      'yyyy-MM-dd HH:mm:ss',
-      'yyyy-MM-ddTHH:mm:ss.SSSZ',
-      'yyyy-MM-ddTHH:mm:ss',
-      'dd-MM-yyyy',
-      'dd/MM/yyyy',
-      'yyyy-MM-dd',
-    ];
-    DateTime? parsed;
-    for (final f in formats) {
-      try {
-        parsed ??= DateFormat(f).parseLoose(dateRaw);
-      } catch (_) {}
-    }
-    parsed ??= DateTime.tryParse(dateRaw);
-    if (parsed != null) {
-      return DateFormat('dd MMM yyyy').format(parsed);
-    }
-    return dateRaw;
+    return AppDateTime.formatDate(dateRaw);
   }
 
   String _formatDuration(String startRaw, String stopRaw) {

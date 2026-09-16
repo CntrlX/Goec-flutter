@@ -22,7 +22,7 @@ import 'package:freelancer_app/View/Widgets/customText.dart';
 // import 'package:freelancer_app/Controller/qr_controller.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
-// import 'package:freelancer_app/Controller/walletPage_controller.dart';
+import 'package:freelancer_app/Utils/app_datetime.dart';
 import 'package:freelancer_app/View/Charge/charge_transaction_dialog.dart';
 
 class Dialogs {
@@ -508,10 +508,10 @@ class Dialogs {
                                 ),
                                 width(size.width * 0.01),
                                 CustomSmallText(
-                                  text: model.createdAt,
-                                  //  getTimeFromTimeStamp(
-                                  //     model.pgOrderGenTime,
-                                  //     'dd MMM yyyy hh:mm a'),
+                                  text: AppDateTime.format(
+                                    model.createdAt,
+                                    useRawIfUnparsed: true,
+                                  ),
                                   size: 12,
                                 )
                               ],
