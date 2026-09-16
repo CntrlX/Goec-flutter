@@ -74,6 +74,8 @@ icons_launcher:
   platforms:
     android:
       enable: true
+      adaptive_background_color: "#FFFFFF"
+      adaptive_foreground_image: "assets/images/app_icon_adaptive_foreground.png"
     ios:
       enable: true
     web:
