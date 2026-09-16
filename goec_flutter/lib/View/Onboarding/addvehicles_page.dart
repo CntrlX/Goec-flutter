@@ -1,16 +1,19 @@
-import 'package:get/get.dart';
-import '../Widgets/customText.dart';
-import 'package:flutter_svg/svg.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:freelancer_app/constants.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:freelancer_app/Utils/routes.dart';
-import 'package:freelancer_app/Utils/toastUtils.dart';
-import 'package:freelancer_app/View/Widgets/appbar.dart';
-import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:linear_progress_bar/linear_progress_bar.dart';
-import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
+
+import '../../Model/vehicleModel.dart';
+import '../../Utils/routes.dart';
+import '../../Utils/toastUtils.dart';
+import '../../constants.dart';
+import '../Widgets/appbar.dart';
+import '../Widgets/cached_network_image.dart';
+import '../Widgets/customText.dart';
+import '../Widgets/glass_circle_icon_button.dart';
+import '../Widgets/unfocus_wrapper.dart';
 import 'package:freelancer_app/Controller/vehicles_screen_controller.dart';
 
 class AddVehiclesPage extends GetView<VehiclesScreenController> {
@@ -18,444 +21,113 @@ class AddVehiclesPage extends GetView<VehiclesScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    size = MediaQuery.of(context).size;
-    return Scaffold(
-        backgroundColor: kscaffoldBackgroundColor,
-        appBar: PreferredSize(
-          preferredSize: customAppBarPreferredSize(context),
-          child: CustomAppBar(
-            text: "Skip",
-            icon: Icon(
-              Icons.arrow_forward,
-              color: Colors.white,
-            ),
-            icononTap: () {
-              Get.toNamed(Routes.vehicledetailspageRoute);
-            },
-            skiponTap: () {
-              Get.offAllNamed(
-                Routes.homePageRoute,
-                arguments: 'requestLocation',
-              );
-            },
-          ),
-        ),
-        body: NestedScrollView(
-          headerSliverBuilder: (_, isScolled) {
-            return [
-              SliverAppBar(
-                  backgroundColor: kwhite,
-                  automaticallyImplyLeading: false,
-                  expandedHeight: size.height * 0.265,
-                  collapsedHeight: size.height * 0.265,
-                  snap: true,
-                  floating: true,
-                  // pinned: true,
-                  flexibleSpace: _allVehicles()),
-            ];
-          },
-          body: _vehiclesModel(),
-        ),
-    );
-  }
-
-  Widget _allVehicles() {
-    return Column(
-      children: [
-        LinearProgressBar(
-          maxSteps: 5,
-          progressType:
-              LinearProgressBar.progressTypeLinear, // Use Linear progress
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xff00FFB3)),
-          currentStep: 4,
-          minHeight: 8.h,
-          progressColor: Color(0xff00FFB3),
-          backgroundColor: Colors.transparent,
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-            left: size.width * 0.055,
-            right: size.width * 0.055,
-            top: size.height * 0.020,
-          ),
+    return BlueStatusBar(
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF6F8FA),
+        body: UnfocusWrapper(
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomBigText(text: "Add Your Vehicles"),
-                  // InkWell(
-                  //   onTap: () async {
-                  //     controller.isVisible.value = false;
-                  //     controller.isSelectedVehicleindex.value = -1;
-                  //     controller.searchTextFieldcontroller.text = '';
-                  //     controller.vehicle_list.value = [];
-                  //     await Get.toNamed(Routes.vehiclesearchPageRoute);
-                  //     controller.isVisible.value = false;
-                  //     controller.isSelectedVehicleindex.value = -1;
-                  //   },
-                  //   child: Image.asset(
-                  //     "assets/images/search.png",
-                  //     height: size.height * 0.05,
-                  //   ),
-                  // ),
-                ],
+              _buildHeader(context),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          left: 16.w,
+                          right: 16.w,
+                          top: 20.h,
+                          bottom: 100.h,
+                        ),
+                        child: Obx(() {
+                          final isVehicleSelected =
+                              controller.selectedVehicle.value.id != '-1' &&
+                                  controller.selectedVehicle.value.id.isNotEmpty;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!isVehicleSelected) ...[
+                                _buildBrandSelectorField(context),
+                              ] else ...[
+                                _buildSelectedVehicleCard(context),
+                                height(36.h),
+                                _buildRegistrationInput(),
+                                height(16.h),
+                                _buildDefaultVehicleToggle(),
+                              ],
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+                    _buildAnimatedAddVehicleButton(),
+                  ],
+                ),
               ),
-              SizedBox(
-                height: 10,
-              ),
-              //vehicles section
-              _vehicles(),
-              SizedBox(
-                height: 30.h,
-              ),
-              Align(
-                  alignment: Alignment.bottomLeft,
-                  child: CustomBigText(
-                    text: "Select Vehicle Model",
-                  )),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _vehicles() {
-    return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 00.h),
-        child: Obx(
-          () => Container(
-            width: size.width * 1 + 0 * controller.reload.value,
-            height: 65.h,
-            alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40.r),
-                border: Border.all(
-                  width: 1,
-                  color: Color(0xffE0E0E0),
-                )),
-            child: DropdownButton<String>(
-              value: controller.selectedBrand.value,
-              hint: Text(
-                'Select Brand',
-                style: GoogleFonts.poppins(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.normal,
-                  color: Color.fromARGB(255, 155, 154, 154),
-                ),
-              ),
-              style: GoogleFonts.poppins(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: Color(0xff4F4F4F),
-              ),
-              dropdownColor: kwhite,
-              isExpanded: true,
-              elevation: 1,
-              underline: SizedBox(),
-              items: controller.brands
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  child: Text(value),
-                  value: value,
-                );
-              }).toList(),
-              icon: SvgPicture.asset("assets/svg/arrow_downward_ios.svg"),
-              onChanged: (String? value) {
-                controller.onDropdownValuChanged(value);
-              },
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-          ),
-        ));
-    // Row(
-    //   children: [
-
-    // Padding(
-    //   padding: const EdgeInsets.only(right: 5),
-    //   child: InkWell(
-    //     onTap: () {
-    //       controller.isSelectedVehicleindex.value = -1;
-    //       controller.isSelectedindex.value = -1;
-    //     },
-    //     child: Container(
-    //       height: 89.h,
-    //       width: 89.w,
-    //       decoration: BoxDecoration(
-    //         borderRadius: BorderRadius.circular(28),
-    //         color: kwhite,
-    //         border: Border.all(
-    //           width: 1,
-    //           color: Color(0xffE0E0E0),
-    //         ),
-    //       ),
-    //       child: Center(
-    //         child: CustomBigText(text: "All"),
-    //       ),
-    //     ),
-    //   ),
-    // ),
-    // Container(
-    //   height: 95.h,
-    //   width: 272.w,
-    //   child: ListView.builder(
-    //     itemCount: controller.vehiclesdata.length,
-    //     scrollDirection: Axis.horizontal,
-    //     itemBuilder: (_, index) {
-    //       return Padding(
-    //         padding: EdgeInsets.only(left: 10.w),
-    //         child: Obx(() => InkWell(
-    //               onTap: () {
-    //                 controller.isVisible.value = true;
-    //                 controller.isSelectedindex.value = index;
-    //               },
-    //               child: Container(
-    //                 height: 89.h,
-    //                 width: 89.w,
-    //                 decoration: BoxDecoration(
-    //                   borderRadius: BorderRadius.circular(28),
-    //                   color: controller.isSelectedindex == index
-    //                       ? Color(0xff0047C3)
-    //                       : kwhite,
-    //                   border: Border.all(
-    //                     width: 1,
-    //                     color: Color(0xffE0E0E0),
-    //                   ),
-    //                 ),
-    //                 child: Column(
-    //                   children: [
-    //                     Padding(
-    //                       padding: EdgeInsets.only(top: 8.h),
-    //                       child: Container(
-    //                         height: 48.h,
-    //                         width: 48.w,
-    //                         decoration: BoxDecoration(
-    //                           image: DecorationImage(
-    //                             image: (controller.isSelectedindex == 0 &&
-    //                                     controller.isVisible.value == true)
-    //                                 ? AssetImage(controller
-    //                                     .vehiclesdata2[index].image)
-    //                                 : AssetImage(controller
-    //                                     .vehiclesdata[index].image),
-    //                           ),
-    //                         ),
-    //                       ),
-    //                     ),
-    //                     SizedBox(
-    //                       height: 8.h,
-    //                     ),
-    //                     CustomSmallText(
-    //                       text: controller.vehiclesdata[index].vehiclesName,
-    //                       color: controller.isSelectedindex == index
-    //                           ? Color(0xffF2F2F2)
-    //                           : Color(0xff828282),
-    //                       size: 12.sp,
-    //                     ),
-    //                   ],
-    //                 ),
-    //               ),
-    //             )),
-    //       );
-    //     },
-    //   ),
-    // ),
-
-    //   ],
-    // );
-  }
-
-  Widget _vehiclesModel() {
+  Widget _buildHeader(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
     return Container(
-      height: size.height * 0.55,
-      color: kscaffoldBackgroundColor,
-      child: Column(
+      width: double.infinity,
+      color: const Color(0xFF0049C2),
+      padding: EdgeInsets.only(
+        top: topPad + 6.h,
+        bottom: 14.h,
+        left: 16.w,
+        right: 16.w,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Container(
-              color: kscaffoldBackgroundColor,
-              padding: EdgeInsets.symmetric(horizontal: size.width * .05),
-              child: Obx(
-                () => (controller.selectedVehicleList.isEmpty)
-                    ? Align(
-                        alignment: Alignment.center,
-                        child: CustomText(text: 'No Vehicles Available'),
-                      )
-                    : ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        itemCount: controller.selectedVehicleList.length,
-                        itemBuilder: (_, index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Obx(() => InkWell(
-                                  onTap: (() {
-                                    if (controller
-                                            .isSelectedVehicleindex.value !=
-                                        index) {
-                                      controller.isVisible.value = true;
-                                      controller.isSelectedVehicleindex.value =
-                                          index;
-                                      controller.selectedVehicle.value =
-                                          controller.selectedVehicleList[index];
-                                    } else {
-                                      controller.isVisible.value = false;
-                                      controller.isSelectedVehicleindex.value =
-                                          -1;
-                                      controller.selectedVehicle.value =
-                                          kVehicleModel;
-                                    }
-                                  }),
-                                  child: Container(
-                                    height: size.height * 0.155,
-                                    width: size.width * 0.075,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          controller.isSelectedVehicleindex ==
-                                                  index
-                                              ? Color(0xffEFFFF6)
-                                              : kwhite,
-                                      borderRadius: BorderRadius.circular(30),
-                                      border: Border.all(
-                                        width: 2,
-                                        color: controller
-                                                    .isSelectedVehicleindex ==
-                                                index
-                                            ? Color.fromRGBO(135, 221, 171, 0.6)
-                                            : Color(0xffE0E0E0),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        width(10.w),
-                                        cachedNetworkImage(
-                                          controller
-                                              .selectedVehicleList[index].icon,
-                                          width: 120.w,
-                                        ),
-                                        width(20.w),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    CustomSmallText(
-                                                      text: controller
-                                                          .selectedVehicleList[
-                                                              index]
-                                                          .brand,
-                                                      color: Color(0xff828282),
-                                                    ),
-                                                    CustomBigText(
-                                                      maxLines: 2,
-                                                      text: controller
-                                                          .selectedVehicleList[
-                                                              index]
-                                                          .modelName,
-                                                      size: 15.sp,
-                                                      color: Color(0xff4F4F4F),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: ListView.builder(
-                                                  shrinkWrap: true,
-                                                  scrollDirection:
-                                                      Axis.horizontal,
-                                                  itemCount: controller
-                                                      .selectedVehicleList[
-                                                          index]
-                                                      .compactable_port
-                                                      .length,
-                                                  itemBuilder: ((context,
-                                                          index1) =>
-                                                      Align(
-                                                        alignment:
-                                                            Alignment.center,
-                                                        child: Container(
-                                                          height: 22,
-                                                          margin:
-                                                              EdgeInsets.only(
-                                                                  right: 5.w),
-                                                          color: Color.fromRGBO(
-                                                              184,
-                                                              210,
-                                                              255,
-                                                              0.6),
-                                                          child: Center(
-                                                            child:
-                                                                CustomSmallText(
-                                                              text: controller
-                                                                  .selectedVehicleList[
-                                                                      index]
-                                                                  .compactable_port[index1],
-                                                              color: Color(
-                                                                  0xff0047C3),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )),
-                          );
-                        },
-                      ),
-              ),
-            ),
-          ),
-          Obx(
-            () => Visibility(
-              // maintainState: true,
-              visible: controller.isVisible.value,
-              child: InkWell(
+          Row(
+            children: [
+              GlassBackButton(
                 onTap: () {
-                  if (controller.selectedVehicle.value != kVehicleModel)
-                    Get.toNamed(
-                      Routes.vehicledetailspageRoute,
-                      arguments: Get.arguments,
+                  if (Get.arguments == 'isFirstTime') {
+                    Get.offAllNamed(
+                      Routes.homePageRoute,
+                      arguments: 'requestLocation',
                     );
+                  } else {
+                    Get.back();
+                  }
                 },
-                child: Container(
-                  margin: EdgeInsets.only(
-                      left: size.width * 0.055,
-                      right: size.width * 0.055,
-                      bottom: size.height * 0.03),
-                  height: size.height * 0.08,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(65),
-                    color: Color(0xff0047C3),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Add Vehicles",
-                      style: TextStyle(
-                        fontFamily: "Poppins",
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Color(0xffF2F2F2),
-                      ),
-                    ),
-                  ),
-                ),
+              ),
+              width(12.w),
+              CustomText(
+                text: 'Add New Vehicle',
+                size: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ],
+          ),
+          GestureDetector(
+            onTap: () {
+              if (Get.arguments == 'isFirstTime') {
+                Get.offAllNamed(
+                  Routes.homePageRoute,
+                  arguments: 'requestLocation',
+                );
+              } else {
+                Get.back();
+              }
+            },
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+              child: CustomText(
+                text: 'Skip',
+                size: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
           ),
@@ -463,4 +135,927 @@ class AddVehiclesPage extends GetView<VehiclesScreenController> {
       ),
     );
   }
+
+  Widget _buildBrandSelectorField(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          text: 'Popular brands',
+          size: 14.sp,
+          fontWeight: FontWeight.w600,
+          color: kNeutralPrimary,
+        ),
+        height(8.h),
+        InkWell(
+          borderRadius: BorderRadius.circular(8.r),
+          onTap: () => _showBrandModal(context),
+          child: Container(
+            width: double.infinity,
+            height: 58.h,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: const Color(0xFFE6EAEF),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.directions_car_outlined,
+                  size: 20.sp,
+                  color: kNeutralMuted,
+                ),
+                Container(
+                  height: 24.h,
+                  width: 1,
+                  color: const Color(0xFFE6EAEF),
+                  margin: EdgeInsets.symmetric(horizontal: 12.w),
+                ),
+                Expanded(
+                  child: CustomText(
+                    text: controller.selectedBrand.value.isNotEmpty
+                        ? controller.selectedBrand.value
+                        : 'Select your brand',
+                    size: 15.sp,
+                    fontWeight: FontWeight.w500,
+                    color: controller.selectedBrand.value.isNotEmpty
+                        ? kNeutralPrimary
+                        : kNeutralMuted,
+                  ),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 24.sp,
+                  color: kNeutralMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectedVehicleCard(BuildContext context) {
+    final vehicle = controller.selectedVehicle.value;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF2FD),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: const Color(0xFFC0D7FD),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 87.w,
+                height: 52.h,
+                child: vehicle.icon.isNotEmpty
+                    ? cachedNetworkImage(
+                        vehicle.icon,
+                        width: 87.w,
+                        height: 52.h,
+                        fit: BoxFit.contain,
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Icon(
+                          Icons.directions_car_outlined,
+                          size: 32.sp,
+                          color: kNeutralSecondary,
+                        ),
+                      ),
+              ),
+              width(16.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      text: vehicle.brand.isNotEmpty ? vehicle.brand : 'Vehicle',
+                      size: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.55,
+                      color: kNeutralSecondary,
+                    ),
+                    height(2.h),
+                    CustomText(
+                      text: vehicle.modelName.isNotEmpty ? vehicle.modelName : '',
+                      size: 24.sp,
+                      fontWeight: FontWeight.w600,
+                      color: kNeutralPrimary,
+                    ),
+                    if (vehicle.compactable_port.isNotEmpty) ...[
+                      height(8.h),
+                      Wrap(
+                        spacing: 6.w,
+                        runSpacing: 4.h,
+                        children: vehicle.compactable_port.map((port) {
+                          return Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 4.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(9999),
+                              border: Border.all(
+                                color: const Color(0xFFE6EAEF),
+                                width: 1,
+                              ),
+                            ),
+                            child: CustomText(
+                              text: port.toString(),
+                              size: 12.sp,
+                              fontWeight: FontWeight.w500,
+                              color: kBrandPrimaryBlue,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          height(16.h),
+          InkWell(
+            onTap: () => _showBrandModal(context),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  text: 'Change vehicle',
+                  size: 15.sp,
+                  fontWeight: FontWeight.w400,
+                  color: kBrandPrimaryBlue,
+                ),
+                width(4.w),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 16.sp,
+                  color: kBrandPrimaryBlue,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRegistrationInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          text: 'Vehicle registration number ',
+          size: 14.sp,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.35,
+          color: kNeutralPrimary,
+        ),
+        height(8.h),
+        Container(
+          width: double.infinity,
+          height: 58.h,
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(
+              color: const Color(0xFFE6EAEF),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.confirmation_number_outlined,
+                size: 18.sp,
+                color: kNeutralMuted,
+              ),
+              Container(
+                height: 24.h,
+                width: 1,
+                color: const Color(0xFFE6EAEF),
+                margin: EdgeInsets.symmetric(horizontal: 12.w),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: controller.numEditingController,
+                  textCapitalization: TextCapitalization.characters,
+                  style: TextStyle(
+                    fontFamily: kFontFamily,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: kNeutralPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'KL 07 AB 1234',
+                    hintStyle: TextStyle(
+                      fontFamily: kFontFamily,
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFFA0AABD).withValues(alpha: 0.6),
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDefaultVehicleToggle() {
+    return Obx(() {
+      final isLocked = controller.isDefaultLocked.value;
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8.r),
+          onTap: isLocked
+              ? null
+              : () {
+                  controller.isDefaultVehicle.value =
+                      !controller.isDefaultVehicle.value;
+                },
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE4FDF7),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: const Color(0xFFAFF8E9),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        text: 'Set as default vehicle',
+                        size: 15.sp,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.375,
+                        color: kNeutralPrimary,
+                      ),
+                      height(2.h),
+                      CustomText(
+                        text: 'Used for quick-start charging sessions',
+                        size: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: kNeutralSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+                width(12.w),
+                Transform.scale(
+                  scale: 0.85,
+                  child: Switch(
+                    value: controller.isDefaultVehicle.value,
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: const Color(0xFF0D9488),
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: const Color(0xFFE8EBF0),
+                    trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states) => Colors.transparent,
+                    ),
+                    onChanged: isLocked
+                        ? null
+                        : (val) {
+                            controller.isDefaultVehicle.value = val;
+                          },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildAnimatedAddVehicleButton() {
+    return Positioned(
+      left: 20.w,
+      right: 20.w,
+      bottom: 24.h,
+      child: Obx(() {
+        final isVehicleSelected = controller.selectedVehicle.value.id != '-1' &&
+            controller.selectedVehicle.value.id.isNotEmpty;
+        final isValid = isVehicleSelected && controller.isFormValid.value;
+
+        return AnimatedSlide(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          offset: isValid ? Offset.zero : const Offset(0, 0.4),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 250),
+            opacity: isValid ? 1.0 : 0.0,
+            child: AnimatedScale(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutBack,
+              scale: isValid ? 1.0 : 0.85,
+              child: IgnorePointer(
+                ignoring: !isValid,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56.h,
+                  child: ElevatedButton(
+                    onPressed: isValid ? () => controller.onVehicleSubmit() : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kBrandPrimaryBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shadowColor: kBrandPrimaryBlue.withValues(alpha: 0.35),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100.r),
+                      ),
+                    ),
+                    child: CustomText(
+                      text: 'Add vehicle',
+                      size: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Future<void> _showBrandModal(BuildContext context) async {
+    controller.filterBrands('');
+    controller.searchBrandController.clear();
+
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss brand selector',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (ctx, animation, secondaryAnimation) => const SizedBox.shrink(),
+      transitionBuilder: (ctx, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+
+        return Stack(
+          children: [
+            // Blurred & dimmed backdrop
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: curved,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(ctx).maybePop(),
+                  behavior: HitTestBehavior.opaque,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.21),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Slide-up modal sheet
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.82,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(36.r)),
+                    ),
+                    child: Column(
+                      children: [
+                        // Header
+                        Padding(
+                          padding:
+                              EdgeInsets.fromLTRB(24.w, 20.h, 20.w, 12.h),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Select brands',
+                                style: GoogleFonts.nunitoSans(
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF121D31),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                color: const Color(0xFFA0AABD),
+                                iconSize: 22.sp,
+                                onPressed: () => Navigator.pop(ctx),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Search Box
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20.w),
+                          child: Container(
+                            height: 48.h,
+                            padding: EdgeInsets.symmetric(horizontal: 14.w),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: const Color(0xFFE6EAEF),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.search,
+                                  size: 20.sp,
+                                  color: const Color(0xFFA0AABD),
+                                ),
+                                SizedBox(width: 8.w),
+                                Expanded(
+                                  child: TextField(
+                                    controller:
+                                        controller.searchBrandController,
+                                    onChanged: controller.filterBrands,
+                                    style: GoogleFonts.nunitoSans(
+                                      fontSize: 14.sp,
+                                      color: const Color(0xFF121D31),
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Search brand (e.g. Ather, Tata)...',
+                                      hintStyle: GoogleFonts.nunitoSans(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFFA0AABD),
+                                      ),
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+
+                        // Brand List
+                        Expanded(
+                          child: Obx(() {
+                            if (controller.filteredBrands.isEmpty) {
+                              return Center(
+                                child: Text(
+                                  'No brands found',
+                                  style: GoogleFonts.nunitoSans(
+                                    fontSize: 14.sp,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                ),
+                              );
+                            }
+                            return ListView.separated(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20.w,
+                                vertical: 8.h,
+                              ),
+                              itemCount: controller.filteredBrands.length,
+                              separatorBuilder: (_, __) => Divider(
+                                color: const Color(0xFFF1F5F9),
+                                height: 1,
+                              ),
+                              itemBuilder: (c, index) {
+                                final brand = controller.filteredBrands[index];
+                                return InkWell(
+                                  onTap: () {
+                                    controller.selectBrand(brand);
+                                    Navigator.pop(ctx);
+                                    _showModelModal(context);
+                                  },
+                                  child: Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 14.h),
+                                    child: Text(
+                                      brand,
+                                      style: GoogleFonts.nunitoSans(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFF121D31),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showModelModal(BuildContext context) async {
+    controller.filterModels('');
+    controller.searchModelController.clear();
+
+    final Rx<VehicleModel> tempSelected =
+        (controller.selectedVehicleList.isNotEmpty
+                ? controller.selectedVehicleList.first
+                : kVehicleModel)
+            .obs;
+
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss model selector',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (ctx, animation, secondaryAnimation) => const SizedBox.shrink(),
+      transitionBuilder: (ctx, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+
+        return Stack(
+          children: [
+            // Blurred & dimmed backdrop
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: curved,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(ctx).maybePop(),
+                  behavior: HitTestBehavior.opaque,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.21),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Slide-up modal sheet
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.85,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(36.r)),
+                    ),
+                    child: Column(
+                      children: [
+                        // Header
+                        Padding(
+                          padding:
+                              EdgeInsets.fromLTRB(24.w, 20.h, 20.w, 12.h),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Select ${controller.selectedBrand.value} Model',
+                                  style: GoogleFonts.nunitoSans(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF121D31),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                color: const Color(0xFFA0AABD),
+                                iconSize: 22.sp,
+                                onPressed: () => Navigator.pop(ctx),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Search Box
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20.w),
+                          child: Container(
+                            height: 48.h,
+                            padding: EdgeInsets.symmetric(horizontal: 14.w),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: const Color(0xFFE6EAEF),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.search,
+                                  size: 20.sp,
+                                  color: const Color(0xFFA0AABD),
+                                ),
+                                SizedBox(width: 8.w),
+                                Expanded(
+                                  child: TextField(
+                                    controller:
+                                        controller.searchModelController,
+                                    onChanged: controller.filterModels,
+                                    style: GoogleFonts.nunitoSans(
+                                      fontSize: 14.sp,
+                                      color: const Color(0xFF121D31),
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: 'Search model...',
+                                      hintStyle: GoogleFonts.nunitoSans(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFFA0AABD),
+                                      ),
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+
+                        // Model List
+                        Expanded(
+                          child: Obx(() {
+                            if (controller.filteredModels.isEmpty) {
+                              return Center(
+                                child: Text(
+                                  'No models found for this brand',
+                                  style: GoogleFonts.nunitoSans(
+                                    fontSize: 14.sp,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20.w,
+                                vertical: 8.h,
+                              ),
+                              itemCount: controller.filteredModels.length,
+                              itemBuilder: (c, index) {
+                                final model = controller.filteredModels[index];
+                                return Obx(() {
+                                  final isSelected =
+                                      tempSelected.value.id == model.id;
+                                  return Container(
+                                    margin: EdgeInsets.only(bottom: 12.h),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius:
+                                          BorderRadius.circular(16.r),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? const Color(0xFF0049C2)
+                                            : const Color(0xFFE6EAEF),
+                                        width: isSelected ? 1.5 : 1,
+                                      ),
+                                    ),
+                                    child: InkWell(
+                                      borderRadius:
+                                          BorderRadius.circular(16.r),
+                                      onTap: () {
+                                        tempSelected.value = model;
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.all(14.w),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: 87.w,
+                                              height: 52.h,
+                                              child: model.icon.isNotEmpty
+                                                  ? cachedNetworkImage(
+                                                      model.icon,
+                                                      width: 87.w,
+                                                      height: 52.h,
+                                                      fit: BoxFit.contain,
+                                                    )
+                                                  : Container(
+                                                      decoration:
+                                                          BoxDecoration(
+                                                        color: const Color(
+                                                            0xFFF6F8FA),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8.r),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons
+                                                            .directions_car_outlined,
+                                                        size: 28.sp,
+                                                        color: const Color(
+                                                            0xFF64748B),
+                                                      ),
+                                                    ),
+                                            ),
+                                            SizedBox(width: 14.w),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    model.brand,
+                                                    style:
+                                                        GoogleFonts.nunitoSans(
+                                                      fontSize: 13.sp,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      color: const Color(
+                                                          0xFF121D31),
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 2.h),
+                                                  Text(
+                                                    model.modelName,
+                                                    style:
+                                                        GoogleFonts.nunitoSans(
+                                                      fontSize: 16.sp,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: const Color(
+                                                          0xFF121D31),
+                                                    ),
+                                                  ),
+                                                  if (model.compactable_port
+                                                      .isNotEmpty) ...[
+                                                    SizedBox(height: 4.h),
+                                                    Wrap(
+                                                      spacing: 6.w,
+                                                      children: model
+                                                          .compactable_port
+                                                          .map((port) {
+                                                        return Container(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                            horizontal: 8.w,
+                                                            vertical: 2.h,
+                                                          ),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: const Color(
+                                                                0xFFF6F8FA),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        9999),
+                                                          ),
+                                                          child: Text(
+                                                            port.toString(),
+                                                            style: GoogleFonts
+                                                                .nunitoSans(
+                                                              fontSize: 11.sp,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                              color: const Color(
+                                                                  0xFF0049C2),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                });
+                              },
+                            );
+                          }),
+                        ),
+
+                        // Confirm Selection Button
+                        Padding(
+                          padding: EdgeInsets.all(20.w),
+                          child: Container(
+                            width: double.infinity,
+                            height: 54.h,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0049C2),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8.r),
+                                onTap: () {
+                                  if (tempSelected.value.id != '-1') {
+                                    controller
+                                        .selectVehicle(tempSelected.value);
+                                    Navigator.pop(ctx);
+                                  }
+                                },
+                                child: Center(
+                                  child: Text(
+                                    'Confirm Selection',
+                                    style: GoogleFonts.nunitoSans(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+

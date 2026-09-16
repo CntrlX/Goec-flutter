@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../Singletones/app_data.dart';
 import '../../Utils/routes.dart';
 import '../../Utils/toastUtils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/cached_network_image.dart';
 import '../Widgets/customText.dart';
 
@@ -27,42 +28,15 @@ class _ProfilePageAliveState extends State<ProfilePageAlive>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // 1. Blue Top Header
-          Container(
-            width: double.infinity,
-            color: kBrandPrimaryBlue,
-            child: AnnotatedRegion<SystemUiOverlayStyle>(
-              value: SystemUiOverlayStyle.light.copyWith(
-                statusBarColor: Colors.transparent,
-                systemNavigationBarColor: Colors.white,
-                systemNavigationBarIconBrightness: Brightness.dark,
-                systemNavigationBarDividerColor: Colors.transparent,
-              ),
-              child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
-                child: Row(
-                  children: [
-                    CustomText(
-                      text: 'Profile',
-                      fontFamily: kFontFamily,
-                      size: 20.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            ),
-          ),
+    return BlueStatusBar(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            // 1. Blue Top Header
+            _buildHeader(context),
 
-          // 2. Scrollable Body
+            // 2. Scrollable Body
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -281,6 +255,30 @@ class _ProfilePageAliveState extends State<ProfilePageAlive>
             ),
           ),
         ],
+      ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF0049C2),
+      padding: EdgeInsets.only(
+        top: topPad + 12.h,
+        bottom: 16.h,
+        left: 20.w,
+        right: 20.w,
+      ),
+      child: Text(
+        'Profile',
+        style: GoogleFonts.nunitoSans(
+          fontSize: 20.sp,
+          fontWeight: FontWeight.w600,
+          height: 28.5 / 20,
+          color: Colors.white,
+        ),
       ),
     );
   }

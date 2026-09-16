@@ -55,7 +55,6 @@ class HelpScreen extends GetView<HelpPageController> {
       child: Row(
         children: [
           GlassBackButton(
-            size: 36.w,
             onTap: () => Get.back(),
           ),
           SizedBox(width: 12.w),

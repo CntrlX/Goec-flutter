@@ -67,7 +67,6 @@ class FavouriteScreen extends GetView<FavouritePageController> {
       child: Row(
         children: [
           GlassBackButton(
-            size: 36.w,
             onTap: () => Get.back(),
           ),
           SizedBox(width: 12.w),

@@ -194,19 +194,30 @@ class CommonFunctions {
   Future<bool> addEvToUser({
     required String vehicleId,
     required String regNumber,
+    bool defaultVehicle = false,
   }) async {
     ResponseModel res = await CallAPI().putData({
       "evRegNumber": regNumber,
       "vehicleId": vehicleId,
+      "defaultVehicle": defaultVehicle,
+      "isDefault": defaultVehicle,
     }, kApi_user_url + 'addVehicle/' + appData.userModel.value.id);
     kLog(res.body.toString());
     return (res.statusCode == 200 && res.body['status']);
   }
 
 ///////////////////////////////DONE////////////////////////////////
-  Future<bool> setDefaultVehicle({required String regNumber}) async {
+  Future<bool> setDefaultVehicle({
+    required String regNumber,
+    String? vehicleId,
+  }) async {
     ResponseModel res = await CallAPI().putData({
       "vehicleId": regNumber,
+      "evRegNumber": regNumber,
+      if (vehicleId != null && vehicleId.isNotEmpty && vehicleId != '-1')
+        "id": vehicleId,
+      if (vehicleId != null && vehicleId.isNotEmpty && vehicleId != '-1')
+        "_id": vehicleId,
     }, kApi_user_url + 'updateDefaultVehicle/' + appData.userModel.value.id);
     kLog(res.body.toString());
     return (res.statusCode == 200 && res.body['status']);

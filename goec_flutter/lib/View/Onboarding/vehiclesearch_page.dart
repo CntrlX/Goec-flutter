@@ -21,7 +21,7 @@ class VehicleSearchScreen extends GetView<VehiclesScreenController> {
     size = MediaQuery.of(context).size;
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         controller.isVisible.value = false;
         controller.isSelectedVehicleindex.value = -1;
         return;

@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Must match Flutter SplashScreen Scaffold backgroundColor -->
+    <color name="splash_background">#FFFFFFFF</color>
+    <color name="ic_launcher_background">#FFFFFFFF</color>
+</resources>

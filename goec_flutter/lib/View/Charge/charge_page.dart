@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../Controller/chargePage_controller.dart';
 import '../../Model/chargeTransactionModel.dart';
@@ -11,6 +11,7 @@ import '../../Singletones/app_data.dart';
 import '../../Utils/routes.dart';
 import '../../Utils/utils.dart';
 import '../../constants.dart';
+import '../Widgets/appbar.dart';
 import '../Widgets/cached_svg_badge.dart';
 import '../Widgets/date_range_picker_sheet.dart';
 import 'charging_summary_modal_sheet.dart';
@@ -132,12 +133,13 @@ class _ChargeScreenState extends State<ChargeScreen>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
+    return BlueStatusBar(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
             child: RefreshIndicator(
               displacement: 40,
               backgroundColor: Colors.white,
@@ -326,43 +328,28 @@ class _ChargeScreenState extends State<ChargeScreen>
           ),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildAppBar(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
     return Container(
       width: double.infinity,
-      color: kBrandPrimaryBlue,
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.white,
-          systemNavigationBarIconBrightness: Brightness.dark,
-          systemNavigationBarDividerColor: Colors.transparent,
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20.w,
-              right: 20.w,
-              top: 10.h,
-              bottom: 14.h,
-            ),
-            child: Row(
-              children: [
-                Text(
-                  "History",
-                  style: TextStyle(
-                    fontFamily: kFontFamily,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
+      color: const Color(0xFF0049C2),
+      padding: EdgeInsets.only(
+        top: topPad + 12.h,
+        bottom: 16.h,
+        left: 20.w,
+        right: 20.w,
+      ),
+      child: Text(
+        'History',
+        style: GoogleFonts.nunitoSans(
+          fontSize: 20.sp,
+          fontWeight: FontWeight.w600,
+          height: 28.5 / 20,
+          color: Colors.white,
         ),
       ),
     );
