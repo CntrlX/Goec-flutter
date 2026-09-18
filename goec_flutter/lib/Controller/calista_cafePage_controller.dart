@@ -23,6 +23,10 @@ class CalistaCafePageController extends GetxController {
   Rx<ChargeStationDetailsModel> model = kChargeStationDetailsModel.obs;
   RxList amenities = RxList();
   RxInt selectedRating = 0.obs;
+
+  /// True while connectors / live fields are fetched after instant preview nav.
+  RxBool isLoadingDetails = false.obs;
+
   TextEditingController reviewController = TextEditingController();
   Rx<DirectionsResult> directionsResult = DirectionsResult().obs;
   Rx<AutocompletePrediction> source = AutocompletePrediction().obs,
@@ -33,12 +37,7 @@ class CalistaCafePageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if (Get.arguments != null) {
-      if (Get.arguments is String)
-        getChargeStationDetails('${Get.arguments}');
-      else
-        assignPreviouslyGotModel();
-    }
+    _hydrateFromArguments(Get.arguments);
   }
 
   @override
@@ -47,25 +46,42 @@ class CalistaCafePageController extends GetxController {
     super.onClose();
   }
 
-  assignPreviouslyGotModel() {
-    model.value = Get.arguments;
-    amenities.value = model.value.amenities;
-    distance.value = (MapFunctions.distanceBetweenCoordinates(
-                MapFunctions().curPos.latitude,
-                MapFunctions().curPos.longitude,
-                model.value.latitude,
-                model.value.longitude) /
-            1000.0)
-        .toPrecision(2);
-    isOpen.value = isTimeInRange(model.value.startTime, model.value.stopTime);
+  void _hydrateFromArguments(dynamic args) {
+    if (args == null) return;
+
+    // Instant nav: { station: ChargeStationDetailsModel, loadDetails: true }
+    if (args is Map) {
+      final station = args['station'];
+      final loadDetails = args['loadDetails'] == true;
+      if (station is ChargeStationDetailsModel) {
+        applyModel(station);
+        if (loadDetails || station.chargers.isEmpty) {
+          refreshStationDetails();
+        }
+      }
+      return;
+    }
+
+    if (args is String) {
+      getChargeStationDetails(args);
+      return;
+    }
+
+    if (args is ChargeStationDetailsModel) {
+      applyModel(args);
+      if (args.chargers.isEmpty) {
+        refreshStationDetails();
+      }
+    }
   }
 
-//THIS FUNCTION IS NOT USED HERE. IF NEEDED THEN WE WILL USE IT
-  getChargeStationDetails(String stationId) async {
-    // showLoading(kLoading);
-    model.value = await CommonFunctions().getChargeStationDetails(stationId);
-    amenities.value = model.value.amenities;
-    kLog(model.value.isFavorite.toString());
+  void applyModel(ChargeStationDetailsModel station) {
+    model.value = station;
+    amenities.value = List.from(station.amenities);
+    _recomputeDistanceAndHours();
+  }
+
+  void _recomputeDistanceAndHours() {
     if (MapFunctions().curPos.latitude != 0) {
       distance.value = (MapFunctions.distanceBetweenCoordinates(
                   MapFunctions().curPos.latitude,
@@ -74,9 +90,39 @@ class CalistaCafePageController extends GetxController {
                   model.value.longitude) /
               1000.0)
           .toPrecision(2);
+    } else {
+      distance.value = 0;
     }
-    isOpen.value = isTimeInRange(model.value.startTime, model.value.stopTime);
-    // hideLoading();
+    isOpen.value =
+        isTimeInRange(model.value.startTime, model.value.stopTime);
+  }
+
+  /// Pull-to-refresh / post-preview hydrate.
+  Future<void> refreshStationDetails() async {
+    final id = model.value.id;
+    if (id.isEmpty || id == '-1') return;
+
+    isLoadingDetails.value = true;
+    // Clear stale selection while connectors reload.
+    selectedCharger.value = -1;
+    selectedType.value = -1;
+    try {
+      final full = await CommonFunctions().getChargeStationDetails(id);
+      applyModel(full);
+    } finally {
+      isLoadingDetails.value = false;
+    }
+  }
+
+  Future<void> getChargeStationDetails(String stationId) async {
+    isLoadingDetails.value = true;
+    try {
+      final full =
+          await CommonFunctions().getChargeStationDetails(stationId);
+      applyModel(full);
+    } finally {
+      isLoadingDetails.value = false;
+    }
   }
 
   /// Radio-style connector selection (tap again to clear).

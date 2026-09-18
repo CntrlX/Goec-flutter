@@ -24,6 +24,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freelancer_app/Singletones/socketRepo.dart';
 import 'package:freelancer_app/View/Widgets/customText.dart';
 import 'package:freelancer_app/Model/stationMarkerModel.dart';
+import 'package:freelancer_app/Model/chargeStationDetailsModel.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
 import 'package:freelancer_app/Singletones/dialogs.dart';
@@ -477,7 +478,11 @@ class HomePageController extends GetxController {
       }
       return GestureDetector(
         onTap: () {
-          getChargeStationDetails(e.id.toString(), isCardTap: true);
+          getChargeStationDetails(
+            e.id.toString(),
+            isCardTap: true,
+            preview: e,
+          );
         },
         child: Container(
           height: 160.h,
@@ -950,15 +955,53 @@ class HomePageController extends GetxController {
     }
   }
 
-  getChargeStationDetails(String stationId, {bool isCardTap = false}) async {
+  getChargeStationDetails(
+    String stationId, {
+    bool isCardTap = false,
+    StationMarkerModel? preview,
+  }) async {
+    // Instant path: open Station Detail with map/search preview, hydrate in page.
+    if (isCardTap) {
+      StationMarkerModel? marker = preview;
+      if (marker == null) {
+        for (final e in station_marker_list) {
+          if (e.id == stationId) {
+            marker = e;
+            break;
+          }
+        }
+      }
+      final partial = marker != null
+          ? ChargeStationDetailsModel.fromStationMarker(marker)
+          : ChargeStationDetailsModel(
+              id: stationId,
+              name: '',
+              address: '',
+              rating: 0,
+              image:
+                  'https://sternbergclinic.com.au/wp-content/uploads/2020/03/placeholder.png',
+              latitude: 0,
+              longitude: 0,
+              amenities: const [],
+              startTime: '',
+              stopTime: '',
+              isFavorite: false,
+              chargers: const [],
+            );
+      Get.toNamed(
+        Routes.calistaCafePageRoute,
+        arguments: {
+          'station': partial,
+          'loadDetails': true,
+        },
+      );
+      return;
+    }
+
     showLoading(kLoading);
     var res = await CommonFunctions().getChargeStationDetails(stationId);
     hideLoading();
-    if (isCardTap) {
-      Get.toNamed(Routes.calistaCafePageRoute, arguments: res);
-    } else {
-      showBottomSheetWhenClickedOnMarker(res, this);
-    }
+    showBottomSheetWhenClickedOnMarker(res, this);
   }
 
   //NEW HELP PAGE STARTS

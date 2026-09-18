@@ -47,6 +47,11 @@ class _MapScreenState extends State<MapScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final size = MediaQuery.of(context).size;
+    // When Station Detail (or any route) covers Home, this secondaryAnimation
+    // runs. Dropping the GoogleMap platform view during that window is what
+    // keeps the push/pop animation at a high refresh rate.
+    final secondaryAnimation = ModalRoute.of(context)?.secondaryAnimation ??
+        kAlwaysDismissedAnimation;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -57,48 +62,71 @@ class _MapScreenState extends State<MapScreen>
         systemNavigationBarIconBrightness: Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
-      child: Stack(
-        children: [
-          // 1. Google Map (fills entire background)
-          Positioned.fill(
-            child: RepaintBoundary(
-              child: Obx(
-                () => Container(
-                  padding: EdgeInsets.all(controller.reload.value * 0 +
-                      MapFunctions().reload.value * 0),
-                  child: GoogleMap(
-                    compassEnabled: false,
-                    mapToolbarEnabled: false,
-                    myLocationEnabled: false,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                    trafficEnabled: false,
-                    initialCameraPosition: MapFunctions().initialPosition.value,
-                    markers: MapFunctions().markers_homepage,
-                    onCameraMoveStarted: () {
-                      if (MapFunctions().isIdle) {
-                        MapFunctions().isFocused = false;
-                      }
-                    },
-                    onCameraIdle: () {
-                      if (!MapFunctions().isIdle) {
-                        controller.debouncer.run(() {
-                          MapFunctions().isIdle = true;
-                        });
-                      }
-                    },
-                    onMapCreated: (mapCtrl) {
-                      MapFunctions().controller = mapCtrl;
-                      if (controller.station_marker_list.isNotEmpty) {
-                        controller.focusOnNearestStation();
-                      }
-                    },
-                  ),
+      child: AnimatedBuilder(
+        animation: secondaryAnimation,
+        builder: (context, child) {
+          // Keep map down for the whole cover animation; remount only when
+          // secondary is fully dismissed (pop finished) to avoid end-of-pop hitch.
+          final covered = secondaryAnimation.status != AnimationStatus.dismissed;
+          return TickerMode(
+            enabled: !covered,
+            child: Stack(
+              children: [
+                // 1. Google Map — replaced with a cheap placeholder while covered
+                Positioned.fill(
+                  child: covered
+                      ? const ColoredBox(color: Color(0xFFE8EAED))
+                      : child!,
                 ),
+
+                // 2–3. Overlays only while map is interactive (saves paint during push)
+                if (!covered) ..._mapOverlays(size),
+              ],
+            ),
+          );
+        },
+        child: RepaintBoundary(
+          child: Obx(
+            () => Container(
+              padding: EdgeInsets.all(controller.reload.value * 0 +
+                  MapFunctions().reload.value * 0),
+              child: GoogleMap(
+                compassEnabled: false,
+                mapToolbarEnabled: false,
+                myLocationEnabled: false,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                trafficEnabled: false,
+                initialCameraPosition: MapFunctions().initialPosition.value,
+                markers: MapFunctions().markers_homepage,
+                onCameraMoveStarted: () {
+                  if (MapFunctions().isIdle) {
+                    MapFunctions().isFocused = false;
+                  }
+                },
+                onCameraIdle: () {
+                  if (!MapFunctions().isIdle) {
+                    controller.debouncer.run(() {
+                      MapFunctions().isIdle = true;
+                    });
+                  }
+                },
+                onMapCreated: (mapCtrl) {
+                  MapFunctions().controller = mapCtrl;
+                  if (controller.station_marker_list.isNotEmpty) {
+                    controller.focusOnNearestStation();
+                  }
+                },
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
 
+  List<Widget> _mapOverlays(Size size) {
+    return [
           // 2. Top Floating Area (Search Capsule + Wallet Card + Quick Filter Pills)
           Positioned(
             top: 0,
@@ -347,9 +375,7 @@ class _MapScreenState extends State<MapScreen>
               ],
             ),
           ),
-        ],
-      ),
-    );
+    ];
   }
 
   // Quick Filter Horizontal Scroll Row matching Figma

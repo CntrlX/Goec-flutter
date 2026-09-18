@@ -1,4 +1,5 @@
 import 'package:freelancer_app/Model/chargerModel.dart';
+import 'package:freelancer_app/Model/stationMarkerModel.dart';
 
 class ChargeStationDetailsModel {
   final String id;
@@ -28,6 +29,28 @@ class ChargeStationDetailsModel {
     required this.startTime,
     required this.stopTime,
   });
+
+  /// Instant navigation payload from map / search list data.
+  /// Connectors are empty until details API fills them in.
+  factory ChargeStationDetailsModel.fromStationMarker(
+    StationMarkerModel marker, {
+    bool isFavorite = false,
+  }) {
+    return ChargeStationDetailsModel(
+      id: marker.id,
+      name: marker.name,
+      address: marker.address,
+      rating: marker.rating,
+      image: marker.image,
+      latitude: marker.latitude,
+      longitude: marker.longitude,
+      amenities: List.from(marker.amenities),
+      startTime: marker.startTime,
+      stopTime: marker.stopTime,
+      isFavorite: isFavorite,
+      chargers: const [],
+    );
+  }
 
   factory ChargeStationDetailsModel.fromJson(Map<String, dynamic> json) {
     return ChargeStationDetailsModel(

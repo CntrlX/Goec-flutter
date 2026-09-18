@@ -15,6 +15,7 @@ import 'package:freelancer_app/Utils/utils.dart';
 import 'package:freelancer_app/View/Widgets/cached_network_image.dart';
 import 'package:freelancer_app/View/Widgets/customText.dart';
 import 'package:freelancer_app/View/Widgets/glass_circle_icon_button.dart';
+import 'package:freelancer_app/View/Widgets/shimmer/station_detail_shimmer.dart';
 import 'package:freelancer_app/constants.dart';
 
 /// Station detail — Figma states 27 (idle), 28 (connector selected), 29 (confirm sheet).
@@ -67,11 +68,7 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
                 displacement: 80,
                 backgroundColor: Colors.white,
                 color: kBrandPrimaryBlue,
-                onRefresh: () async {
-                  await controller.getChargeStationDetails(
-                    controller.model.value.id.toString(),
-                  );
-                },
+                onRefresh: () => controller.refreshStationDetails(),
                 child: SingleChildScrollView(
                   controller: controller.scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -152,7 +149,8 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
 
   Widget _bannerHeader(BuildContext context) {
     final topPad = MediaQuery.paddingOf(context).top;
-    return SizedBox(
+    return RepaintBoundary(
+      child: SizedBox(
       width: double.infinity,
       height: double.infinity,
       child: Stack(
@@ -215,6 +213,7 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
           // Status pill moved to page Stack (attached above white sheet)
         ],
       ),
+    ),
     );
   }
 
@@ -288,7 +287,12 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
           height(24.h),
           _connectorSectionHeader(),
           height(12.h),
-          Obx(() => _connectorList()),
+          Obx(() {
+            if (controller.isLoadingDetails.value) {
+              return const StationDetailConnectorsShimmer();
+            }
+            return _connectorList();
+          }),
         ],
       ),
     );
@@ -435,6 +439,9 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
 
   Widget _amenityChips() {
     return Obx(() {
+      if (controller.isLoadingDetails.value && controller.amenities.isEmpty) {
+        return const StationDetailAmenitiesShimmer();
+      }
       final amenities = controller.amenities
           .where((e) => e.toString().trim().isNotEmpty)
           .toList();

@@ -42,7 +42,7 @@ dependencies:
   path_provider: ^2.0.15
   smooth_page_indicator: ^1.1.0
   calendar_date_picker2: ^1.1.4
-  mobile_scanner: ^5.1.1
+  mobile_scanner: ^6.0.11
   pin_code_fields: ^8.0.1
   linear_progress_bar: ^1.1.0
   lottie: ^3.0.0

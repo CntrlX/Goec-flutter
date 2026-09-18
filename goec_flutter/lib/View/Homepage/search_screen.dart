@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../Controller/homepage_controller.dart';
 import '../../Controller/search_screen_controller.dart';
+import '../../Model/chargeStationDetailsModel.dart';
 import '../../Utils/routes.dart';
 import '../../constants.dart';
 import 'Widgets/station_card_item.dart';
@@ -227,11 +228,18 @@ class SearchScreen extends GetView<SearchScreenController> {
                                 .getChargeStationDetails(
                               station.id,
                               isCardTap: true,
+                              preview: station,
                             );
                           } else {
                             Get.toNamed(
                               Routes.calistaCafePageRoute,
-                              arguments: station.id,
+                              arguments: {
+                                'station':
+                                    ChargeStationDetailsModel.fromStationMarker(
+                                  station,
+                                ),
+                                'loadDetails': true,
+                              },
                             );
                           }
                         },

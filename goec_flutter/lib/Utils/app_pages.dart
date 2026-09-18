@@ -211,8 +211,9 @@ abstract class AppPages {
       name: Routes.calistaCafePageRoute,
       binding: CalistaCafePageBindings(),
       page: () => const CalistaCafeScreen(),
-      transition: Transition.rightToLeftWithFade,
-      transitionDuration: const Duration(milliseconds: 300),
+      // Cupertino slide (no fade) composites cheaper over the map route.
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 320),
       curve: Curves.easeOutCubic,
     ),
     GetPage(
