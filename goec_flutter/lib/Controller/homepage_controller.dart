@@ -299,6 +299,7 @@ class HomePageController extends GetxController {
     _filterController.applyFilter();
     _filterController.onClose();
 
+    assignCardsToMapScreen(displayStations);
     updateMapMarkers();
     focusOnNearestStation();
     reload++;
@@ -388,40 +389,44 @@ class HomePageController extends GetxController {
     } else {
       selectedQuickFilter.value = index;
     }
+    final stations = displayStations;
+    assignCardsToMapScreen(stations);
+    updateMarkersForStations(stations);
+    if (stations.isNotEmpty) {
+      final firstStation = stations.first;
+      if (firstStation.latitude != 0 && firstStation.longitude != 0) {
+        MapFunctions().animateToNewPosition(
+          LatLng(firstStation.latitude, firstStation.longitude),
+        );
+      }
+      try {
+        carouselController.value.jumpToPage(0);
+      } catch (_) {}
+    }
     reload++;
   }
 
   void focusOnNearestStation() {
-    if (station_marker_list.isEmpty) return;
-    StationMarkerModel? nearest;
-    double minDistance = double.infinity;
-    for (var station in station_marker_list) {
-      if (station.latitude != 0 && station.longitude != 0) {
-        double dist = calculateDistanceToStation(station);
-        if (dist < minDistance) {
-          minDistance = dist;
-          nearest = station;
-        }
-      }
-    }
-    if (nearest != null) {
+    final stations = displayStations;
+    if (stations.isEmpty) return;
+    final nearest = stations.first;
+    if (nearest.latitude != 0 && nearest.longitude != 0) {
       try {
         MapFunctions().animateToNewPosition(
           LatLng(nearest.latitude, nearest.longitude),
-          newZoom: 15.0,
         );
       } catch (_) {}
     }
   }
 
-  void updateMapMarkers() {
+  void updateMarkersForStations(List<StationMarkerModel> list) {
     MapFunctions().markers_homepage.clear();
     if (MapFunctions().curPos != kPosition) {
       MapFunctions().addMyPositionMarker(
           MapFunctions().curPos, MapFunctions().markers_homepage);
     }
     int index = 0;
-    for (var element in station_marker_list) {
+    for (var element in list) {
       if (element.latitude != 0 && element.longitude != 0) {
         MapFunctions().addMarkerHomePage(
           id: element.id.toString(),
@@ -436,10 +441,11 @@ class HomePageController extends GetxController {
     reload++;
   }
 
+  void updateMapMarkers() {
+    updateMarkersForStations(displayStations);
+  }
+
   assignCardsToMapScreen(List<StationMarkerModel> list) {
-    if (list.isNotEmpty) {
-      station_marker_list.assignAll(list);
-    }
     cards.value = list.map((e) {
       double distance = 0;
       distance = (MapFunctions.distanceBetweenCoordinates(
@@ -449,7 +455,15 @@ class HomePageController extends GetxController {
                   e.longitude) /
               1000.0)
           .toPrecision(2);
-      List amenities = e.amenities;
+      List rawAmenities = e.amenities
+          .where((a) => a != null && a.toString().trim().isNotEmpty)
+          .toList();
+      List displayedAmenities = rawAmenities;
+      int extraAmenitiesCount = 0;
+      if (rawAmenities.length > 4) {
+        extraAmenitiesCount = rawAmenities.length - 3;
+        displayedAmenities = rawAmenities.getRange(0, 3).toList();
+      }
       String available = e.charger_status == 'Online'
           ? kAvailable
           : e.charger_status == 'Busy'
@@ -538,21 +552,46 @@ class HomePageController extends GetxController {
                             color: Color(0xff4F4F4F),
                             fontWeight: FontWeight.bold,
                           ),
-                          amenities.isEmpty
+                          rawAmenities.isEmpty
                               ? SizedBox(height: 17.sp)
                               : Row(
-                                  children: amenities
-                                      .map(
-                                        (e) => Padding(
-                                          padding: EdgeInsets.only(right: 15.w),
-                                          child: AmenityIcon(
-                                            amenity: e.toString(),
-                                            size: 17.sp,
-                                            color: const Color(0xFF8C8C8C),
+                                  children: [
+                                    ...displayedAmenities.map(
+                                      (a) => Padding(
+                                        padding: EdgeInsets.only(right: 8.w),
+                                        child: AmenityIcon(
+                                          amenity: a.toString(),
+                                          size: 17.sp,
+                                          color: const Color(0xFF8C8C8C),
+                                        ),
+                                      ),
+                                    ),
+                                    if (extraAmenitiesCount > 0)
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.w,
+                                          vertical: 2.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF1F5F9),
+                                          borderRadius:
+                                              BorderRadius.circular(6.r),
+                                          border: Border.all(
+                                            color: const Color(0xFFE2E8F0),
+                                            width: 0.8,
                                           ),
                                         ),
-                                      )
-                                      .toList(),
+                                        child: Text(
+                                          '+$extraAmenitiesCount',
+                                          style: TextStyle(
+                                            fontFamily: kFontFamily,
+                                            fontSize: 10.sp,
+                                            fontWeight: FontWeight.w600,
+                                            color: const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                         ],
                       ),
@@ -634,10 +673,28 @@ class HomePageController extends GetxController {
                                   .toList(),
                             ),
                       if (connectorCount > 0)
-                        CustomText(
-                          text: "+$connectorCount",
-                          size: 12.sp,
-                          color: Color(0xFF8C8C8C),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 5.w,
+                            vertical: 2.h,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5.r),
+                            color: const Color(0xFFF1F5F9),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            '+$connectorCount',
+                            style: TextStyle(
+                              fontFamily: kFontFamily,
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
                         ),
                     ],
                   ),

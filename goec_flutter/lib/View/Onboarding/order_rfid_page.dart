@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../Controller/rfid_page_controller.dart';
 import '../../constants.dart';
+import '../Widgets/glass_circle_icon_button.dart';
 
 class OrderRFIDScreen extends GetView<RfidPageController> {
   const OrderRFIDScreen({Key? key}) : super(key: key);
@@ -52,22 +53,8 @@ class OrderRFIDScreen extends GetView<RfidPageController> {
             ),
             child: Row(
               children: [
-                GestureDetector(
+                GlassBackButton(
                   onTap: () => Get.back(),
-                  child: Container(
-                    width: 36.w,
-                    height: 36.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
                 ),
                 SizedBox(width: 14.w),
                 Text(

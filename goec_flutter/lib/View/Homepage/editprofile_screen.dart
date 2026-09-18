@@ -29,18 +29,21 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
                 bottom: false,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                  child: Row(
-                    children: [
-                      const GlassBackButton(),
-                      width(12.w),
-                      CustomText(
-                        text: 'Edit Profile',
-                        fontFamily: kFontFamily,
-                        size: 17.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ],
+                  child: SizedBox(
+                    height: 44.w,
+                    child: Row(
+                      children: [
+                        const GlassBackButton(),
+                        width(12.w),
+                        CustomText(
+                          text: 'Edit Profile',
+                          fontFamily: kFontFamily,
+                          size: 17.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

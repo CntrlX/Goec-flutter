@@ -4,11 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-
+/// Circular glassmorphism icon button matching Figma:
+/// fill #FFFFFF @ 15%, stroke 1.13px #FFFFFF @ 6% (inner), background blur 7.42.
 class GlassCircleIconButton extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
   final double? size;
+
+  static const double _blurSigma = 7.42;
+  static const double _borderWidth = 1.13;
+  static const Color _fill = Color(0x26FFFFFF); // #FFFFFF @ 15%
+  static const Color _stroke = Color(0x0FFFFFFF); // #FFFFFF @ 6%
 
   const GlassCircleIconButton({
     super.key,
@@ -22,21 +28,23 @@ class GlassCircleIconButton extends StatelessWidget {
     final s = size ?? 44.w;
     return ClipOval(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        filter: ImageFilter.blur(sigmaX: _blurSigma, sigmaY: _blurSigma),
         child: Material(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: _fill,
           shape: const CircleBorder(),
           child: InkWell(
             onTap: onTap,
             customBorder: const CircleBorder(),
+            splashColor: Colors.white.withValues(alpha: 0.12),
+            highlightColor: Colors.white.withValues(alpha: 0.06),
             child: Container(
               width: s,
               height: s,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 1.2,
+                  color: _stroke,
+                  width: _borderWidth,
                 ),
               ),
               alignment: Alignment.center,
@@ -49,7 +57,7 @@ class GlassCircleIconButton extends StatelessWidget {
   }
 }
 
-/// Standard chevron back control used on Profile / Edit Profile headers.
+/// Standard chevron back control used on Profile / Edit Profile / Station Detail headers.
 class GlassBackButton extends StatelessWidget {
   final VoidCallback? onTap;
   final double? size;

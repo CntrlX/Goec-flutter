@@ -31,99 +31,121 @@ class ProfileScreen extends GetView<ProfileScreenController> {
               bottom: false,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Back button & Title
-                    Row(
-                      children: [
-                        const GlassBackButton(),
-                        width(12.w),
-                        CustomText(
-                          text: 'Profile',
-                          fontFamily: kFontFamily,
-                          size: 17.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ],
-                    ),
+                child: SizedBox(
+                  height: 44.w,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Back button & Title
+                      Row(
+                        children: [
+                          const GlassBackButton(),
+                          width(12.w),
+                          CustomText(
+                            text: 'Profile',
+                            fontFamily: kFontFamily,
+                            size: 17.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
 
-                    // 3-Dot Popup Menu Button (Figma Node 188:8780)
-                    PopupMenuButton<String>(
-                      icon: Container(
-                        width: 40.w,
-                        height: 40.w,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.more_vert_rounded,
-                          color: Colors.white,
-                          size: 24.sp,
-                        ),
+                      // 3-Dot menu — same 44.w height as GlassBackButton / Edit Profile
+                      Builder(
+                        builder: (btnContext) {
+                          return GlassCircleIconButton(
+                            size: 44.w,
+                            onTap: () async {
+                              final box =
+                                  btnContext.findRenderObject() as RenderBox;
+                              final overlay = Navigator.of(btnContext)
+                                  .overlay!
+                                  .context
+                                  .findRenderObject() as RenderBox;
+                              final topLeft =
+                                  box.localToGlobal(Offset.zero, ancestor: overlay);
+                              final bottomRight = box.localToGlobal(
+                                box.size.bottomRight(Offset.zero),
+                                ancestor: overlay,
+                              );
+                              final value = await showMenu<String>(
+                                context: btnContext,
+                                position: RelativeRect.fromRect(
+                                  Rect.fromPoints(topLeft, bottomRight),
+                                  Offset.zero & overlay.size,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  side: const BorderSide(
+                                    color: Color(0xFFE6EAEF),
+                                    width: 1,
+                                  ),
+                                ),
+                                color: Colors.white,
+                                elevation: 1,
+                                shadowColor:
+                                    Colors.black.withValues(alpha: 0.08),
+                                items: [
+                                  PopupMenuItem<String>(
+                                    value: 'edit',
+                                    height: 44.h,
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/svg/menu_edit.svg',
+                                          width: 18.sp,
+                                          height: 18.sp,
+                                        ),
+                                        width(12.w),
+                                        CustomText(
+                                          text: 'Edit',
+                                          size: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF0049C2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const _FigmaPopupDivider(),
+                                  PopupMenuItem<String>(
+                                    value: 'delete',
+                                    height: 44.h,
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/svg/menu_delete.svg',
+                                          width: 18.sp,
+                                          height: 18.sp,
+                                        ),
+                                        width(12.w),
+                                        CustomText(
+                                          text: 'Delete',
+                                          size: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFFFF1100),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              );
+                              if (value == 'edit') {
+                                Get.toNamed(Routes.editProfilePageRoute);
+                              } else if (value == 'delete') {
+                                _showDeleteConfirmationBottomSheet(context);
+                              }
+                            },
+                            child: Icon(
+                              Icons.more_vert_rounded,
+                              color: Colors.white,
+                              size: 22.sp,
+                            ),
+                          );
+                        },
                       ),
-                      offset: Offset(0, 48.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        side: const BorderSide(
-                          color: Color(0xFFE6EAEF),
-                          width: 1,
-                        ),
-                      ),
-                      color: Colors.white,
-                      elevation: 1,
-                      shadowColor: Colors.black.withValues(alpha: 0.08),
-                      onSelected: (value) {
-                        if (value == 'edit') {
-                          Get.toNamed(Routes.editProfilePageRoute);
-                        } else if (value == 'delete') {
-                          _showDeleteConfirmationBottomSheet(context);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem<String>(
-                          value: 'edit',
-                          height: 44.h,
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/svg/menu_edit.svg',
-                                width: 18.sp,
-                                height: 18.sp,
-                              ),
-                              width(12.w),
-                              CustomText(
-                                text: 'Edit',
-                                size: 14.sp,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF0049C2),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const _FigmaPopupDivider(),
-                        PopupMenuItem<String>(
-                          value: 'delete',
-                          height: 44.h,
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/svg/menu_delete.svg',
-                                width: 18.sp,
-                                height: 18.sp,
-                              ),
-                              width(12.w),
-                              CustomText(
-                                text: 'Delete',
-                                size: 14.sp,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFFFF1100),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

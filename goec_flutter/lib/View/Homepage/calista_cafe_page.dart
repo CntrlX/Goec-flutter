@@ -812,61 +812,54 @@ class CalistaCafeScreen extends GetView<CalistaCafePageController> {
       bottom: 0,
       child: Container(
         decoration: BoxDecoration(
+          color: Colors.white,
           border: const Border(
             top: BorderSide(color: Color(0xFFEBEFEA), width: 1),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 20,
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 16,
               offset: const Offset(0, -4),
             ),
           ],
         ),
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-            child: Container(
-              color: Colors.white.withValues(alpha: 0.95),
-              padding: EdgeInsets.fromLTRB(
-                20.w,
-                selected ? 20.h : 16.h,
-                20.w,
-                (selected ? 24.h : 16.h) + bottomInset,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (selected) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56.h,
-                      child: ElevatedButton(
-                        onPressed: () => _showConfirmSheet(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kBrandPrimaryBlue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100.r),
-                          ),
-                        ),
-                        child: CustomText(
-                          text: controller.selectedChargerCtaLabel,
-                          size: 16.sp,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.4,
-                          color: Colors.white,
-                        ),
-                      ),
+        padding: EdgeInsets.fromLTRB(
+          20.w,
+          selected ? 20.h : 16.h,
+          20.w,
+          (selected ? 24.h : 16.h) + bottomInset,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 56.h,
+                child: ElevatedButton(
+                  onPressed: () => _showConfirmSheet(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kBrandPrimaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100.r),
                     ),
-                    height(8.h),
-                  ],
-                  _reviewsRow(),
-                ],
+                  ),
+                  child: CustomText(
+                    text: controller.selectedChargerCtaLabel,
+                    size: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-            ),
-          ),
+              height(8.h),
+            ],
+            _reviewsRow(),
+          ],
         ),
       ),
     );

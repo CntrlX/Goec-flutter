@@ -100,6 +100,17 @@ class FilterScreenController extends GetxController {
           carouselIndex: index);
       index++;
     });
+    if (list.isNotEmpty) {
+      final firstStation = list.first;
+      if (firstStation.latitude != 0 && firstStation.longitude != 0) {
+        MapFunctions().animateToNewPosition(
+          LatLng(firstStation.latitude, firstStation.longitude),
+        );
+      }
+      try {
+        _controller.carouselController.value.jumpToPage(0);
+      } catch (_) {}
+    }
     _controller.reload++;
     list.clear();
   }

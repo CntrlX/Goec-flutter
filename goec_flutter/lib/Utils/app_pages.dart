@@ -210,7 +210,10 @@ abstract class AppPages {
     GetPage(
       name: Routes.calistaCafePageRoute,
       binding: CalistaCafePageBindings(),
-      page: () => CalistaCafeScreen(),
+      page: () => const CalistaCafeScreen(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
     ),
     GetPage(
       name: Routes.bookASlotPageRoute,
