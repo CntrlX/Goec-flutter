@@ -1,193 +1,298 @@
 import 'dart:math';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-// import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:freelancer_app/View/Widgets/apptext.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freelancer_app/Controller/qr_controller.dart';
+
+import '../../constants.dart';
+import '../../Controller/qr_controller.dart';
+import '../Widgets/customText.dart';
+import '../Widgets/glass_circle_icon_button.dart';
 
 class QrScreen extends GetView<QrController> {
   const QrScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var iskeybort = (MediaQuery.of(context).viewInsets.bottom != 0).obs;
-    return Scaffold(
-      backgroundColor: iskeybort.value == true
-          ? Color.fromARGB(255, 110, 110, 110)
-          : Colors.transparent,
-      body: Obx(() {
-        return SafeArea(
-          child: Stack(children: [
-            // if (!iskeybort.value)
-            MobileScanner(
-              // startDelay: true,
-              errorBuilder: (context, error, child) {
-                controller.cameraController.stop();
-                controller.cameraController.start();
-                return Container();
-              },
-              controller: controller.cameraController,
-              // overlay: Container(
-              //   decoration: ShapeDecoration(shape: QrScannerOverlayShape()),
-              // ),
-              overlayBuilder: (context, constraints) => Container(
-                decoration: ShapeDecoration(shape: QrScannerOverlayShape()),
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.black,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0B1220),
+        body: Obx(() {
+          final ready = controller.hasCameraPermission.value;
+          final checking = controller.checkingPermission.value;
+          final deniedForever = controller.permanentlyDenied.value;
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              if (ready && controller.cameraController != null)
+                MobileScanner(
+                  controller: controller.cameraController!,
+                  errorBuilder: (context, error, child) {
+                    return _CameraBlockedPanel(
+                      permanentlyDenied: deniedForever,
+                      onAllow: () => controller.ensureCameraPermission(),
+                      onOpenSettings: controller.openCameraSettings,
+                    );
+                  },
+                  overlayBuilder: (context, constraints) => Container(
+                    decoration: ShapeDecoration(
+                      shape: QrScannerOverlayShape(
+                        borderColor: Colors.white,
+                        borderWidth: 4,
+                        borderRadius: 16,
+                        borderLength: 36,
+                        cutOutSize: 260.w,
+                        cutOutBottomOffset: 40.h,
+                        overlayColor: const Color(0x990B1220),
+                      ),
+                    ),
+                  ),
+                  onDetect: (capture) {
+                    for (final barcode in capture.barcodes) {
+                      controller.onQrCodeReceived(barcode.rawValue);
+                    }
+                  },
+                )
+              else
+                _CameraBlockedPanel(
+                  permanentlyDenied: deniedForever,
+                  checking: checking,
+                  onAllow: () => controller.ensureCameraPermission(),
+                  onOpenSettings: controller.openCameraSettings,
+                ),
+
+              // Top chrome
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          GlassCircleIconButton(
+                            onTap: () => Get.back(),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: 22.sp,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: CustomText(
+                              text: 'Scan QR',
+                              fontFamily: kFontFamily,
+                              size: 20.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20.h),
+                      if (ready)
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 28.w),
+                          child: CustomText(
+                            text:
+                                'Align the QR code inside the frame to start charging',
+                            fontFamily: kFontFamily,
+                            size: 14.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            textAlign: TextAlign.center,
+                            height: 1.35,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
-              onDetect: (capture) {
-                final List<Barcode> barcodes = capture.barcodes;
-                for (final barcode in barcodes) {
-                  controller.onQrCodeReceived(barcode.rawValue);
-                }
-              },
-            ),
-            // if (!iskeybort.value)
-            // QRView(
-            //   key: controller.qrKey,
-            //   onQRViewCreated: onQRViewCreated,
-            //   // overlay: _overlay(),
-            // ),
-            Positioned(
-                right: 22.w,
-                left: 22.w,
-                top: 15.h,
-                child: Column(
+
+              // Bottom info card
+              Positioned(
+                left: 16.w,
+                right: 16.w,
+                bottom: 16.h + bottomInset,
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 20.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24.r),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text.rich(
+                        TextSpan(
+                          style: TextStyle(
+                            fontFamily: kFontFamily,
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.w700,
+                            height: 1.2,
+                            color: kNeutralPrimary,
+                          ),
+                          children: [
+                            const TextSpan(text: 'Scan to '),
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: ShaderMask(
+                                blendMode: BlendMode.srcIn,
+                                shaderCallback: (bounds) =>
+                                    kOnboardingGradient.createShader(
+                                  Rect.fromLTWH(
+                                    0,
+                                    0,
+                                    bounds.width,
+                                    bounds.height,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Charge',
+                                  style: TextStyle(
+                                    fontFamily: kFontFamily,
+                                    fontSize: 20.sp,
+                                    fontWeight: FontWeight.w700,
+                                    fontStyle: FontStyle.italic,
+                                    height: 1.2,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10.h),
+                      CustomText(
+                        text:
+                            'Scan the QR on the charging station to begin your session instantly.',
+                        fontFamily: kFontFamily,
+                        size: 14.sp,
+                        fontWeight: FontWeight.w400,
+                        color: kNeutralSecondary,
+                        textAlign: TextAlign.center,
+                        height: 1.35,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _CameraBlockedPanel extends StatelessWidget {
+  final bool permanentlyDenied;
+  final bool checking;
+  final VoidCallback onAllow;
+  final VoidCallback onOpenSettings;
+
+  const _CameraBlockedPanel({
+    required this.permanentlyDenied,
+    required this.onAllow,
+    required this.onOpenSettings,
+    this.checking = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFF0B1220),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 32.w),
+          child: checking
+              ? CircularProgressIndicator(
+                  color: kBrandPrimaryBlue,
+                  strokeWidth: 2.5,
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        onTap: () {
-                          controller.cameraController.dispose();
-                          Get.back();
-                        },
+                    Container(
+                      width: 88.w,
+                      height: 88.w,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                      child: Icon(
+                        Icons.qr_code_scanner_rounded,
+                        size: 40.sp,
+                        color: Colors.white,
                       ),
                     ),
+                    SizedBox(height: 20.h),
+                    CustomText(
+                      text: permanentlyDenied
+                          ? 'Camera access is blocked'
+                          : 'Camera access needed',
+                      fontFamily: kFontFamily,
+                      size: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8.h),
+                    CustomText(
+                      text: permanentlyDenied
+                          ? 'Open Settings and allow Camera for GOEC to scan charger QR codes.'
+                          : 'Allow camera access to scan QR codes on charging stations.',
+                      fontFamily: kFontFamily,
+                      size: 14.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withValues(alpha: 0.7),
+                      textAlign: TextAlign.center,
+                      height: 1.4,
+                    ),
+                    SizedBox(height: 24.h),
                     SizedBox(
-                      height: 16,
-                    ),
-                    if (!iskeybort.value)
-                      SizedBox(
-                        width: 203.w,
-                        child: CustomBigText(
-                          text: "Align the QR Code within theFrame to Scan",
+                      width: double.infinity,
+                      height: 52.h,
+                      child: ElevatedButton(
+                        onPressed:
+                            permanentlyDenied ? onOpenSettings : onAllow,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kBrandPrimaryBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100.r),
+                          ),
+                        ),
+                        child: CustomText(
+                          text: permanentlyDenied
+                              ? 'Open Settings'
+                              : 'Allow Camera',
+                          size: 16.sp,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
-                          size: 14.sp,
-                          align: TextAlign.center,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                    ),
                   ],
-                )),
-            Positioned(
-                bottom: iskeybort == true ? 60.h : 34.h,
-                left: 22.w,
-                right: 22.w,
-                child: _otpContainer(context, controller))
-          ]),
-        );
-      }),
+                ),
+        ),
+      ),
     );
   }
-
-  // void onQRViewCreated(QRViewController qrViewController) {
-  //   controller.qrViewController = qrViewController;
-  //   controller.qrViewController!.scannedDataStream.listen((event) {
-  //     // controller.onQrCodeReceived(event);
-  //   });
-  // }
-
-  Widget _otpContainer(BuildContext context, QrController controller) {
-    return Container(
-      width: 347.sw,
-      height: 150.h,
-      padding:
-          EdgeInsets.only(top: 16.h, left: 27.w, right: 27.w, bottom: 25.h),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(30.r)),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        CustomBigText(
-          text: 'Scan Qr to Charge',
-          color: Color(0xff828282),
-          size: 20.sp,
-          fontWeight: FontWeight.bold,
-        ),
-        SizedBox(
-          height: 20.h,
-        ),
-        CustomBigText(
-          text: 'Scan QR on charging station to start charging',
-          color: Color(0xff828282),
-          size: 16.sp,
-          align: TextAlign.center,
-          fontWeight: FontWeight.w500,
-        ),
-        // PinCodeTextField(
-        //     appContext: context,
-        //     length: 5,
-        //     pinTheme: PinTheme(
-        //       fieldHeight: 64.h,
-        //       fieldWidth: 47.w,
-        //       shape: PinCodeFieldShape.box,
-        //       borderRadius: BorderRadius.circular(38.r),
-        //       borderWidth: .805,
-        //       selectedFillColor: Color.fromARGB(255, 65, 65, 65),
-        //       inactiveColor: Color(0xffBDBDBD),
-        //     ),
-        //     onChanged: (valu) {
-        //      valu);
-        //     }),
-        // SizedBox(
-        //   height: 15.h,
-        // ),
-        // Row(
-        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //   children: [
-        //     CustomSmallText(
-        //       text: "Time remining is ${controller.otpTimer.toString()}s",
-        //       size: 12.sp,
-        //       color: Color(0xff828282),
-        //       ontap: () {},
-        //     ),
-        //     CustomSmallText(
-        //       text: "Resend OTP",
-        //       size: 14.sp,
-        //       color: Color(0xff0047C3),
-        //       ontap: () {},
-        //     )
-        //   ],
-        // ),
-        // SizedBox(
-        //   height: 28.h,
-        // ),
-        // MainBtn(
-        //   text: "Proceed",
-        //   onPressed: () {
-        //     /// whatever needed if code is entered.
-        //     appData.qr = '444-t1-1-Q';
-        //     CommonFunctions().createBookingAndCheck(appData.qr);
-        //   },
-        // )
-      ]),
-    );
-  }
-
-  // QrScannerOverlayShape? _overlay() {
-  //   return QrScannerOverlayShape(
-  //     borderColor: Colors.white,
-  //     borderLength: 80,
-  //     borderRadius: 20,
-  //     borderWidth: 10,
-  //     cutOutBottomOffset: 127.h,
-  //     cutOutSize: 247.w,
-  //     overlayColor: Color.fromARGB(183, 0, 0, 0),
-  //   );
-  // }
 }
 
 class QrScannerOverlayShape extends ShapeBorder {
@@ -243,18 +348,9 @@ class QrScannerOverlayShape extends ShapeBorder {
     }
 
     return getLeftTopPath(rect)
-      ..lineTo(
-        rect.right,
-        rect.bottom,
-      )
-      ..lineTo(
-        rect.left,
-        rect.bottom,
-      )
-      ..lineTo(
-        rect.left,
-        rect.top,
-      );
+      ..lineTo(rect.right, rect.bottom)
+      ..lineTo(rect.left, rect.bottom)
+      ..lineTo(rect.left, rect.top);
   }
 
   @override
@@ -298,15 +394,8 @@ class QrScannerOverlayShape extends ShapeBorder {
     );
 
     canvas
-      ..saveLayer(
-        rect,
-        backgroundPaint,
-      )
-      ..drawRect(
-        rect,
-        backgroundPaint,
-      )
-      // Draw top right corner
+      ..saveLayer(rect, backgroundPaint)
+      ..drawRect(rect, backgroundPaint)
       ..drawRRect(
         RRect.fromLTRBAndCorners(
           cutOutRect.right - mBorderLength,
@@ -317,7 +406,6 @@ class QrScannerOverlayShape extends ShapeBorder {
         ),
         borderPaint,
       )
-      // Draw top left corner
       ..drawRRect(
         RRect.fromLTRBAndCorners(
           cutOutRect.left,
@@ -328,7 +416,6 @@ class QrScannerOverlayShape extends ShapeBorder {
         ),
         borderPaint,
       )
-      // Draw bottom right corner
       ..drawRRect(
         RRect.fromLTRBAndCorners(
           cutOutRect.right - mBorderLength,
@@ -339,7 +426,6 @@ class QrScannerOverlayShape extends ShapeBorder {
         ),
         borderPaint,
       )
-      // Draw bottom left corner
       ..drawRRect(
         RRect.fromLTRBAndCorners(
           cutOutRect.left,

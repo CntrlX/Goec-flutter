@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:freelancer_app/Utils/app_datetime.dart';
+import 'package:freelancer_app/Utils/firebase_notifications.dart';
 import 'package:get/get.dart';
 
 import '../../Controller/homepage_controller.dart';
@@ -19,14 +20,40 @@ class NotiPageAlive extends StatefulWidget {
 }
 
 class _NotiPageAliveState extends State<NotiPageAlive>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   @override
   bool get wantKeepAlive => true;
 
   final HomePageController controller = Get.find();
+  final RxBool notificationsEnabled = true.obs;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshNotificationStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshNotificationStatus();
+    }
+  }
+
+  Future<void> _refreshNotificationStatus() async {
+    notificationsEnabled.value = await FireBaseNotification().isGranted();
+  }
 
   String _formatDate(String dateStr) {
-    return AppDateTime.formatTime(dateStr, fallback: dateStr.isNotEmpty ? dateStr : '--');
+    return AppDateTime.formatTime(dateStr,
+        fallback: dateStr.isNotEmpty ? dateStr : '--');
   }
 
   @override
@@ -36,7 +63,6 @@ class _NotiPageAliveState extends State<NotiPageAlive>
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // 1. Blue Top Header (Figma Node 195:10439 / 195:10595)
           Container(
             width: double.infinity,
             color: kBrandPrimaryBlue,
@@ -70,7 +96,56 @@ class _NotiPageAliveState extends State<NotiPageAlive>
             ),
           ),
 
-          // 2. Body: Refreshable List or Empty State
+          Obx(() {
+            if (notificationsEnabled.value) {
+              return const SizedBox.shrink();
+            }
+            return Material(
+              color: const Color(0xFFFFF4E5),
+              child: InkWell(
+                onTap: () async {
+                  await controller.ensureNotificationReady();
+                  await _refreshNotificationStatus();
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.notifications_off_outlined,
+                        color: const Color(0xFFB45309),
+                        size: 22.sp,
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: CustomText(
+                          text:
+                              'Push notifications are off. Tap to enable so you don’t miss charging updates.',
+                          fontFamily: kFontFamily,
+                          size: 13.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF92400E),
+                          height: 1.35,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      CustomText(
+                        text: 'Enable',
+                        fontFamily: kFontFamily,
+                        size: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        color: kBrandPrimaryBlue,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+
           Expanded(
             child: RefreshIndicator(
               displacement: 40,
@@ -78,6 +153,7 @@ class _NotiPageAliveState extends State<NotiPageAlive>
               color: kBrandPrimaryBlue,
               strokeWidth: 3.0,
               onRefresh: () async {
+                await _refreshNotificationStatus();
                 await Get.delete<NotificationScreenController>();
                 await Get.put(NotificationScreenController());
               },
@@ -169,8 +245,6 @@ class _NotiPageAliveState extends State<NotiPageAlive>
                             ),
                             SizedBox(height: 12.h),
                           ],
-
-                          // Header Row: Title & Delete button
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -204,8 +278,6 @@ class _NotiPageAliveState extends State<NotiPageAlive>
                               ),
                             ],
                           ),
-
-                          // Notification Body Description
                           if (item.body.isNotEmpty) ...[
                             SizedBox(height: 8.h),
                             CustomText(
@@ -217,10 +289,7 @@ class _NotiPageAliveState extends State<NotiPageAlive>
                               height: 1.45,
                             ),
                           ],
-
                           SizedBox(height: 12.h),
-
-                          // Time & Status Dot
                           Row(
                             children: [
                               CustomText(

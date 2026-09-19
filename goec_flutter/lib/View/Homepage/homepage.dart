@@ -133,6 +133,9 @@ class _HomePageScreenState extends State<HomePageScreen> {
     if (index == 2 && controller.activeIndex.value != 2) {
       controller.onHomescreen();
     }
+    if (index == 1 && controller.activeIndex.value != 1) {
+      controller.ensureNotificationReady();
+    }
     controller.goToTab(index);
   }
 

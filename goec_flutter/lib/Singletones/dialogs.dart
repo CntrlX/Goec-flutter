@@ -23,7 +23,9 @@ import 'package:freelancer_app/View/Widgets/customText.dart';
 import 'package:freelancer_app/Singletones/common_functions.dart';
 import 'package:freelancer_app/Singletones/map_functions.dart';
 import 'package:freelancer_app/Utils/app_datetime.dart';
+import 'package:freelancer_app/Utils/firebase_notifications.dart';
 import 'package:freelancer_app/View/Charge/charge_transaction_dialog.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Dialogs {
   //make it singleTone class
@@ -32,6 +34,9 @@ class Dialogs {
     return _singleton;
   }
   Dialogs._internal();
+
+  /// Prevents permission sheets from re-opening while OS Settings is launching.
+  bool suppressPermissionReprompt = false;
 
   tariffPopUp(ActiveSessionModel charger, String? stationName) {
     final context = Get.overlayContext ?? Get.context;
@@ -48,7 +53,7 @@ class Dialogs {
       if (Get.currentRoute == Routes.qrScanPageRoute) {
         try {
           QrController qrController = Get.find();
-          qrController.cameraController.start();
+          qrController.cameraController?.start();
         } catch (_) {}
       }
     }
@@ -890,20 +895,209 @@ class Dialogs {
     );
   }
 
-  /// Location permission sheet (Figma 176:7088 / Group 176:7178).
+  /// App location permission sheet (OS permission for GOEC).
   Future<void> showLocationPermissionSheet({
     VoidCallback? onEnabled,
+    bool permanentlyDenied = false,
+  }) {
+    return _showPermissionPromptSheet(
+      accentLabel: 'Location Access',
+      body:
+          'Allow GOEC to use your location to find nearby charging stations, check availability, and get accurate directions.',
+      ctaLabel: permanentlyDenied ? 'Open Settings' : 'Allow Location',
+      artAsset: 'assets/images/location_permission_art.png',
+      onCta: () async {
+        final maps = MapFunctions();
+        final state = await maps.getLocationAccessState();
+        if (state == LocationAccessState.granted) {
+          Get.back();
+          onEnabled?.call();
+          return;
+        }
+        if (state == LocationAccessState.serviceDisabled) {
+          Get.back();
+          await showDeviceLocationSheet(onEnabled: onEnabled);
+          return;
+        }
+
+        // Permanent deny (or sheet already marked as such): app settings only.
+        if (state == LocationAccessState.permissionDeniedForever ||
+            permanentlyDenied) {
+          await _openAppSettingsFromSheet();
+          return;
+        }
+
+        // Soft deny: try the system prompt once.
+        final granted = await maps.checkLocationPermission();
+        if (granted) {
+          Get.back();
+          onEnabled?.call();
+          return;
+        }
+
+        // Still denied (or OS won't show the prompt again) → Settings.
+        await _openAppSettingsFromSheet();
+      },
+    );
+  }
+
+  /// Device GPS / Location Services sheet (system location toggle).
+  Future<void> showDeviceLocationSheet({
+    VoidCallback? onEnabled,
+  }) {
+    return _showPermissionPromptSheet(
+      accentLabel: 'Device Location',
+      body:
+          'Location services are turned off on your phone. Enable them in system settings so we can show nearby chargers and directions.',
+      ctaLabel: 'Turn On Location',
+      artAsset: 'assets/images/location_permission_art.png',
+      onCta: () async {
+        if (await Geolocator.isLocationServiceEnabled()) {
+          Get.back();
+          onEnabled?.call();
+          return;
+        }
+        await _openDeviceLocationSettingsFromSheet();
+      },
+    );
+  }
+
+  /// Opens app settings without dismissing/re-showing the permission sheet.
+  Future<void> _openAppSettingsFromSheet() async {
+    suppressPermissionReprompt = true;
+    final opened = await openAppSettings();
+    if (!opened) {
+      await Geolocator.openAppSettings();
+    }
+  }
+
+  /// Opens device location settings without sheet churn.
+  Future<void> _openDeviceLocationSettingsFromSheet() async {
+    suppressPermissionReprompt = true;
+    await Geolocator.openLocationSettings();
+  }
+
+  /// Camera permission for QR scanning.
+  Future<void> showCameraPermissionSheet({
+    VoidCallback? onEnabled,
+    bool permanentlyDenied = false,
+  }) {
+    return _showPermissionPromptSheet(
+      accentLabel: 'Camera Access',
+      body: permanentlyDenied
+          ? 'Camera access is blocked. Open Settings and allow Camera for GOEC to scan charger QR codes.'
+          : 'Allow camera access to scan QR codes on charging stations and start charging quickly.',
+      ctaLabel: permanentlyDenied ? 'Open Settings' : 'Allow Camera',
+      artIcon: Icons.qr_code_scanner_rounded,
+      onCta: () async {
+        if (permanentlyDenied) {
+          await _openAppSettingsFromSheet();
+          return;
+        }
+        final status = await Permission.camera.request();
+        if (status.isGranted) {
+          Get.back();
+          onEnabled?.call();
+        } else {
+          await _openAppSettingsFromSheet();
+        }
+      },
+    );
+  }
+
+  /// Push notification permission.
+  Future<void> showNotificationPermissionSheet({
+    VoidCallback? onEnabled,
+    bool permanentlyDenied = false,
+  }) {
+    return _showPermissionPromptSheet(
+      accentLabel: 'Notifications',
+      body: permanentlyDenied
+          ? 'Notifications are blocked. Open Settings and allow notifications so you don’t miss charging updates.'
+          : 'Stay updated on charging sessions, payments, and important alerts from GOEC.',
+      ctaLabel: permanentlyDenied ? 'Open Settings' : 'Enable Notifications',
+      artAsset: 'assets/images/notif_empty_img.png',
+      onCta: () async {
+        // Always try the system prompt first unless OS says it's permanent.
+        final forever = permanentlyDenied ||
+            await FireBaseNotification().isPermanentlyDenied();
+        if (forever) {
+          await _openAppSettingsFromSheet();
+          return;
+        }
+        final ok = await FireBaseNotification().requestPermission();
+        if (ok) {
+          Get.back();
+          onEnabled?.call();
+          return;
+        }
+        // Soft deny: keep sheet. Only jump to Settings if now permanent.
+        if (await FireBaseNotification().isPermanentlyDenied()) {
+          await _openAppSettingsFromSheet();
+        }
+      },
+    );
+  }
+
+  Future<void> _showPermissionPromptSheet({
+    required String accentLabel,
+    required String body,
+    required String ctaLabel,
+    required Future<void> Function() onCta,
+    String? artAsset,
+    IconData? artIcon,
   }) async {
     if (Get.isBottomSheetOpen == true) return;
+    if (suppressPermissionReprompt) return;
 
     final context = Get.context;
     if (context == null) return;
 
-    // Figma (393): art 184 overlaps sheet; sheet top radius 36.
     final artSize = 184.w;
     final artOverhang = 109.h;
     final sheetTopInset = 75.h;
     final bottomInset = systemBottomInset(context);
+
+    Widget buildArt() {
+      if (artAsset != null) {
+        return Image.asset(
+          artAsset,
+          width: artSize,
+          height: artSize,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => SizedBox(
+            width: artSize,
+            height: artSize,
+          ),
+        );
+      }
+      // Brand icon badge when no illustration asset (camera, etc.).
+      return Container(
+        width: artSize,
+        height: artSize,
+        alignment: Alignment.center,
+        child: Container(
+          width: 120.w,
+          height: 120.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: kOnboardingGradient,
+            boxShadow: [
+              BoxShadow(
+                color: kBrandPrimaryBlue.withValues(alpha: 0.28),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Icon(
+            artIcon ?? Icons.lock_outline_rounded,
+            size: 52.sp,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
 
     await Get.bottomSheet(
       BackdropFilter(
@@ -912,7 +1106,6 @@ class Dialogs {
           alignment: Alignment.topCenter,
           clipBehavior: Clip.none,
           children: [
-            // White sheet — height grows with content + nav inset
             Padding(
               padding: EdgeInsets.only(top: artOverhang),
               child: Container(
@@ -958,7 +1151,7 @@ class Dialogs {
                                 ),
                               ),
                               child: Text(
-                                'Location Access',
+                                accentLabel,
                                 style: TextStyle(
                                   fontFamily: kFontFamily,
                                   fontSize: 24.sp,
@@ -976,8 +1169,7 @@ class Dialogs {
                     ),
                     height(16.h),
                     CustomText(
-                      text:
-                          'Turn on location to find nearby charging stations, check availability, and get accurate directions.',
+                      text: body,
                       size: 16.sp,
                       fontWeight: FontWeight.w400,
                       color: kNeutralSecondary,
@@ -990,39 +1182,7 @@ class Dialogs {
                       height: 56.h,
                       child: ElevatedButton(
                         onPressed: () async {
-                          final maps = MapFunctions();
-                          final alreadyGranted =
-                              await maps.isLocationPermissionGranted();
-                          if (alreadyGranted) {
-                            Get.back();
-                            onEnabled?.call();
-                            return;
-                          }
-
-                          final serviceOn =
-                              await Geolocator.isLocationServiceEnabled();
-                          var permission =
-                              await Geolocator.checkPermission();
-                          if (!serviceOn ||
-                              permission ==
-                                  LocationPermission.deniedForever) {
-                            await maps.openLocationSettingsIfNeeded();
-                            return;
-                          }
-
-                          final granted =
-                              await maps.checkLocationPermission();
-                          if (granted) {
-                            Get.back();
-                            onEnabled?.call();
-                          } else {
-                            permission =
-                                await Geolocator.checkPermission();
-                            if (permission ==
-                                LocationPermission.deniedForever) {
-                              await maps.openLocationSettingsIfNeeded();
-                            }
-                          }
+                          await onCta();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kBrandPrimaryBlue,
@@ -1037,7 +1197,7 @@ class Dialogs {
                           ),
                         ),
                         child: CustomText(
-                          text: 'Enable Location',
+                          text: ctaLabel,
                           size: 16.sp,
                           fontWeight: FontWeight.w700,
                           height: 24 / 16,
@@ -1050,12 +1210,7 @@ class Dialogs {
                 ),
               ),
             ),
-            Image.asset(
-              'assets/images/location_permission_art.png',
-              width: artSize,
-              height: artSize,
-              fit: BoxFit.contain,
-            ),
+            buildArt(),
           ],
         ),
       ),

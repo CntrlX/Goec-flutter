@@ -177,20 +177,88 @@ class HomePageController extends GetxController {
     await _initImages();
     await FireBaseNotification().init();
 
-    final requestLocation = Get.arguments == 'requestLocation';
-    final hasPermission =
-        await MapFunctions().isLocationPermissionGranted();
-
-    if (requestLocation && !hasPermission) {
-      // Let the homepage paint first, then show the Figma location sheet.
+    final state = await MapFunctions().getLocationAccessState();
+    if (state != LocationAccessState.granted) {
+      // Paint map first, then show the correct sheet (app vs device GPS).
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Dialogs().showLocationPermissionSheet(
-          onEnabled: () => _bootstrapLocation(),
-        );
+        ensureLocationReady(bootstrapOnGrant: true);
       });
-    } else {
-      await _bootstrapLocation();
     }
+    await _bootstrapLocation();
+  }
+
+  /// Shows app-permission or device-GPS sheet when location is not usable.
+  Future<bool> ensureLocationReady({bool bootstrapOnGrant = false}) async {
+    final maps = MapFunctions();
+    final dialogs = Dialogs();
+
+    final state = await maps.getLocationAccessState();
+    if (state == LocationAccessState.granted) {
+      dialogs.suppressPermissionReprompt = false;
+      if (Get.isBottomSheetOpen == true) Get.back();
+      if (bootstrapOnGrant) await _bootstrapLocation();
+      return true;
+    }
+
+    // Don't re-open the sheet while OS Settings is opening / in foreground.
+    if (dialogs.suppressPermissionReprompt) return false;
+    if (Get.isBottomSheetOpen == true) return false;
+
+    void onEnabled() {
+      dialogs.suppressPermissionReprompt = false;
+      if (bootstrapOnGrant) {
+        _bootstrapLocation();
+      } else {
+        onLocationTap();
+      }
+    }
+
+    if (state == LocationAccessState.serviceDisabled) {
+      await dialogs.showDeviceLocationSheet(onEnabled: onEnabled);
+    } else {
+      await dialogs.showLocationPermissionSheet(
+        permanentlyDenied:
+            state == LocationAccessState.permissionDeniedForever,
+        onEnabled: onEnabled,
+      );
+    }
+    return await maps.isLocationPermissionGranted();
+  }
+
+  /// After returning from OS Settings / background while on the map tab.
+  Future<void> onReturnFromBackground() async {
+    final dialogs = Dialogs();
+    final state = await MapFunctions().getLocationAccessState();
+
+    if (state == LocationAccessState.granted) {
+      dialogs.suppressPermissionReprompt = false;
+      if (Get.isBottomSheetOpen == true) Get.back();
+      await _bootstrapLocation();
+      return;
+    }
+
+    final wasOpeningSettings = dialogs.suppressPermissionReprompt;
+    dialogs.suppressPermissionReprompt = false;
+
+    // Sheet still visible under Settings — keep it, don't recreate.
+    if (wasOpeningSettings && Get.isBottomSheetOpen == true) return;
+
+    await ensureLocationReady(bootstrapOnGrant: true);
+  }
+
+  Future<bool> ensureNotificationReady() async {
+    final fcm = FireBaseNotification();
+    if (await fcm.isGranted()) {
+      if (Get.isBottomSheetOpen == true) Get.back();
+      return true;
+    }
+    if (Get.isBottomSheetOpen == true) return false;
+    final forever = await fcm.isPermanentlyDenied();
+    await Dialogs().showNotificationPermissionSheet(
+      permanentlyDenied: forever,
+      onEnabled: () {},
+    );
+    return await fcm.isGranted();
   }
 
   Future<void> _bootstrapLocation() async {
@@ -198,6 +266,7 @@ class HomePageController extends GetxController {
     Position? pos = await MapFunctions().getLastLocation();
     if (pos != null) {
       MapFunctions().curPos = pos;
+      MapFunctions().hasUserLocation = true;
       MapFunctions().initCameraPosition(LatLng(pos.latitude, pos.longitude));
       await getNearestChargestations(pos);
       MapFunctions().addMyPositionMarker(pos, MapFunctions().markers_homepage);
@@ -207,6 +276,7 @@ class HomePageController extends GetxController {
     Position? freshPos = await MapFunctions().getCurrentPosition();
     if (freshPos != null) {
       MapFunctions().curPos = freshPos;
+      MapFunctions().hasUserLocation = true;
       MapFunctions().initCameraPosition(LatLng(freshPos.latitude, freshPos.longitude));
       if (pos == null ||
           Geolocator.distanceBetween(
@@ -219,6 +289,13 @@ class HomePageController extends GetxController {
         await getNearestChargestations(freshPos);
       }
       MapFunctions().addMyPositionMarker(freshPos, MapFunctions().markers_homepage);
+    }
+
+    // 3. No coordinates → country overview (Nepal), not a random station zoom
+    if (pos == null && freshPos == null) {
+      await MapFunctions().showNepalOverview(animate: false);
+      await getNearestChargestations(kPosition, animateToNearest: false);
+      return;
     }
 
     MapFunctions().myPositionListener();
@@ -236,6 +313,16 @@ class HomePageController extends GetxController {
 
   onReload() async {
     CommonFunctions().getUserProfile();
+    final hasLocation = MapFunctions().hasUserLocation &&
+        await MapFunctions().isLocationPermissionGranted();
+
+    if (!hasLocation) {
+      await MapFunctions().showNepalOverview();
+      await getNearestChargestations(kPosition, animateToNearest: false);
+      reload++;
+      return;
+    }
+
     Position? pos = MapFunctions().curPos != kPosition
         ? MapFunctions().curPos
         : (await MapFunctions().getLastLocation() ??
@@ -245,13 +332,17 @@ class HomePageController extends GetxController {
       MapFunctions().curPos = pos;
       await getNearestChargestations(pos);
     } else {
-      await getNearestChargestations(MapFunctions().curPos);
+      await MapFunctions().showNepalOverview();
+      await getNearestChargestations(kPosition, animateToNearest: false);
     }
 
     reload++;
   }
 
   onHomescreen() async {
+    // Re-prompt when user returns to map without usable location.
+    await ensureLocationReady();
+
     final list = await CommonFunctions().getNearestChargstations(Position(
         headingAccuracy: 0,
         altitudeAccuracy: 0,
@@ -286,7 +377,10 @@ class HomePageController extends GetxController {
         "assets/images/myMarker.png", 60);
   }
 
-  getNearestChargestations(Position pos) async {
+  getNearestChargestations(
+    Position pos, {
+    bool animateToNearest = true,
+  }) async {
     MapFunctions().curPos = pos;
     showLoading('Fetching nearby charge stations.\nPlease wait...');
     await getActiveBooking(false, refresh: true);
@@ -302,7 +396,11 @@ class HomePageController extends GetxController {
 
     assignCardsToMapScreen(displayStations);
     updateMapMarkers();
-    focusOnNearestStation();
+    if (animateToNearest && MapFunctions().hasUserLocation) {
+      focusOnNearestStation();
+    } else if (!MapFunctions().hasUserLocation) {
+      await MapFunctions().showNepalOverview();
+    }
     reload++;
   }
 
@@ -422,7 +520,7 @@ class HomePageController extends GetxController {
 
   void updateMarkersForStations(List<StationMarkerModel> list) {
     MapFunctions().markers_homepage.clear();
-    if (MapFunctions().curPos != kPosition) {
+    if (MapFunctions().hasUserLocation) {
       MapFunctions().addMyPositionMarker(
           MapFunctions().curPos, MapFunctions().markers_homepage);
     }
@@ -1051,19 +1149,12 @@ class HomePageController extends GetxController {
 
   onLocationTap() async {
     final maps = MapFunctions();
-
-    if (!await maps.isLocationPermissionGranted()) {
-      Dialogs().showLocationPermissionSheet(
-        onEnabled: () => onLocationTap(),
-      );
-      return;
-    }
+    final ready = await ensureLocationReady();
+    if (!ready) return;
 
     final res = await maps.getCurrentPosition();
     if (res == null) {
-      Dialogs().showLocationPermissionSheet(
-        onEnabled: () => onLocationTap(),
-      );
+      await ensureLocationReady();
       return;
     }
 

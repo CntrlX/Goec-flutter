@@ -8,6 +8,7 @@ import 'package:freelancer_app/Utils/routes.dart';
 import '../Controller/charging_screen_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class FireBaseNotification {
   //make it singleTone class
@@ -18,7 +19,8 @@ class FireBaseNotification {
   }
 
   init() async {
-    await requestPermission();
+    // Do not system-prompt on cold start — the Notifications tab / sheet
+    // triggers the OS dialog so the user sees it in context.
     var initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     var initializationSettingsIOS = DarwinInitializationSettings();
@@ -42,7 +44,59 @@ class FireBaseNotification {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  requestPermission() async {
+  Future<AuthorizationStatus> getAuthorizationStatus() async {
+    final settings = await _fcm.getNotificationSettings();
+    return settings.authorizationStatus;
+  }
+
+  Future<bool> isGranted() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.notification.status;
+      if (status.isGranted || status.isLimited || status.isProvisional) {
+        return true;
+      }
+    }
+    final status = await getAuthorizationStatus();
+    return status == AuthorizationStatus.authorized ||
+        status == AuthorizationStatus.provisional;
+  }
+
+  /// True only when the OS will no longer show the system prompt.
+  Future<bool> isPermanentlyDenied() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.notification.status;
+      // On Android, `denied` still allows another system prompt.
+      // Only `permanentlyDenied` requires Settings.
+      return status.isPermanentlyDenied || status.isRestricted;
+    }
+    final status = await getAuthorizationStatus();
+    // iOS: after the user denies once, only Settings can re-enable.
+    return status == AuthorizationStatus.denied;
+  }
+
+  Future<bool> requestPermission() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.notification.request();
+      if (status.isGranted) {
+        // Keep FCM in sync on Android 13+.
+        try {
+          await _fcm.requestPermission(
+            alert: true,
+            announcement: false,
+            badge: true,
+            carPlay: false,
+            criticalAlert: false,
+            provisional: false,
+            sound: true,
+          );
+        } catch (_) {}
+        kLog('User granted notification permission');
+        return true;
+      }
+      kLog('User declined notification permission: $status');
+      return false;
+    }
+
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
       announcement: false,
@@ -55,11 +109,14 @@ class FireBaseNotification {
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       kLog('User granted permission');
+      return true;
     } else if (settings.authorizationStatus ==
         AuthorizationStatus.provisional) {
       kLog('User granted provisional permission');
+      return true;
     } else {
       kLog('User declined or has not accepted permission');
+      return false;
     }
   }
 
@@ -74,12 +131,7 @@ class FireBaseNotification {
         playSound: true,
         sound: RawResourceAndroidNotificationSound('default'));
 
-    // flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
     /// Create an Android Notification Channel.
-    ///
-    /// We use this channel in the `AndroidManifest.xml` file to override the
-    /// default FCM channel to enable heads up notifications.
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
@@ -119,8 +171,6 @@ class FireBaseNotification {
                   fullScreenIntent: false,
                   ongoing: false,
                   styleInformation: BigTextStyleInformation(''),
-                  // sound: RawResourceAndroidNotificationSound('eshogol_tone'),
-                  // sound: RawResourceAndroidNotificationSound('notification'),
                 ),
               ),
               payload: jsonEncode(message.data),

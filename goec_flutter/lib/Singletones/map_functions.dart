@@ -18,6 +18,14 @@ import 'package:google_directions_api/google_directions_api.dart';
 import '../Controller/homepage_controller.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
+/// Why the map cannot use the device location right now.
+enum LocationAccessState {
+  granted,
+  serviceDisabled,
+  permissionDenied,
+  permissionDeniedForever,
+}
+
 class MapFunctions {
   //make it singleTone class
   static final MapFunctions _singleton = MapFunctions._internal();
@@ -37,6 +45,13 @@ class MapFunctions {
   Position curPos = kPosition;
   RxString curPosName = ''.obs;
   RxString curPosPlaceId = ''.obs;
+
+  /// True only after a real GPS fix (not the Nepal fallback).
+  bool hasUserLocation = false;
+
+  /// Country overview used when permission/GPS is unavailable.
+  static const LatLng nepalCenter = LatLng(28.3949, 84.1240);
+  static const double nepalOverviewZoom = 7.0;
   Set<Marker> markers_homepage = {};
   Set<Marker> markers = {};
   Set<Polyline> polylines = {};
@@ -82,6 +97,26 @@ class MapFunctions {
   void initCameraPosition(LatLng latLng) {
     initialPosition.value =
         CameraPosition(target: latLng, zoom: zoom, bearing: 0);
+  }
+
+  /// Wide Nepal view when we don't have a usable user location.
+  Future<void> showNepalOverview({bool animate = true}) async {
+    hasUserLocation = false;
+    curPos = kPosition;
+    final camera = CameraPosition(
+      target: nepalCenter,
+      zoom: nepalOverviewZoom,
+      bearing: 0,
+    );
+    initialPosition.value = camera;
+    if (!animate) return;
+    try {
+      await controller.animateCamera(CameraUpdate.newCameraPosition(camera));
+    } catch (_) {
+      try {
+        await controller.moveCamera(CameraUpdate.newCameraPosition(camera));
+      } catch (_) {}
+    }
   }
 
   // void setMapStyle(GoogleMapController controller) {
@@ -155,6 +190,24 @@ class MapFunctions {
         permission == LocationPermission.always;
   }
 
+  /// Separates “GPS off” vs “app permission denied” so UI can show the right sheet.
+  Future<LocationAccessState> getLocationAccessState() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return LocationAccessState.serviceDisabled;
+
+    final permission = await Geolocator.checkPermission();
+    switch (permission) {
+      case LocationPermission.whileInUse:
+      case LocationPermission.always:
+        return LocationAccessState.granted;
+      case LocationPermission.deniedForever:
+        return LocationAccessState.permissionDeniedForever;
+      case LocationPermission.denied:
+      case LocationPermission.unableToDetermine:
+        return LocationAccessState.permissionDenied;
+    }
+  }
+
   /// Opens OS settings when permission is permanently denied or location is off.
   Future<void> openLocationSettingsIfNeeded() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -167,6 +220,11 @@ class MapFunctions {
       await Geolocator.openAppSettings();
     }
   }
+
+  Future<void> openAppSettingsForPermission() => Geolocator.openAppSettings();
+
+  Future<void> openDeviceLocationSettings() =>
+      Geolocator.openLocationSettings();
 
   Future<bool> checkLocationPermission() async {
     bool serviceEnabled;
@@ -195,6 +253,7 @@ class MapFunctions {
         final pos = await Geolocator.getLastKnownPosition();
         if (pos != null) {
           curPos = pos;
+          hasUserLocation = true;
           initCameraPosition(LatLng(pos.latitude, pos.longitude));
           getMyLocationNameAndPlaceId();
         }
@@ -212,6 +271,7 @@ class MapFunctions {
         Position? lastKnown = await Geolocator.getLastKnownPosition();
         if (lastKnown != null) {
           curPos = lastKnown;
+          hasUserLocation = true;
           initCameraPosition(LatLng(lastKnown.latitude, lastKnown.longitude));
           getMyLocationNameAndPlaceId();
         }
@@ -223,16 +283,18 @@ class MapFunctions {
         );
         if (current != null) {
           curPos = current;
+          hasUserLocation = true;
           initCameraPosition(LatLng(current.latitude, current.longitude));
           getMyLocationNameAndPlaceId();
           return current;
         }
-        return lastKnown ?? (curPos != kPosition ? curPos : null);
+        return lastKnown ?? (hasUserLocation ? curPos : null);
       } catch (e) {
-        if (curPos != kPosition) return curPos;
+        if (hasUserLocation) return curPos;
         final fallback = await Geolocator.getLastKnownPosition();
         if (fallback != null) {
           curPos = fallback;
+          hasUserLocation = true;
           return fallback;
         }
         return null;

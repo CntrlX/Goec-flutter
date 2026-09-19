@@ -44,6 +44,14 @@ class _MapScreenState extends State<MapScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        controller.activeIndex.value == 2) {
+      controller.onReturnFromBackground();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
     final size = MediaQuery.of(context).size;
@@ -113,7 +121,9 @@ class _MapScreenState extends State<MapScreen>
                 },
                 onMapCreated: (mapCtrl) {
                   MapFunctions().controller = mapCtrl;
-                  if (controller.station_marker_list.isNotEmpty) {
+                  if (!MapFunctions().hasUserLocation) {
+                    MapFunctions().showNepalOverview();
+                  } else if (controller.station_marker_list.isNotEmpty) {
                     controller.focusOnNearestStation();
                   }
                 },
