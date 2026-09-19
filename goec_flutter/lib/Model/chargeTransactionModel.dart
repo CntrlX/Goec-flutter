@@ -12,6 +12,7 @@ class ChargeTransactionModel {
   final double taxAmount;
   final double unitConsumed;
   final int transactionId;
+  final String status;
 
   ChargeTransactionModel({
     required this.image,
@@ -27,7 +28,33 @@ class ChargeTransactionModel {
     required this.taxAmount,
     required this.unitConsumed,
     required this.transactionId,
+    this.status = '',
   });
+
+  /// History list should only show finished sessions (not live/ongoing).
+  bool get isCompleted {
+    final s = status.trim().toLowerCase();
+    if (s.isNotEmpty) {
+      if (s == 'completed' ||
+          s == 'finished' ||
+          s == 'stopped' ||
+          s == 'success') {
+        return true;
+      }
+      if (s == 'ongoing' ||
+          s == 'charging' ||
+          s == 'active' ||
+          s == 'inprogress' ||
+          s == 'in_progress' ||
+          s == 'in-progress' ||
+          s == 'live' ||
+          s == 'started') {
+        return false;
+      }
+    }
+    // Fallback when API omits status: live sessions have no stop time.
+    return chargingStopTime.trim().isNotEmpty;
+  }
 
   factory ChargeTransactionModel.fromJson(Map<String, dynamic> json) {
     double parseDouble(dynamic val) {
@@ -38,13 +65,18 @@ class ChargeTransactionModel {
 
     return ChargeTransactionModel(
       image: json['image'] ?? '',
-      chargingStopTime: json['chargingStopTime'] ?? '',
+      chargingStopTime: json['chargingStopTime'] ??
+          json['ChargingStopTime'] ??
+          json['stopTime'] ??
+          '',
       amount: parseDouble(json['amount']),
       bookingId: json['bookingId'] is int
           ? json['bookingId']
           : int.tryParse(json['bookingId']?.toString() ?? '') ?? -1,
       stationAddress: json['stationAddress'] ?? '',
-      chargingStartTime: json['chargingStartTime'] ?? '',
+      chargingStartTime: json['chargingStartTime'] ??
+          json['startTime'] ??
+          '',
       stationName: json['stationName'] ?? '',
       chargerName: json['chargerName'] ?? '',
       tariff: parseDouble(json['tariff']),
@@ -54,23 +86,11 @@ class ChargeTransactionModel {
       transactionId: json['transactionId'] is int
           ? json['transactionId']
           : int.tryParse(json['transactionId']?.toString() ?? '') ?? 0,
+      status: (json['status'] ??
+              json['chargingStatus'] ??
+              json['transactionStatus'] ??
+              '')
+          .toString(),
     );
   }
-
-  // Map<String, dynamic> toJson() => {
-  //       'image': image,
-  //       "ChargingStopTime": chargingStopTime,
-  //       "amount": amount,
-  //       "chargerName": chargerName,
-  //       "startReading": startReading,
-  //       "bookingId": bookingId,
-  //       "stationAddress": stationAddress,
-  //       "unit": unit,
-  //       "price": price,
-  //       "chargingStartTime": chargingStartTime,
-  //       "stationName": stationName,
-  //       "stopReading": stopReading,
-  //       "chargingPoint": chargingPoint,
-  //       "status": status,
-  //     };
 }

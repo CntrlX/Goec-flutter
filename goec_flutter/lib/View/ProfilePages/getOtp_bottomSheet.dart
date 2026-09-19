@@ -45,8 +45,10 @@ class GetOtpSheet extends StatelessWidget {
         hideLoading();
         if (otp != null) {
           Get.back();
-          Get.bottomSheet(
-              EnterOtpSheet(phoneNumber: textfield.value, autoOtp: otp));
+          Get.bottomSheet(EnterOtpSheet(
+            phoneNumber: textfield.value,
+            autoOtp: otp.isNotEmpty ? otp : null,
+          ));
         } else {
           showError('Failed to login. Try again.');
         }

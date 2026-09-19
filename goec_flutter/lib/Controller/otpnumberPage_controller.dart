@@ -25,7 +25,7 @@ class OtpNumberPageController extends GetxController {
       if (Get.arguments is List) {
         phone = Get.arguments[0] ?? '';
         String? autoOtp = Get.arguments.length > 1 ? Get.arguments[1] : null;
-        if (autoOtp != null) {
+        if (autoOtp != null && autoOtp.isNotEmpty) {
           otpController.text = autoOtp;
           isOtpValid.value = autoOtp.trim().length >= 5;
         }
@@ -68,7 +68,7 @@ class OtpNumberPageController extends GetxController {
     String? otp = await CommonFunctions().sendOtpAndGetOtp(phone);
     hideLoading();
     if (otp != null) {
-      otpController.text = otp;
+      if (otp.isNotEmpty) otpController.text = otp;
       startTimer();
     } else {
       showError('Failed to resend OTP. Try again.');

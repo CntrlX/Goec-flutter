@@ -501,10 +501,11 @@ class CommonFunctions {
 ///////////////////////////////DONE////////////////////////////////
   Future<bool> sendOtp(String username) async {
     logger.i(username);
-    var res = await CallAPI().getData(
+    var res = await CallAPI().postData(
+      {},
       kApi_user_url + 'sendOtp/' + username.trim(),
     );
-    if (res.statusCode == 200 && res.body['status']) {
+    if (res.statusCode == 200 && res.body['status'] == true) {
       logger.d(res.body['otp']);
       return true;
     } else {
@@ -515,12 +516,15 @@ class CommonFunctions {
   // TODO: DELETE IN PRODUCTION - Workaround function to get OTP for auto-fill
   Future<String?> sendOtpAndGetOtp(String username) async {
     logger.i(username);
-    var res = await CallAPI().getData(
+    var res = await CallAPI().postData(
+      {},
       kApi_user_url + 'sendOtp/' + username.trim(),
     );
-    if (res.statusCode == 200 && res.body['status']) {
-      logger.d(res.body['otp']);
-      return res.body['otp']; // Return the OTP for auto-fill
+    if (res.statusCode == 200 && res.body['status'] == true) {
+      // OTP may no longer be returned in the response body.
+      final otp = res.body['otp'];
+      if (otp != null) logger.d(otp);
+      return otp?.toString() ?? '';
     } else {
       return null;
     }
@@ -709,6 +713,8 @@ class CommonFunctions {
   }) async {
     final res = await CallAPI().postData({
       'pageNo': '$pageNo',
+      // OCPP getChargingHistory filters by transaction_status.
+      'status': 'Completed',
       if (startDate.isNotEmpty) 'fromDate': startDate,
       if (endDate.isNotEmpty) 'toDate': endDate,
     }, kApi_ocpp_url + 'chargingHistory/' + appData.userModel.value.id);

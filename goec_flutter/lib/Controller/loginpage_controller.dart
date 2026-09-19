@@ -93,8 +93,13 @@ class LoginPageController extends GetxController {
     //     .sendOtp('+${country.value}${phoneController.text}');
     hideLoading();
     if (otp != null) {
-      Get.toNamed(Routes.enterotppageRoute,
-          arguments: ['+${country.value}${phoneController.text}', otp]);
+      Get.toNamed(
+        Routes.enterotppageRoute,
+        arguments: [
+          '+${country.value}${phoneController.text}',
+          if (otp.isNotEmpty) otp,
+        ],
+      );
     } else {
       showError('Failed to login. Try again.');
     }
